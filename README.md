@@ -12,6 +12,15 @@ This is a [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/c
 - [Figma UI sketch](https://www.figma.com/design/c3SfYBrnrgZhq4fKVJO8F0/UI?node-id=0-1&t=YXvwabq2OHLAqjg8-1)
 - [FigJam board](https://www.figma.com/board/yIjbMS3WQcrM8b9vHYLCl3/Whiteboard?node-id=0-1&t=c8V2wENENyR81JPP-1)
 
+## Development tools
+
+This app is written in Typescript for type-safety. See: [svelte & typescript](https://svelte.dev/docs/typescript)
+
+- We use the default set of tools suggested by create-svelte:
+  - [Vitest](https://vitest.dev/) for unit testing
+  - [Playwright](https://playwright.dev/) for end-to-end testing
+  - [Prettier](https://prettier.io/) for formatting
+  - ESLint for linting
 
 ## Developing
 
