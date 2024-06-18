@@ -1,22 +1,26 @@
-# create-svelte
+# Workforce Planning demo
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+Frontend for a workforce planning tool using the Conjure constraints modelling tool under the hood
 
-## Creating a project
+Written as part of a STARIS project led by Ozgur Akgun
 
-If you're seeing this, you've probably already done this step. Congrats!
+This is a [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte) project
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+## Resources
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+- [Pinterest board](https://www.pinterest.co.uk/hotdogice0/staris-2024-ui/)
+- [Figma UI sketch](https://www.figma.com/design/c3SfYBrnrgZhq4fKVJO8F0/UI?node-id=0-1&t=YXvwabq2OHLAqjg8-1)
+- [FigJam board](https://www.figma.com/board/yIjbMS3WQcrM8b9vHYLCl3/Whiteboard?node-id=0-1&t=c8V2wENENyR81JPP-1)
+
 
 ## Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Install dependencies:
+
+```
+npm install
+```
+Run development server:
 
 ```bash
 npm run dev
@@ -27,7 +31,7 @@ npm run dev -- --open
 
 ## Building
 
-To create a production version of your app:
+To create a production version of the app:
 
 ```bash
 npm run build
