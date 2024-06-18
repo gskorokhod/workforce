@@ -17,10 +17,14 @@ This is a [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/c
 This app is written in Typescript for type-safety. See: [svelte & typescript](https://svelte.dev/docs/typescript)
 
 - We use the default set of tools suggested by create-svelte:
-  - [Vitest](https://vitest.dev/) for unit testing
+  - [Vitest](https://vitest.dev/) for unit testing.
   - [Playwright](https://playwright.dev/) for end-to-end testing
   - [Prettier](https://prettier.io/) for formatting
   - ESLint for linting
+ 
+See:
+
+- [How do I test svelte apps?](https://svelte.dev/docs/faq#how-do-i-test-svelte-apps)
 
 ## Developing
 
