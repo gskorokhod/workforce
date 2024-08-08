@@ -4,79 +4,57 @@
   import * as Tooltip from "$lib/components/ui/tooltip";
   import { ClipboardIcon, PlusIcon } from "lucide-svelte";
   import Icon from "$lib/components/ui/icon/icon.svelte";
+  import Chip from "$lib/components/ui/chip/chip.svelte";
   import { capitalize, getTextColour } from "$lib/utils.js";
+  import { ChipVariant } from "$lib/components/ui/chip";
 
   let task: Task | undefined;
-  let popoverEnabled: boolean = true;
-  let className: string = "";
   let placeholder: string = "No task selected";
-  let variant: "default" | "destructive" = "default";
-  let icon_variant: "default" | "placeholder" | "plus" = "default";
+  let variant: ChipVariant = ChipVariant.default;
+  let popoverEnabled: boolean = true;
   let compact: boolean = true;
+  let className: string = "";
 
   // noinspection ReservedWordAsName
   export { task, variant, icon_variant, compact, popoverEnabled, placeholder, className as class };
 </script>
 
 <Tooltip.Root>
-  {#if task === undefined}
-    <Tooltip.Trigger class="w-fit {className}">
+  <Tooltip.Trigger>
+    {#if task}
       {#if compact}
-        <div
-          class="group/skill relative h-6 w-6 overflow-hidden rounded-full outline-none outline-offset-0 transition-all {variant === 'destructive' ? 'text-destructive hover:outline-destructive bg-red-100' : 'text-muted-foreground hover:text-accent-foreground hover:outline-accent-foreground bg-muted'}">
-          {#if icon_variant === "default"}
-            <ClipboardIcon
-              class="absolute top-0 left-0 h-6 w-6 opacity-100 group-hover/skill:opacity-0 transition-all" />
-            <PlusIcon class="absolute top-0 left-0 h-6 w-6 opacity-0 group-hover/skill:opacity-100 transition-all" />
-          {:else if icon_variant === "placeholder"}
-            <ClipboardIcon class="absolute top-0 left-0 h-6 w-6 opacity-100 transition-all" />
-          {:else if icon_variant === "plus"}
-            <PlusIcon class="absolute top-0 left-0 h-6 w-6 opacity-100 transition-all" />
-          {/if}
-        </div>
-      {:else}
-        <div
-          class="group/skill h-fit w-max flex flex-row items-center justify-start gap-2 pr-3 px-2 py-1 rounded-full outline-none outline-offset-0 transition-all {variant === 'destructive' ? 'text-destructive hover:outline-destructive bg-red-100' : 'text-muted-foreground hover:text-accent-foreground hover:outline-accent-foreground bg-muted'}">
-          <div class="relative h-5 w-5 overflow-hidden rounded-full">
-            {#if icon_variant === "default"}
-              <ClipboardIcon
-                class="absolute top-0 left-0 h-5 w-5 opacity-100 group-hover/skill:opacity-0 transition-all" />
-              <PlusIcon class="absolute top-0 left-0 h-5 w-5 opacity-0 group-hover/skill:opacity-100 transition-all" />
-            {:else if icon_variant === "placeholder"}
-              <ClipboardIcon class="absolute top-0 left-0 h-5 w-5 opacity-100 transition-all" />
-            {:else if icon_variant === "plus"}
-              <PlusIcon class="absolute top-0 left-0 h-5 w-5 opacity-100 transition-all" />
-            {/if}
-          </div>
-          {capitalize(placeholder)}
-        </div>
-      {/if}
-    </Tooltip.Trigger>
-    {#if popoverEnabled}
-      <Tooltip.Content>
-        {placeholder}
-      </Tooltip.Content>
-    {/if}
-  {:else}
-    <Tooltip.Trigger class="w-fit {className}">
-      {#if compact}
-        <Icon icon={task.icon}
-              class="h-6 w-6 rounded-full bg-accent outline-none hover:outline-accent-foreground transition-all" />
-      {:else}
-        <div
-          class="flex flex-row items-center justify-start w-max h-fit gap-2 pr-3 px-2 py-1 rounded-full outline-none outline-offset-0 transition-all hover:outline-accent-foreground"
-          style={task.icon.color ? `background-color: ${task.icon.color}; color: ${getTextColour(task.icon.color)}` : ""}>
-          <Icon icon={task.icon} variant="monochrome"
-                class="h-5 w-5 rounded-full bg-transparent" />
+        <Chip variant={ChipVariant.colorOutline} color={task.icon.color} class={className}>
+          <Icon icon={task.icon} slot="icon" variant="monochrome" class="w-5 h-5" />
+        </Chip>
+      {:else }
+        <Chip variant={ChipVariant.colorSolid} color={task.icon.color} class={className}>
+          <Icon icon={task.icon} slot="icon" variant="monochrome" class="w-5 h-5" />
           {capitalize(task.name)}
-        </div>
+        </Chip>
       {/if}
-    </Tooltip.Trigger>
-    {#if popoverEnabled}
-      <Tooltip.Content class="max-w-[250px] overflow-visible">
-        <h3 class="font-semibold mb-1">{capitalize(task.name)}</h3>
-        <p class="text-muted-foreground">{task.description}</p>
-      </Tooltip.Content>
+    {:else}
+      {#if compact}
+        <Chip class={className} {variant}>
+          <ClipboardIcon slot="icon" />
+          <PlusIcon slot="hover_icon" />
+        </Chip>
+      {:else}
+        <Chip class={className} {variant}>
+          <ClipboardIcon slot="icon" />
+          <PlusIcon slot="hover_icon" />
+          {capitalize(placeholder)}
+        </Chip>
+      {/if}
     {/if}
+  </Tooltip.Trigger>
+  {#if popoverEnabled}
+    <Tooltip.Content class="max-w-[250px]">
+      {#if task}
+        <h3>{capitalize(task.name)}</h3>
+        <p class="text-muted-foreground">{task.description}</p>
+      {:else}
+        {placeholder}
+      {/if}
+    </Tooltip.Content>
   {/if}
 </Tooltip.Root>
