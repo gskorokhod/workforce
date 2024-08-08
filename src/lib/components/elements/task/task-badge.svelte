@@ -5,7 +5,7 @@
   import { ClipboardIcon, PlusIcon } from "lucide-svelte";
   import Icon from "$lib/components/ui/icon/icon.svelte";
   import Chip from "$lib/components/ui/chip/chip.svelte";
-  import { capitalize, getTextColour } from "$lib/utils.js";
+  import { capitalize } from "$lib/utils.js";
   import { ChipVariant } from "$lib/components/ui/chip";
 
   let task: Task | undefined;
@@ -16,7 +16,7 @@
   let className: string = "";
 
   // noinspection ReservedWordAsName
-  export { task, variant, icon_variant, compact, popoverEnabled, placeholder, className as class };
+  export { task, variant, compact, popoverEnabled, placeholder, className as class };
 </script>
 
 <Tooltip.Root>
