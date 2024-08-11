@@ -16,15 +16,17 @@
   import ConstraintsList from "$lib/components/elements/constraint/constraints-for-list.svelte";
   import type { AnyPlugins } from "svelte-headless-table/plugins";
   import type { ColumnInitializer } from "$lib/components/elements/data-tables/core";
+  import RowActions from "$lib/components/elements/data-tables/lib/row-actions.svelte";
 
   let data: ReadOrWritable<Task[]> = tasks;
+  let actions: Map<string, (item: Task) => void> = new Map();
   let filterValue: Writable<string> = writable("");
   let sortKeys: WritableSortKeys = createSortKeysStore([]);
   let hideForId: { [key: string]: boolean } = {};
   let flatColumns: FlatColumn<Task, AnyPlugins, string>[];
   let className: string = "";
 
-  const columnInitializers: ColumnInitializer[] = [
+  let columnInitializers: ColumnInitializer[] = [
     {
       id: "icon",
       accessor: (row: Task) => row,
@@ -82,6 +84,23 @@
       }
     }
   ];
+
+  if (actions.size > 0) {
+    columnInitializers.push({
+      id: "actions",
+      accessor: (row: Task) => row,
+      header: "Actions",
+      cell: (cell: DataBodyCell<unknown>) => createRender(RowActions, { item: cell.value as Task, actions }),
+      plugins: {
+        tableFilter: {
+          disable: true
+        },
+        sort: {
+          disable: true
+        }
+      }
+    });
+  }
 
   export { data, filterValue, sortKeys, hideForId, flatColumns, className as class };
 </script>

@@ -6,20 +6,21 @@
   import SkillsList from "$lib/components/elements/skill/skills-list.svelte";
   import ConstraintsList from "$lib/components/elements/constraint/constraints-for-list.svelte";
   import DataTable from "$lib/components/elements/data-tables/core/data-table.svelte";
-  import RowActionsEmployee from "$lib/components/elements/data-tables/lib/row-actions/row-actions-employee.svelte";
+  import RowActions from "$lib/components/elements/data-tables/lib/row-actions.svelte";
   import { writable, type Writable } from "svelte/store";
   import { type AnyPlugins, createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
   import type { ColumnInitializer } from "$lib/components/elements/data-tables/core";
   import { getAgeForPerson } from "$lib/types/person.ts";
 
   let data: ReadOrWritable<Person[]> = employees;
+  let actions: Map<string, (item: Person) => void> = new Map();
   let filterValue: Writable<string> = writable("");
   let sortKeys: WritableSortKeys = createSortKeysStore([]);
   let hideForId: { [key: string]: boolean } = {};
   let flatColumns: FlatColumn<Person, AnyPlugins, string>[];
   let className: string = "";
 
-  const columnInitializers: ColumnInitializer[] = [
+  let columnInitializers: ColumnInitializer[] = [
     {
       id: "avatar",
       accessor: (row: Person) => row,
@@ -78,13 +79,15 @@
           getSortValue: (value: Person) => getConstraintsFor(value).map((constraint) => constraint.type).join(" ")
         }
       }
-    },
-    {
+    }
+  ];
+
+  if (actions.size > 0) {
+    columnInitializers.push({
+      id: "actions",
       accessor: (row: Person) => row,
       header: "Actions",
-      cell: (cell: DataBodyCell<unknown>) => {
-        return createRender(RowActionsEmployee, { person: cell.value as Person });
-      },
+      cell: (cell: DataBodyCell<unknown>) => createRender(RowActions, { item: cell.value as Person, actions }),
       plugins: {
         tableFilter: {
           disable: true
@@ -93,10 +96,10 @@
           disable: true
         }
       }
-    }
-  ];
+    });
+  }
 
-  export { data, filterValue, sortKeys, hideForId, flatColumns, className as class };
+  export { data, actions, filterValue, sortKeys, hideForId, flatColumns, className as class };
 </script>
 
 <DataTable {data} {columnInitializers} bind:filterValue bind:sortKeys bind:hideForId bind:flatColumns

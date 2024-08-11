@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Person, Skill, Task } from "$lib/types";
+  import type { Location, Person, Skill, Task } from "$lib/types";
   import { skills } from "$lib/stores.ts";
   import { createRender, DataBodyCell, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import SkillBadge from "$lib/components/elements/skill/skill-badge.svelte";
@@ -12,15 +12,17 @@
   import type { AnyPlugins } from "svelte-headless-table/plugins";
   import type { ColumnInitializer } from "$lib/components/elements/data-tables/core";
   import { getPeopleWithSkill, getTasksWithSkill } from "$lib/types/skill.ts";
+  import RowActions from "$lib/components/elements/data-tables/lib/row-actions.svelte";
 
   let data: ReadOrWritable<Skill[]> = skills;
+  let actions: Map<string, (item: Skill) => void> = new Map();
   let filterValue: Writable<string> = writable("");
   let sortKeys: WritableSortKeys = createSortKeysStore([]);
   let hideForId: { [key: string]: boolean } = {};
   let flatColumns: FlatColumn<Skill, AnyPlugins, string>[];
   let className: string = "";
 
-  const columnInitializers: ColumnInitializer[] = [
+  let columnInitializers: ColumnInitializer[] = [
     {
       id: "icon",
       accessor: (row: Skill) => row,
@@ -78,6 +80,24 @@
       }
     }
   ];
+
+  if (actions.size > 0) {
+    columnInitializers.push({
+      id: "actions",
+      accessor: (row: Skill) => row,
+      header: "Actions",
+      cell: (cell: DataBodyCell<unknown>) => createRender(RowActions, { item: cell.value as Skill, actions }),
+      plugins: {
+        tableFilter: {
+          disable: true
+        },
+        sort: {
+          disable: true
+        }
+      }
+    });
+  }
+
 
   export { data, filterValue, sortKeys, hideForId, flatColumns, className as class };
 </script>

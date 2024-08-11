@@ -166,6 +166,7 @@ export function getInitials(name: string): string {
 
   return name
     .split(" ")
+    .filter((s) => s.length > 0)
     .map((n) => n[0].toUpperCase())
     .join("");
 }

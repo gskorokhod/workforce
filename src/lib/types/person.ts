@@ -32,3 +32,13 @@ export function getAgeForPerson(person: Person): number {
   const today = new Date();
   return today.getFullYear() - person.birthday.getFullYear();
 }
+
+export function defaultPersonProps(): PersonProps {
+  return {
+    name: "",
+    job_title: "",
+    skills: [],
+    image_url: "",
+    birthday: new Date()
+  };
+}
