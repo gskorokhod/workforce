@@ -27,10 +27,21 @@ export function createSkill(props: SkillProps): Skill {
 
 export function getPeopleWithSkill(skill: Skill): Person[] {
   const employees_list = get(employees);
-  return employees_list.filter((p) => p.skills.map((s: Skill) => s.uuid).includes(skill.uuid));
+  return employees_list.filter((p) => p.skill_uuids.includes(skill.uuid));
 }
 
 export function getTasksWithSkill(skill: Skill): Task[] {
   const tasks_list = get(tasks);
   return tasks_list.filter((t) => t.required_skills.map((s: Skill) => s.uuid).includes(skill.uuid));
+}
+
+export function defaultSkillProps(): SkillProps {
+  return {
+    name: "",
+    description: "",
+    icon: {
+      icon: "",
+      color: undefined
+    }
+  };
 }

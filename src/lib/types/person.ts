@@ -2,13 +2,14 @@ import { getInitials } from "$lib/utils.ts";
 import type { Skill } from "$lib/types/skill.ts";
 import { v4 as uuidv4 } from "uuid";
 import { Type } from "$lib/types/index.ts";
+import { getSkill } from "$lib/stores.ts";
 
 export interface PersonProps {
   name: string;
   job_title: string;
   image_url: string;
   birthday: Date;
-  skills: Skill[];
+  skill_uuids: string[];
 }
 
 export interface Person extends PersonProps {
@@ -33,11 +34,15 @@ export function getAgeForPerson(person: Person): number {
   return today.getFullYear() - person.birthday.getFullYear();
 }
 
+export function getSkillsForPerson(person: Person): Skill[] {
+  return person.skill_uuids.map((uuid) => getSkill(uuid)).filter((s) => s !== undefined);
+}
+
 export function defaultPersonProps(): PersonProps {
   return {
     name: "",
     job_title: "",
-    skills: [],
+    skill_uuids: [],
     image_url: "",
     birthday: new Date()
   };

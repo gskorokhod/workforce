@@ -10,7 +10,7 @@
   import { writable, type Writable } from "svelte/store";
   import { type AnyPlugins, createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
   import type { ColumnInitializer } from "$lib/components/elements/data-tables/core";
-  import { getAgeForPerson } from "$lib/types/person.ts";
+  import { getAgeForPerson, getSkillsForPerson } from "$lib/types/person.ts";
 
   let data: ReadOrWritable<Person[]> = employees;
   let actions: Map<string, (item: Person) => void> = new Map();
@@ -52,7 +52,7 @@
     },
     {
       id: "skills",
-      accessor: (row: Person) => row.skills,
+      accessor: (row: Person) => getSkillsForPerson(row),
       header: "Skills",
       cell: (cell: DataBodyCell<unknown>) => createRender(SkillsList, { skills: cell.value as Skill[] }),
       plugins: {

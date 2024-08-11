@@ -12,7 +12,7 @@
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
   import type { AnyPlugins } from "svelte-headless-table/plugins";
   import { Button } from "$lib/components/ui/button";
-  import { UserPlusIcon } from "lucide-svelte";
+  import { PlusIcon } from "lucide-svelte";
   import { createPerson, defaultPersonProps } from "$lib/types/person.ts";
 
   let data: ReadOrWritable<Person[]> = employees;
@@ -87,7 +87,7 @@
       <slot name="start" />
       <Button size="icon_xl" variant="ghost" on:click={handleAdd}
               class="text-muted-foreground hover:text-accent-foreground">
-        <UserPlusIcon />
+        <PlusIcon />
       </Button>
     </svelte:fragment>
 

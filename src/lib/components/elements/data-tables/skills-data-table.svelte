@@ -99,7 +99,7 @@
   }
 
 
-  export { data, filterValue, sortKeys, hideForId, flatColumns, className as class };
+  export { data, actions, filterValue, sortKeys, hideForId, flatColumns, className as class };
 </script>
 
 <DataTable {data} {columnInitializers} bind:filterValue bind:sortKeys bind:hideForId bind:flatColumns

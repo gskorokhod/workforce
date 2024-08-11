@@ -158,7 +158,7 @@ export function generatePerson(): Person {
     job_title: faker.person.jobTitle(),
     image_url: faker.image.avatar(),
     birthday: faker.date.birthdate(),
-    skills: sampleSkills(faker.number.int({ min: 1, max: 3 }))
+    skill_uuids: sampleSkills(faker.number.int({ min: 1, max: 3 })).map((s) => s.uuid)
   });
 }
 

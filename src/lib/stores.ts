@@ -19,6 +19,10 @@ export function getConstraintsFor(item: ConstraintOperand): Constraint[] {
   return get(constraints).filter((c) => appliesTo(c, item));
 }
 
+export function getSkill(uuid: string) {
+  return get(skills).find((s) => s.uuid === uuid);
+}
+
 export function deleteEmployee(employee: Person) {
   tasks.update((list) =>
     list.map((t) => {
@@ -28,4 +32,20 @@ export function deleteEmployee(employee: Person) {
   );
   constraints.update((list) => list.filter((c) => !appliesTo(c, employee)));
   employees.update((list) => list.filter((e) => e.uuid !== employee.uuid));
+}
+
+export function deleteSkill(skill: Skill) {
+  employees.update((list) =>
+    list.map((p) => {
+      p.skill_uuids = p.skill_uuids.filter((s) => s !== skill.uuid);
+      return p;
+    })
+  );
+  tasks.update((list) =>
+    list.map((t) => {
+      t.required_skills = t.required_skills.filter((s) => s.uuid !== skill.uuid);
+      return t;
+    })
+  );
+  skills.update((list) => list.filter((s) => s.uuid !== skill.uuid));
 }

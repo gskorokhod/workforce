@@ -11,7 +11,7 @@
   import Chip from "$lib/components/ui/chip/chip.svelte";
   import type { ComboboxItem } from "$lib/components/ui/combobox";
   import { employees, tasks } from "$lib/stores.ts";
-  import type { Task } from "$lib/types";
+  import type { PersonProps, Task } from "$lib/types";
   import { skills } from "$lib/stores.ts";
   import { generateSkill, samplePerson } from "$lib/testing.ts";
   import { Button } from "$lib/components/ui/button";
@@ -19,6 +19,7 @@
   import { GraduationCapIcon, PaletteIcon, XIcon } from "lucide-svelte";
   import { ChipSize, ChipVariant } from "$lib/components/ui/chip";
   import { faker } from "@faker-js/faker";
+  import { writable } from "svelte/store";
 
   const schedules: ComboboxItem[] = [
     { label: "Schedule 1", value: "schedule1" },
@@ -31,6 +32,8 @@
     }
   });
   let skill = generateSkill();
+  let person = samplePerson();
+  let personProps = writable(person as PersonProps);
   let color = faker.color.rgb();
 </script>
 
@@ -113,7 +116,7 @@
     </section>
     <section class="w-full flex flex-col gap-3">
       <h2 class="text-xl">Person edit dialog</h2>
-      <PersonEditDialog person={samplePerson()}>
+      <PersonEditDialog bind:personProps>
         <Button>
           Edit employee
         </Button>
