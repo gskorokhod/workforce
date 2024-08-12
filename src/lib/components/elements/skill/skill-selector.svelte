@@ -7,14 +7,14 @@
   import SkillBadge from "$lib/components/elements/skill/skill-badge.svelte";
   import { capitalize, cn } from "$lib/utils.js";
   import { tick } from "svelte";
-  import { skills } from "$lib/stores.ts";
+  import { getSkill, skills } from "$lib/stores.ts";
   import type { Skill } from "$lib/types";
   import { ChipVariant } from "$lib/components/ui/chip";
 
   type Filter = (s: Skill | undefined) => boolean;
-  type OnChange = (old_value: Skill | undefined, new_value: Skill | undefined) => Skill | undefined;
+  type OnChange = (old_value: string | undefined, new_value: string | undefined) => string | undefined;
 
-  let skill: Skill | undefined = undefined;
+  let skill_uuid: string | undefined = undefined;
   let options: Skill[] = $skills;
   let variant: ChipVariant = ChipVariant.default;
   let placeholder: string = "Choose a skill";
@@ -38,7 +38,7 @@
   }
 
   // noinspection ReservedWordAsName
-  export { skill, variant, compact, placeholder, options, filter, onChange, className as class };
+  export { skill_uuid, variant, compact, placeholder, options, filter, onChange, className as class };
 </script>
 
 <Popover.Root bind:open let:ids>
@@ -50,7 +50,7 @@
       aria-expanded={open}
       class="w-fit h-fit !p-0 rounded-full overflow-visible"
     >
-      <SkillBadge {skill} {variant} {placeholder} {compact} />
+      <SkillBadge skill={getSkill(skill_uuid)} {variant} {placeholder} {compact} />
     </Button>
   </Popover.Trigger>
   <Popover.Content class="w-[200px] p-0">
@@ -62,7 +62,7 @@
           <Command.Item
             value="{option.name};{option.uuid}"
             onSelect={() => {
-              skill = onChange(skill, option);
+              skill_uuid = onChange(skill_uuid, option.uuid);
               closeAndFocusTrigger(ids.trigger);
             }}
             class="flex flex-row items-center justify-start gap-2"
@@ -72,7 +72,7 @@
             <Check
               class={cn(
                 "ml-auto h-6 w-6",
-                skill?.uuid !== option.uuid && "text-transparent"
+                skill_uuid !== option.uuid && "text-transparent"
               )}
             />
           </Command.Item>
@@ -80,7 +80,7 @@
         <Command.Item
           value="unassigned"
           onSelect={() => {
-              skill = onChange(skill, undefined);
+              skill_uuid = onChange(skill_uuid, undefined);
               closeAndFocusTrigger(ids.trigger);
             }}
           class="flex flex-row items-center justify-start gap-2"
@@ -90,7 +90,7 @@
           <Check
             class={cn(
                 "ml-auto h-6 w-6",
-                skill !== undefined && "text-transparent"
+                skill_uuid !== undefined && "text-transparent"
               )}
           />
         </Command.Item>

@@ -25,16 +25,16 @@ export function createPerson(props: PersonProps): Person {
   };
 }
 
-export function getInitialsForPerson(person: Person): string {
+export function getInitialsForPerson(person: Person | PersonProps): string {
   return getInitials(person.name);
 }
 
-export function getAgeForPerson(person: Person): number {
+export function getAgeForPerson(person: Person | PersonProps): number {
   const today = new Date();
   return today.getFullYear() - person.birthday.getFullYear();
 }
 
-export function getSkillsForPerson(person: Person): Skill[] {
+export function getSkillsForPerson(person: Person | PersonProps): Skill[] {
   return person.skill_uuids.map((uuid) => getSkill(uuid)).filter((s) => s !== undefined);
 }
 

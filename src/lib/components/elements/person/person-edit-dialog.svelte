@@ -10,8 +10,10 @@
   import * as Avatar from "$lib/components/ui/avatar/index.js";
   import type { PersonProps } from "$lib/types";
   import { UserCircleIcon } from "lucide-svelte";
-  import { getInitials } from "$lib/utils.ts";
+  import { getInitials, toCalendarDate } from "$lib/utils.ts";
   import type { Writable } from "svelte/store";
+  import { DatePicker } from "$lib/components/ui/date-picker";
+  import { getLocalTimeZone } from "@internationalized/date";
 
   let open: boolean = false;
   let personProps: Writable<PersonProps>;
@@ -59,8 +61,18 @@
         </div>
       </div>
       <section>
-        <h2 class="text-lg font-semibold">Skills:</h2>
-        <SkillsSelectorList bind:skills={$personProps.skills} compact={false} class="mt-2 w-full" />
+        <h2 class="font-semibold mb-1.5">Date of birth:</h2>
+        <DatePicker value={toCalendarDate($personProps.birthday)} onChange={(dv) => personProps.update((p) => {
+          if (dv === undefined) return p;
+          return {
+            ...p,
+            birthday: dv.toDate(getLocalTimeZone())
+          }
+        })} class="w-full" />
+      </section>
+      <section>
+        <h2 class="font-semibold">Skills:</h2>
+        <SkillsSelectorList bind:skill_uuids={$personProps.skill_uuids} compact={false} class="mt-2 w-full" />
       </section>
     </div>
     <Dialog.Footer>

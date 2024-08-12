@@ -19,7 +19,8 @@ export function getConstraintsFor(item: ConstraintOperand): Constraint[] {
   return get(constraints).filter((c) => appliesTo(c, item));
 }
 
-export function getSkill(uuid: string) {
+export function getSkill(uuid: string | undefined) {
+  if (uuid === undefined) return undefined;
   return get(skills).find((s) => s.uuid === uuid);
 }
 
