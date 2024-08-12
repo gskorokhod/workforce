@@ -6,6 +6,7 @@
   import { ClockIcon, MapPinIcon } from "lucide-svelte";
   import { capitalize } from "$lib/utils.ts";
   import { fmtDateTime } from "$lib/utils.js";
+  import { getTasksForShift } from "$lib/types/shift.ts";
 
   let shift: Shift;
 
@@ -28,7 +29,7 @@
       {shift.location.name}
     </div>
     <div class="flex flex-col items-stretch justify-start gap-3 w-full mt-4">
-      {#each shift.tasks as task}
+      {#each getTasksForShift(shift) as task}
         <Task task={task} />
       {/each}
     </div>

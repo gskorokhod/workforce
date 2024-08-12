@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Location, Person, Skill, Task } from "$lib/types";
+  import type { Person, Skill, Task } from "$lib/types";
   import { skills } from "$lib/stores.ts";
   import { createRender, DataBodyCell, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import SkillBadge from "$lib/components/elements/skill/skill-badge.svelte";

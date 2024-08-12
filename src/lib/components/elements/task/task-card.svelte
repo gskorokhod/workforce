@@ -3,9 +3,13 @@
   import PeopleSelectorList from "$lib/components/elements/person/people-selector-list.svelte";
   import { capitalize } from "$lib/utils.ts";
   import SkillsList from "$lib/components/elements/skill/skills-list.svelte";
+  import { getAssignedPeopleForTask, getRequiredSkillsForTask } from "$lib/types/task.ts";
 
   let task: Task;
   let compact: boolean = false;
+
+  $: required_skills = getRequiredSkillsForTask(task);
+  $: people = getAssignedPeopleForTask(task);
 
   export { task, compact };
 </script>
@@ -18,11 +22,11 @@
 
   {#if !compact}
     <p class="ml-1 mb-3 text-muted-foreground">{task.description}</p>
-    {#if task.required_skills.length > 0}
-      <SkillsList skills={task.required_skills} compact={false} class="mb-4" />
+    {#if required_skills.length > 0}
+      <SkillsList skills={required_skills} compact={false} class="mb-4" />
     {/if}
   {/if}
 
-  <PeopleSelectorList people={task.people} min_people={task.min_people} max_people={task.max_people}
+  <PeopleSelectorList people={people} min_people={task.min_people} max_people={task.max_people}
                       class="mt-3 ml-0.5" />
 </div>

@@ -1,8 +1,9 @@
-import type { Task } from "$lib/types/task.ts";
+import { getAssignedPeopleForTask, type Task } from "$lib/types/task.ts";
 import type { Person } from "$lib/types/person.ts";
 import type { Location } from "$lib/types/location.ts";
 import { v4 as uuidv4 } from "uuid";
 import { Type } from "$lib/types/index.ts";
+import { getTask } from "$lib/stores.ts";
 
 export interface ShiftProps {
   name: string;
@@ -10,7 +11,7 @@ export interface ShiftProps {
   start_date_time: Date;
   end_date_time: Date;
   location: Location;
-  tasks: Task[];
+  task_uuids: string[];
 }
 
 export interface Shift extends ShiftProps {
@@ -26,6 +27,10 @@ export function createShift(props: ShiftProps): Shift {
   };
 }
 
+export function getTasksForShift(shift: Shift): Task[] {
+  return shift.task_uuids.map((uuid) => getTask(uuid)).filter((t) => t !== undefined);
+}
+
 export function getPeopleForShift(shift: Shift): Person[] {
-  return [...new Set(shift.tasks.flatMap((t) => t.people))];
+  return [...new Set(getTasksForShift(shift).flatMap((t) => getAssignedPeopleForTask(t)))];
 }

@@ -17,6 +17,7 @@
   import type { AnyPlugins } from "svelte-headless-table/plugins";
   import type { ColumnInitializer } from "$lib/components/elements/data-tables/core";
   import RowActions from "$lib/components/elements/data-tables/lib/row-actions.svelte";
+  import { getRequiredSkillsForTask } from "$lib/types/task.ts";
 
   let data: ReadOrWritable<Task[]> = tasks;
   let actions: Map<string, (item: Task) => void> = new Map();
@@ -54,7 +55,7 @@
     },
     {
       id: "required_skills",
-      accessor: (row: Task) => row.required_skills,
+      accessor: (row: Task) => getRequiredSkillsForTask(row),
       header: "Required skills",
       cell: (cell: DataBodyCell<unknown>) => createRender(SkillsList, {
         skills: cell.value as Skill[],

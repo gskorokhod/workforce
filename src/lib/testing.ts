@@ -173,8 +173,8 @@ export function generateTask(): Task {
     icon: generateIcon(),
     min_people: faker.number.int({ min: 1, max: 3 }),
     max_people: faker.number.int({ min: 3, max: 5 }),
-    required_skills: sampleSkills(faker.number.int({ min: 0, max: 3 })),
-    people: samplePeople(faker.number.int({ min: 0, max: 3 }))
+    required_skill_uuids: sampleSkills(faker.number.int({ min: 0, max: 3 })).map((s) => s.uuid),
+    people_uuids: samplePeople(faker.number.int({ min: 0, max: 3 })).map((p) => p.uuid)
   });
 }
 
@@ -209,7 +209,7 @@ export function generateShift(): Shift {
     start_date_time: faker.date.recent(),
     end_date_time: faker.date.soon(),
     location: loc,
-    tasks: sampleTasks(faker.number.int({ min: 1, max: 3 }))
+    task_uuids: sampleTasks(faker.number.int({ min: 1, max: 3 })).map((t) => t.uuid)
   });
 }
 

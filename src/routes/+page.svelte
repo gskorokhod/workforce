@@ -13,7 +13,7 @@
   import type { Shift } from "$lib/types";
   import { shifts } from "$lib/stores.ts";
   import MiniSearch from "minisearch";
-  import { getPeopleForShift } from "$lib/types/shift.ts";
+  import { getPeopleForShift, getTasksForShift } from "$lib/types/shift.ts";
 
   let schedules: ComboboxItem[] = [
     { label: "Schedule 1", value: "schedule1" },
@@ -33,7 +33,7 @@
         case "location":
           return shift.location.name;
         case "tasks":
-          return shift.tasks.map((task) => task.name).join(" ");
+          return getTasksForShift(shift).map((task) => task.name).join(" ");
         case "people":
           return getPeopleForShift(shift).map((person) => person.name).join(" ");
         case "start_time":

@@ -19,15 +19,35 @@ export function getConstraintsFor(item: ConstraintOperand): Constraint[] {
   return get(constraints).filter((c) => appliesTo(c, item));
 }
 
-export function getSkill(uuid: string | undefined) {
+export function getSkill(uuid: string | undefined): Skill | undefined {
   if (uuid === undefined) return undefined;
   return get(skills).find((s) => s.uuid === uuid);
+}
+
+export function getPerson(uuid: string | undefined): Person | undefined {
+  if (uuid === undefined) return undefined;
+  return get(employees).find((p) => p.uuid === uuid);
+}
+
+export function getTask(uuid: string | undefined): Task | undefined {
+  if (uuid === undefined) return undefined;
+  return get(tasks).find((t) => t.uuid === uuid);
+}
+
+export function getLocation(uuid: string | undefined): Location | undefined {
+  if (uuid === undefined) return undefined;
+  return get(locations).find((l) => l.uuid === uuid);
+}
+
+export function getShift(uuid: string | undefined): Shift | undefined {
+  if (uuid === undefined) return undefined;
+  return get(shifts).find((s) => s.uuid === uuid);
 }
 
 export function deleteEmployee(employee: Person) {
   tasks.update((list) =>
     list.map((t) => {
-      t.people = t.people.filter((p) => p.uuid !== employee.uuid);
+      t.people_uuids = t.people_uuids.filter((p) => p !== employee.uuid);
       return t;
     })
   );
@@ -44,7 +64,7 @@ export function deleteSkill(skill: Skill) {
   );
   tasks.update((list) =>
     list.map((t) => {
-      t.required_skills = t.required_skills.filter((s) => s.uuid !== skill.uuid);
+      t.required_skill_uuids = t.required_skill_uuids.filter((s) => s !== skill.uuid);
       return t;
     })
   );

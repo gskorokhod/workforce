@@ -32,7 +32,7 @@ export function getPeopleWithSkill(skill: Skill): Person[] {
 
 export function getTasksWithSkill(skill: Skill): Task[] {
   const tasks_list = get(tasks);
-  return tasks_list.filter((t) => t.required_skills.map((s: Skill) => s.uuid).includes(skill.uuid));
+  return tasks_list.filter((t) => t.required_skill_uuids.includes(skill.uuid));
 }
 
 export function defaultSkillProps(): SkillProps {

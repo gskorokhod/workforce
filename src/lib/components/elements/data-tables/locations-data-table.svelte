@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Location, Person } from "$lib/types";
+  import type { Location } from "$lib/types";
   import { getConstraintsFor, locations } from "$lib/stores.ts";
   import { createRender, DataBodyCell, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import LocationBadge from "$lib/components/elements/location/location-badge.svelte";

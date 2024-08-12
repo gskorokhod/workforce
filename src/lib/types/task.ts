@@ -2,7 +2,7 @@ import type { IconType } from "$lib/types/ui.ts";
 import { get } from "svelte/store";
 import type { Skill } from "$lib/types/skill.ts";
 import type { Person } from "$lib/types/person.ts";
-import { employees } from "$lib/stores";
+import { employees, getPerson, getSkill } from "$lib/stores";
 import { v4 as uuidv4 } from "uuid";
 import { Type } from "$lib/types/index.ts";
 
@@ -12,8 +12,8 @@ export interface TaskProps {
   icon: IconType;
   min_people: number;
   max_people: number;
-  required_skills: Skill[];
-  people: Person[];
+  required_skill_uuids: string[];
+  people_uuids: string[];
 }
 
 export interface Task extends TaskProps {
@@ -29,10 +29,16 @@ export function createTask(props: TaskProps): Task {
   };
 }
 
+export function getRequiredSkillsForTask(task: Task): Skill[] {
+  return task.required_skill_uuids.map((uuid) => getSkill(uuid)).filter((s) => s !== undefined);
+}
+
+export function getAssignedPeopleForTask(task: Task): Person[] {
+  return task.people_uuids.map((uuid) => getPerson(uuid)).filter((p) => p !== undefined);
+}
+
 export function getCandidatesForTask(task: Task): Person[] {
   const employees_list = get(employees);
-  const required_skills = new Set(task.required_skills.map((s) => s.uuid));
-  return employees_list.filter((p) =>
-    required_skills.isSubsetOf(new Set(p.skills.map((s) => s.uuid)))
-  );
+  const required_skills = new Set(task.required_skill_uuids);
+  return employees_list.filter((p) => required_skills.isSubsetOf(new Set(p.skill_uuids)));
 }
