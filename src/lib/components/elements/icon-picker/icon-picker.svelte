@@ -108,13 +108,13 @@
       aria-expanded={open}
       class="w-fit h-fit rounded-full outline-none p-0"
     >
-      {#if icon !== undefined}
-        <Chip variant={ChipVariant.colorOutline} color={icon.color}>
-          <Icon {icon} slot="icon" variant="monochrome" class="w-5 h-5" />
-        </Chip>
-      {:else}
+      {#if ((icon === undefined) || icon.icon === "")}
         <Chip variant={ChipVariant.outline}>
           <ChevronDownIcon slot="icon" class="w-5 h-5" />
+        </Chip>
+      {:else}
+        <Chip variant={ChipVariant.colorOutline} color={icon.color}>
+          <Icon {icon} slot="icon" variant="monochrome" class="w-5 h-5" />
         </Chip>
       {/if}
     </Button>

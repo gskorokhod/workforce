@@ -9,6 +9,7 @@
   import IconPicker from "$lib/components/elements/icon-picker/icon-picker.svelte";
   import type { Writable } from "svelte/store";
   import type { SkillProps } from "$lib/types/skill.ts";
+  import { Textarea } from "$lib/components/ui/textarea";
 
   let open: boolean = false;
   let skillProps: Writable<SkillProps>;
@@ -30,19 +31,20 @@
   <Dialog.Content class="p-4">
     <Dialog.Header>
       <Dialog.Title class="font-semibold text-xl">Edit Skill Data</Dialog.Title>
-      <Dialog.Description>
-        Make changes to the skill record here. Click save when you're done.
-      </Dialog.Description>
     </Dialog.Header>
-    <div class="flex flex-col w-full h-full gap-8 mt-4 mb-4 p-1 overflow-y-scroll max-h-[400px]">
-      <div class="flex flex-row justify-between items-center gap-8 w-full">
-        <IconPicker bind:icon={$skillProps.icon} />
-        <div class="flex flex-col h-full w-full gap-2">
-          <div>
-            <Label for="employee_name" class="font-semibold mb-0.5">Name</Label>
-            <Input type="text" id="employee_name" placeholder="Name" bind:value={$skillProps.name} />
-          </div>
+    <div class="flex flex-col w-full h-full gap-6 mt-2 mb-6 p-1 overflow-y-scroll max-h-[400px]">
+      <div class="flex flex-row gap-6 items-center justify-start">
+        <div class="pt-6">
+          <IconPicker bind:icon={$skillProps.icon} />
         </div>
+        <div class="w-full">
+          <Label for="employee_name" class="font-semibold mb-0.5">Name</Label>
+          <Input type="text" id="employee_name" placeholder="Name" bind:value={$skillProps.name} />
+        </div>
+      </div>
+      <div class="grid w-full gap-1.5">
+        <Label for="description" class="font-semibold mb-0.5">Description</Label>
+        <Textarea placeholder="Type a description here" id="description" bind:value={$skillProps.description} />
       </div>
     </div>
     <Dialog.Footer>
