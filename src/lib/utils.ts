@@ -177,5 +177,6 @@ export function fmtDateTime(dt: ZonedDateTime | Date): string {
 }
 
 export function toCalendarDate(date: Date): CalendarDate {
-  return new CalendarDate(date.getFullYear(), date.getMonth(), date.getDay());
+  // Date methods are confusing, month is 0-indexed and the day of month is called getDate
+  return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
 }
