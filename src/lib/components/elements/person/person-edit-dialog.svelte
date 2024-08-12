@@ -39,7 +39,7 @@
         Make changes to the employee profile here. Click save when you're done.
       </Dialog.Description>
     </Dialog.Header>
-    <div class="flex flex-col w-full h-full gap-8 mt-4 mb-4 p-1 overflow-y-scroll max-h-[400px]">
+    <div class="flex flex-col w-full h-full gap-6 mt-4 mb-4 p-1 overflow-y-scroll max-h-[400px]">
       <div class="flex flex-row justify-between items-center gap-8 w-full">
         {#if $personProps === undefined}
           <UserCircleIcon class="h-28 w-28 text-muted-foreground" />
