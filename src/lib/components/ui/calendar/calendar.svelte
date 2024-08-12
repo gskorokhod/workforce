@@ -2,6 +2,7 @@
 <script lang="ts">
   import { Calendar as CalendarPrimitive } from "bits-ui";
   import * as Calendar from "./index.js";
+  import CalendarDropdowns from "./calendar-dropdowns.svelte";
   import { cn } from "$lib/utils.js";
 
   type $$Props = CalendarPrimitive.Props;
@@ -11,6 +12,7 @@
   export let value: $$Props["value"] = undefined;
   export let placeholder: $$Props["placeholder"] = undefined;
   export let weekdayFormat: $$Props["weekdayFormat"] = "short";
+  export let variant: "dropdowns" | "buttons" = "dropdowns";
   let className: $$Props["class"] = undefined;
 
   export { className as class };
@@ -27,9 +29,13 @@
   let:weekdays
 >
   <Calendar.Header>
-    <Calendar.PrevButton />
-    <Calendar.Heading />
-    <Calendar.NextButton />
+    {#if variant === "dropdowns"}
+      <CalendarDropdowns bind:value />
+    {:else}
+      <Calendar.PrevButton />
+      <Calendar.Heading />
+      <Calendar.NextButton />
+    {/if}
   </Calendar.Header>
   <Calendar.Months>
     {#each months as month}
