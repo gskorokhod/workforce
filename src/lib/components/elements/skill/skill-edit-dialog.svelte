@@ -10,6 +10,7 @@
   import type { Writable } from "svelte/store";
   import type { SkillProps } from "$lib/types/skill.ts";
   import { Textarea } from "$lib/components/ui/textarea";
+  import SkillsSelectorList from "$lib/components/elements/skill/skills-selector-list.svelte";
 
   let open: boolean = false;
   let skillProps: Writable<SkillProps>;
@@ -32,7 +33,7 @@
     <Dialog.Header>
       <Dialog.Title class="font-semibold text-xl">Edit Skill Data</Dialog.Title>
     </Dialog.Header>
-    <div class="flex flex-col w-full h-full gap-6 mt-2 mb-6 p-1 overflow-y-scroll max-h-[400px]">
+    <div class="flex flex-col w-full h-full gap-6 mt-2 mb-4 p-1 overflow-y-scroll max-h-[400px]">
       <div class="flex flex-row gap-6 items-center justify-start">
         <div class="pt-6">
           <IconPicker bind:icon={$skillProps.icon} />

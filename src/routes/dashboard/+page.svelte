@@ -8,32 +8,33 @@
   import TasksList from "$lib/components/elements/task/tasks-list.svelte";
   import ColourPicker from "$lib/components/ui/color-picker/color-picker.svelte";
   import PersonEditDialog from "$lib/components/elements/person/person-edit-dialog.svelte";
+  import TaskEditDialog from "$lib/components/elements/task/task-edit-dialog.svelte";
+  import SkillEditDialog from "$lib/components/elements/skill/skill-edit-dialog.svelte";
   import Chip from "$lib/components/ui/chip/chip.svelte";
   import type { ComboboxItem } from "$lib/components/ui/combobox";
   import { employees, tasks } from "$lib/stores.ts";
-  import type { PersonProps, Task } from "$lib/types";
+  import type { PersonProps } from "$lib/types";
   import { skills } from "$lib/stores.ts";
-  import { generateSkill, samplePerson } from "$lib/testing.ts";
+  import { generatePerson, generateSkill, generateTask } from "$lib/testing.ts";
   import { Button } from "$lib/components/ui/button";
-  import { createTask } from "$lib/types/task.ts";
+  import { type TaskProps } from "$lib/types/task.ts";
   import { GraduationCapIcon, PaletteIcon, XIcon } from "lucide-svelte";
   import { ChipSize, ChipVariant } from "$lib/components/ui/chip";
   import { faker } from "@faker-js/faker";
   import { writable } from "svelte/store";
+  import type { SkillProps } from "$lib/types/skill.ts";
 
   const schedules: ComboboxItem[] = [
     { label: "Schedule 1", value: "schedule1" },
     { label: "Schedule 2", value: "schedule2" }
   ];
 
-  const task: Task = createTask({
-    name: "Task 1", description: "Hello world!", min_people: 2, max_people: 4, required_skills: [], people: [], icon: {
-      icon: "mdi:calendar"
-    }
-  });
+  const task = generateTask();
   let skill = generateSkill();
-  let person = samplePerson();
+  let person = generatePerson();
   let personProps = writable(person as PersonProps);
+  let taskProps = writable(task as TaskProps);
+  let skillProps = writable(skill as SkillProps);
   let color = faker.color.rgb();
 </script>
 
@@ -114,13 +115,23 @@
       <h2 class="text-xl">Colour Picker</h2>
       <ColourPicker />
     </section>
-    <section class="w-full flex flex-col gap-3">
-      <h2 class="text-xl">Person edit dialog</h2>
+    <section class="w-full flex flex-col items-start gap-3">
+      <h2 class="text-xl">Edit dialogs</h2>
       <PersonEditDialog bind:personProps>
         <Button>
           Edit employee
         </Button>
       </PersonEditDialog>
+      <SkillEditDialog bind:skillProps>
+        <Button>
+          Edit skill
+        </Button>
+      </SkillEditDialog>
+      <TaskEditDialog bind:taskProps>
+        <Button>
+          Edit task
+        </Button>
+      </TaskEditDialog>
     </section>
     <section class="w-full flex flex-col gap-3">
       <h2 class="text-xl">People list</h2>
@@ -132,10 +143,10 @@
     <section class="w-full flex flex-col gap-3">
       <h2 class="text-xl">People selector list</h2>
       <p>People selector list (compact)</p>
-      <PeopleSelectorList people={task.people} min_people={task.min_people} max_people={task.max_people}
+      <PeopleSelectorList people_uuids={task.people_uuids} min_people={task.min_people} max_people={task.max_people}
                           compact={true} />
       <p>People selector list (full)</p>
-      <PeopleSelectorList people={task.people} min_people={task.min_people} max_people={task.max_people} />
+      <PeopleSelectorList people_uuids={task.people_uuids} min_people={task.min_people} max_people={task.max_people} />
     </section>
     <section class="w-full flex flex-col gap-3">
       <h2 class="text-xl">Skills</h2>

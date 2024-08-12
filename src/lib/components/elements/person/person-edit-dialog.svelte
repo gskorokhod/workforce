@@ -60,8 +60,8 @@
           </div>
         </div>
       </div>
-      <section>
-        <h2 class="font-semibold mb-1.5">Date of birth:</h2>
+      <div>
+        <span class="block font-semibold text-sm mb-1.5">Date of birth:</span>
         <DatePicker value={toCalendarDate($personProps.birthday)} onChange={(dv) => personProps.update((p) => {
           if (dv === undefined) return p;
           return {
@@ -69,11 +69,11 @@
             birthday: dv.toDate(getLocalTimeZone())
           }
         })} class="w-full" />
-      </section>
-      <section>
-        <h2 class="font-semibold">Skills:</h2>
+      </div>
+      <div>
+        <span class="block font-semibold text-sm">Skills:</span>
         <SkillsSelectorList bind:skill_uuids={$personProps.skill_uuids} compact={false} class="mt-2 w-full" />
-      </section>
+      </div>
     </div>
     <Dialog.Footer>
       <Button type="submit" on:click={handleSubmit}>Save changes</Button>
