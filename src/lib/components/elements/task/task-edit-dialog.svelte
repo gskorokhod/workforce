@@ -10,13 +10,12 @@
   import SkillsSelectorList from "$lib/components/elements/skill/skills-selector-list.svelte";
   import PeopleSelectorList from "$lib/components/elements/person/people-selector-list.svelte";
   import type { Writable } from "svelte/store";
-  import type { SkillProps } from "$lib/types/skill.ts";
   import { Textarea } from "$lib/components/ui/textarea";
   import type { TaskProps } from "$lib/types/task.ts";
 
   let open: boolean = false;
   let taskProps: Writable<TaskProps>;
-  let onSubmit: (p: SkillProps) => void = () => {
+  let onSubmit: (t: TaskProps) => void = () => {
   };
 
   const handleSubmit = () => {

@@ -70,3 +70,14 @@ export function deleteSkill(skill: Skill) {
   );
   skills.update((list) => list.filter((s) => s.uuid !== skill.uuid));
 }
+
+export function deleteTask(task: Task) {
+  shifts.update((list) =>
+    list.map((s) => {
+      s.tasks = s.tasks.filter((t) => t !== task.uuid);
+      return s;
+    })
+  );
+  constraints.update((list) => list.filter((c) => !appliesTo(c, task)));
+  tasks.update((list) => list.filter((t) => t.uuid !== task.uuid));
+}

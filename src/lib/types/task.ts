@@ -42,3 +42,18 @@ export function getCandidatesForTask(task: Task): Person[] {
   const required_skills = new Set(task.required_skill_uuids);
   return employees_list.filter((p) => required_skills.isSubsetOf(new Set(p.skill_uuids)));
 }
+
+export function defaultTaskProps(): TaskProps {
+  return {
+    name: "",
+    description: "",
+    icon: {
+      icon: "",
+      color: undefined
+    },
+    min_people: 0,
+    max_people: 1,
+    required_skill_uuids: [],
+    people_uuids: []
+  };
+}
