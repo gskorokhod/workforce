@@ -10,7 +10,6 @@
   import type { Writable } from "svelte/store";
   import type { SkillProps } from "$lib/types/skill.ts";
   import { Textarea } from "$lib/components/ui/textarea";
-  import SkillsSelectorList from "$lib/components/elements/skill/skills-selector-list.svelte";
 
   let open: boolean = false;
   let skillProps: Writable<SkillProps>;
