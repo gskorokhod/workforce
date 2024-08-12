@@ -7,15 +7,15 @@
   import PersonAvatar from "$lib/components/elements/person/person-avatar.svelte";
   import { cn } from "$lib/utils.js";
   import { tick } from "svelte";
-  import { employees } from "$lib/stores.ts";
+  import { employees, getPerson } from "$lib/stores.ts";
   import type { Person } from "$lib/types";
   import { ChipVariant } from "$lib/components/ui/chip";
 
   type Filter = (s: Person | undefined) => boolean;
-  type OnChange = (old_value: Person | undefined, new_value: Person | undefined) => Person | undefined;
+  type OnChange = (old_value: string | undefined, new_value: string | undefined) => string | undefined;
 
   let open = false;
-  let person: Person | undefined = undefined;
+  let person_uuid: string | undefined = undefined;
   let options: Person[] = $employees;
   let variant: ChipVariant = ChipVariant.default;
   let placeholder: string = "Assign person";
@@ -36,7 +36,7 @@
   }
 
   // noinspection ReservedWordAsName
-  export { person, options, variant, placeholder, onChange, filter, className as class };
+  export { person_uuid, options, variant, placeholder, onChange, filter, className as class };
 </script>
 
 <Popover.Root bind:open let:ids>
@@ -48,7 +48,7 @@
       aria-expanded={open}
       class="w-10 h-10 rounded-full overflow-visible"
     >
-      <PersonAvatar person={person} variant={variant} placeholder={placeholder} />
+      <PersonAvatar person={getPerson(person_uuid)} {variant} {placeholder} />
     </Button>
   </Popover.Trigger>
   <Popover.Content class="w-[250px] p-0">
@@ -60,8 +60,7 @@
           <Command.Item
             value="{option.name};{option.job_title};{option.uuid}"
             onSelect={() => {
-              onChange(person, option);
-              person = option;
+              person_uuid = onChange(person_uuid, option.uuid);
               closeAndFocusTrigger(ids.trigger);
             }}
             class="flex flex-row items-center justify-start gap-2"
@@ -71,7 +70,7 @@
             <Check
               class={cn(
                 "ml-auto h-6 w-6",
-                person?.uuid !== option.uuid && "text-transparent"
+                person_uuid !== option.uuid && "text-transparent"
               )}
             />
           </Command.Item>
@@ -79,8 +78,7 @@
         <Command.Item
           value="unassigned"
           onSelect={() => {
-              onChange(person, undefined);
-              person = undefined;
+              person_uuid = onChange(person_uuid, undefined);
               closeAndFocusTrigger(ids.trigger);
             }}
           class="flex flex-row items-center justify-start gap-2"
@@ -90,7 +88,7 @@
           <Check
             class={cn(
                 "ml-auto h-6 w-6",
-                person !== undefined && "text-transparent"
+                person_uuid !== undefined && "text-transparent"
               )}
           />
         </Command.Item>

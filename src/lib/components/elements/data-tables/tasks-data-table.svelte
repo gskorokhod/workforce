@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Skill, Task } from "$lib/types";
+  import type { Person, Skill, Task } from "$lib/types";
   import { getConstraintsFor, tasks } from "$lib/stores.ts";
   import {
     createRender,
@@ -14,10 +14,11 @@
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
   import { capitalize } from "$lib/utils.ts";
   import ConstraintsList from "$lib/components/elements/constraint/constraints-for-list.svelte";
+  import PeopleList from "$lib/components/elements/person/people-list.svelte";
   import type { AnyPlugins } from "svelte-headless-table/plugins";
   import type { ColumnInitializer } from "$lib/components/elements/data-tables/core";
   import RowActions from "$lib/components/elements/data-tables/lib/row-actions.svelte";
-  import { getRequiredSkillsForTask } from "$lib/types/task.ts";
+  import { getAssignedPeopleForTask, getRequiredSkillsForTask } from "$lib/types/task.ts";
 
   let data: ReadOrWritable<Task[]> = tasks;
   let actions: Map<string, (item: Task) => void> = new Map();
@@ -52,6 +53,23 @@
       id: "description",
       accessor: "description",
       header: "Description"
+    },
+    {
+      id: "people",
+      accessor: (row: Task) => getAssignedPeopleForTask(row),
+      header: "Assigned people",
+      cell: (cell: DataBodyCell<unknown>) => createRender(PeopleList, {
+        people: cell.value as Person[],
+        compact: true
+      }),
+      plugins: {
+        tableFilter: {
+          getFilterValue: (value: Person[]) => value.map((p) => p.name).join(" ")
+        },
+        sort: {
+          getSortValue: (value: Person[]) => value.map((p) => p.name).join(" ")
+        }
+      }
     },
     {
       id: "required_skills",
