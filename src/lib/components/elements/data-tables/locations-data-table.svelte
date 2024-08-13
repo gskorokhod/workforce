@@ -6,7 +6,7 @@
   import DataTable from "$lib/components/elements/data-tables/core/data-table.svelte";
   import { writable, type Writable } from "svelte/store";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
-  import { capitalize } from "$lib/utils.ts";
+  import { capitalize } from "$lib/utils/utils.ts";
   import ConstraintsList from "$lib/components/elements/constraint/constraints-for-list.svelte";
   import type { AnyPlugins } from "svelte-headless-table/plugins";
   import type { ColumnInitializer } from "$lib/components/elements/data-tables/core";

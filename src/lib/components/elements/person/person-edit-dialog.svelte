@@ -10,7 +10,7 @@
   import * as Avatar from "$lib/components/ui/avatar/index.js";
   import type { PersonProps } from "$lib/types";
   import { UserCircleIcon } from "lucide-svelte";
-  import { getInitials, toCalendarDate } from "$lib/utils.ts";
+  import { getInitials, toCalendarDate } from "$lib/utils/utils.ts";
   import type { Writable } from "svelte/store";
   import { DatePicker } from "$lib/components/ui/date-picker";
   import { getLocalTimeZone } from "@internationalized/date";

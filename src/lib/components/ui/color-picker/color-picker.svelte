@@ -3,7 +3,7 @@
   import { Button } from "$lib/components/ui/button";
   import * as Tooltip from "$lib/components/ui/tooltip";
   import { PipetteIcon } from "lucide-svelte";
-  import { getTextColour } from "$lib/utils.ts";
+  import { getTextColour } from "$lib/utils/utils.ts";
 
   const DEFAULT_COLOURS: string[] = [
     "#ef4444",

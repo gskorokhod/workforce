@@ -2,7 +2,7 @@
 <script lang="ts">
   import { AlertDialog as AlertDialogPrimitive } from "bits-ui";
   import * as AlertDialog from "./index.js";
-  import { cn, flyAndScale } from "$lib/utils.js";
+  import { cn, flyAndScale } from "$lib/utils/utils.js";
 
   type $$Props = AlertDialogPrimitive.ContentProps;
 

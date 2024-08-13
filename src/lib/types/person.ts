@@ -1,4 +1,4 @@
-import { getInitials } from "$lib/utils.ts";
+import { getInitials } from "$lib/utils/utils.ts";
 import type { Skill } from "$lib/types/skill.ts";
 import { v4 as uuidv4 } from "uuid";
 import { Type } from "$lib/types/index.ts";

@@ -5,7 +5,7 @@
   import * as Popover from "$lib/components/ui/popover";
   import { Button } from "$lib/components/ui/button";
   import PersonAvatar from "$lib/components/elements/person/person-avatar.svelte";
-  import { cn } from "$lib/utils.js";
+  import { cn } from "$lib/utils/utils.js";
   import { tick } from "svelte";
   import { employees, getPerson } from "$lib/stores.ts";
   import type { Person } from "$lib/types";

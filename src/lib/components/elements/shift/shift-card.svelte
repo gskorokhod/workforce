@@ -4,8 +4,8 @@
   import type { Shift } from "$lib/types";
   import Task from "$lib/components/elements/task/task-card.svelte";
   import { ClockIcon, MapPinIcon } from "lucide-svelte";
-  import { capitalize } from "$lib/utils.ts";
-  import { fmtDateTime } from "$lib/utils.js";
+  import { capitalize } from "$lib/utils/utils.ts";
+  import { fmtDateTime } from "$lib/utils/utils.js";
   import { getTasksForShift } from "$lib/types/shift.ts";
 
   let shift: Shift;

@@ -2,7 +2,7 @@
   import SkillSelector from "$lib/components/elements/skill/skill-selector.svelte";
   import { skills as skillsStore } from "$lib/stores";
   import type { Skill } from "$lib/types";
-  import { pad } from "$lib/utils.ts";
+  import { pad } from "$lib/utils/utils.ts";
   import { ChipVariant } from "$lib/components/ui/chip";
 
   let options: Skill[] = $skillsStore;

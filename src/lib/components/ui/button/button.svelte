@@ -2,7 +2,7 @@
   // noinspection ES6UnusedImports
   import { Button as ButtonPrimitive } from "bits-ui";
   import { type Events, type Props, buttonVariants } from "./index.js";
-  import { cn } from "$lib/utils.js";
+  import { cn } from "$lib/utils/utils.js";
 
   type $$Props = Props;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

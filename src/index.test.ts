@@ -7,7 +7,7 @@ import {
   generateShift,
   generateSkill,
   generateTask
-} from "$lib/testing.ts";
+} from "$lib/utils/dummy_data.ts";
 
 describe("Serialization", () => {
   it("should serialize a location", () => {

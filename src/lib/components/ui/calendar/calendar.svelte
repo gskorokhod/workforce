@@ -3,7 +3,7 @@
   import { Calendar as CalendarPrimitive } from "bits-ui";
   import * as Calendar from "./index.js";
   import CalendarDropdowns from "./calendar-dropdowns.svelte";
-  import { cn } from "$lib/utils.js";
+  import { cn } from "$lib/utils/utils.js";
 
   type $$Props = CalendarPrimitive.Props;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

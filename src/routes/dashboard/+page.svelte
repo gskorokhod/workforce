@@ -11,11 +11,12 @@
   import TaskEditDialog from "$lib/components/elements/task/task-edit-dialog.svelte";
   import SkillEditDialog from "$lib/components/elements/skill/skill-edit-dialog.svelte";
   import Chip from "$lib/components/ui/chip/chip.svelte";
+  import Search from "$lib/components/ui/search/search.svelte";
   import type { ComboboxItem } from "$lib/components/ui/combobox";
   import { employees, tasks } from "$lib/stores.ts";
   import type { PersonProps } from "$lib/types";
   import { skills } from "$lib/stores.ts";
-  import { generatePerson, generateSkill, generateTask } from "$lib/testing.ts";
+  import { generatePerson, generateSkill, generateTask } from "$lib/utils/dummy_data.ts";
   import { Button } from "$lib/components/ui/button";
   import { type TaskProps } from "$lib/types/task.ts";
   import { GraduationCapIcon, PaletteIcon, XIcon } from "lucide-svelte";
@@ -29,6 +30,15 @@
     { label: "Schedule 2", value: "schedule2" }
   ];
 
+  function getSuggestions(value: string): string[] {
+    return [
+      "Mornington Crescent",
+      "Euston",
+      "St Pancras",
+      "Elephant & Castle"
+    ].filter((s) => s.toLowerCase().includes(value.toLowerCase()));
+  }
+
   const task = generateTask();
   let skill = generateSkill();
   let person = generatePerson();
@@ -41,6 +51,10 @@
 <div class="w-full h-dvh bg-gray-50 overflow-y-scroll">
   <main class="w-full flex flex-col gap-6 pl-6 pt-4">
     <h1 class="text-2xl font-semibold">Components playground</h1>
+    <section class="w-full flex flex-col gap-3">
+      <h2 class="text-xl">Search</h2>
+      <Search {getSuggestions} class="w-[200px]" />
+    </section>
     <section class="w-full flex flex-col gap-3">
       <h2 class="text-xl">Chip</h2>
       <Chip>

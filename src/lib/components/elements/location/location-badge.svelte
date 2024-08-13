@@ -5,7 +5,7 @@
   import { MapPinIcon, PlusIcon } from "lucide-svelte";
   import Chip from "$lib/components/ui/chip/chip.svelte";
   import { ChipVariant } from "$lib/components/ui/chip";
-  import { capitalize } from "$lib/utils.ts";
+  import { capitalize } from "$lib/utils/utils.ts";
 
   let location: Location | undefined = undefined;
   let placeholder: string = "Unassigned";

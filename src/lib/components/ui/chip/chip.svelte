@@ -1,7 +1,7 @@
 <script lang="ts">
   import { PlusIcon } from "lucide-svelte";
   import { chipClasses as cl, ChipSize, ChipVariant } from "$lib/components/ui/chip/index.ts";
-  import { darken, getTextColour } from "$lib/utils.ts";
+  import { darken, getTextColour } from "$lib/utils/utils.ts";
 
   let variant: ChipVariant = ChipVariant.default;
   let size: ChipSize = ChipSize.md;

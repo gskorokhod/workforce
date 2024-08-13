@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { HTMLAttributes } from "svelte/elements";
-  import { cn } from "$lib/utils.js";
+  import { cn } from "$lib/utils/utils.js";
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type $$Props = HTMLAttributes<HTMLSpanElement>;

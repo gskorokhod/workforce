@@ -5,7 +5,7 @@
   import { ClipboardIcon, PlusIcon } from "lucide-svelte";
   import Icon from "$lib/components/ui/icon/icon.svelte";
   import Chip from "$lib/components/ui/chip/chip.svelte";
-  import { capitalize } from "$lib/utils.js";
+  import { capitalize } from "$lib/utils/utils.js";
   import { ChipVariant } from "$lib/components/ui/chip";
 
   let task: Task | undefined;

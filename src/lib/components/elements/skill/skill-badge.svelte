@@ -6,7 +6,7 @@
   import Icon from "$lib/components/ui/icon/icon.svelte";
   import { ChipVariant } from "$lib/components/ui/chip";
   import { GraduationCapIcon, PlusIcon } from "lucide-svelte";
-  import { capitalize } from "$lib/utils.js";
+  import { capitalize } from "$lib/utils/utils.js";
 
   let skill: Skill | undefined;
   let placeholder: string = "No skill selected";

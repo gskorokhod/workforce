@@ -2,7 +2,7 @@
   import { Calendar as CalendarPrimitive } from "bits-ui";
   import ChevronLeft from "lucide-svelte/icons/chevron-left";
   import { buttonVariants } from "$lib/components/ui/button/index.js";
-  import { cn } from "$lib/utils.js";
+  import { cn } from "$lib/utils/utils.js";
 
   type $$Props = CalendarPrimitive.PrevButtonProps;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

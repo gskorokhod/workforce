@@ -1,7 +1,7 @@
 <script lang="ts">
   import { MapLibre } from "svelte-maplibre";
   import { locations } from "$lib/stores.ts";
-  import { findBoundingBox } from "$lib/utils.ts";
+  import { findBoundingBox } from "$lib/utils/utils.ts";
   import LocationMapMarker from "$lib/components/elements/location/location-map-marker.svelte";
   import type { Location } from "$lib/types";
 

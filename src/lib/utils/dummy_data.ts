@@ -4,7 +4,7 @@ import { type Constraint, ConstraintType } from "$lib/types/constraints.ts";
 import { constraints, employees, locations, tasks, shifts, skills } from "$lib/stores.ts";
 import { get } from "svelte/store";
 import type { IconType } from "$lib/types/ui.ts";
-import { sample, sampleOne } from "$lib/utils.ts";
+import { sample, sampleOne } from "$lib/utils/utils.ts";
 import { createSkill } from "$lib/types/skill.ts";
 import { createPerson } from "$lib/types/person.ts";
 import { createTask } from "$lib/types/task.ts";

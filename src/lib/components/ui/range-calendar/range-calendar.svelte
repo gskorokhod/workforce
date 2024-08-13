@@ -2,7 +2,7 @@
 <script lang="ts">
   import { RangeCalendar as RangeCalendarPrimitive } from "bits-ui";
   import * as RangeCalendar from "./index.js";
-  import { cn } from "$lib/utils.js";
+  import { cn } from "$lib/utils/utils.js";
 
   type $$Props = RangeCalendarPrimitive.Props;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -8,7 +8,7 @@
     generateTasks,
     generateConstraints,
     generateShifts
-  } from "$lib/testing.ts";
+  } from "$lib/utils/dummy_data.ts";
 </script>
 
 <div class="flex flex-col gap-3 pl-6 pt-4">

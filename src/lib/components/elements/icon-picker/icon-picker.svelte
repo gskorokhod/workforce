@@ -12,7 +12,7 @@
   import Chip from "$lib/components/ui/chip/chip.svelte";
   import type { IconType } from "$lib/types/ui.ts";
   import { Separator } from "$lib/components/ui/separator";
-  import { capitalize, stripPrefix } from "$lib/utils.js";
+  import { capitalize, stripPrefix } from "$lib/utils/utils.js";
   import { ChipVariant } from "$lib/components/ui/chip";
 
   const LIMIT: number = 64;

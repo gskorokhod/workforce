@@ -1,7 +1,7 @@
 <script lang="ts">
   import PersonSelector from "$lib/components/elements/person/person-selector.svelte";
   import type { Person } from "$lib/types";
-  import { pad } from "$lib/utils.ts";
+  import { pad } from "$lib/utils/utils.ts";
   import { employees } from "$lib/stores.ts";
   import { ChipVariant } from "$lib/components/ui/chip";
 

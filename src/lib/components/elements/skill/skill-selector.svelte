@@ -5,7 +5,7 @@
   import * as Popover from "$lib/components/ui/popover";
   import { Button } from "$lib/components/ui/button";
   import SkillBadge from "$lib/components/elements/skill/skill-badge.svelte";
-  import { capitalize, cn } from "$lib/utils.js";
+  import { capitalize, cn } from "$lib/utils/utils.js";
   import { tick } from "svelte";
   import { getSkill, skills } from "$lib/stores.ts";
   import type { Skill } from "$lib/types";

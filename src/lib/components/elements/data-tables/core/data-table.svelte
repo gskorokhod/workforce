@@ -20,7 +20,7 @@
   } from "svelte-headless-table/plugins";
   import { Button } from "$lib/components/ui/button";
   import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-svelte";
-  import { cn } from "$lib/utils.ts";
+  import { cn } from "$lib/utils/utils.ts";
   import type { ColumnInitializer } from "$lib/components/elements/data-tables/core/index.ts";
 
 
