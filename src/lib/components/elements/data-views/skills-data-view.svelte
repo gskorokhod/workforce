@@ -4,7 +4,7 @@
   import SkillsDataTable from "$lib/components/elements/data-tables/skills-data-table.svelte";
   import SkillEditDialog from "$lib/components/elements/skill/skill-edit-dialog.svelte";
   import ColumnHideSelector from "$lib/components/elements/data-tables/lib/column-hide-selector.svelte";
-  import { FlatColumn, type ReadOrWritable } from "svelte-headless-table";
+  import { FlatColumn } from "svelte-headless-table";
   import type { Skill } from "$lib/types";
   import { deleteSkill, skills } from "$lib/stores.ts";
   import { writable, type Writable } from "svelte/store";
@@ -14,7 +14,7 @@
   import { Button } from "$lib/components/ui/button";
   import { PlusIcon } from "lucide-svelte";
 
-  let data: ReadOrWritable<Skill[]> = skills;
+  let data: Writable<Skill[]> = skills;
   let filterValue: Writable<string> = writable("");
   let sortKeys: WritableSortKeys = createSortKeysStore([]);
   let flatColumns: FlatColumn<Skill, AnyPlugins, string>[];
@@ -36,8 +36,6 @@
   }
 
   function onSubmit(props: SkillProps) {
-    console.log("onSubmit");
-
     skills.update((skillList) => {
       if (skillUUID !== undefined) {
         const index = skillList.findIndex((p) => p.uuid === skillUUID);

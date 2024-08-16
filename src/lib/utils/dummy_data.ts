@@ -10,6 +10,7 @@ import { createPerson } from "$lib/types/person.ts";
 import { createTask } from "$lib/types/task.ts";
 import { createLocation } from "$lib/types/location.ts";
 import { createShift } from "$lib/types/shift.ts";
+import { reverseGeocode } from "$lib/utils/osm.ts";
 
 const ST_ANDREWS: [latitude: number, longitude: number] = [-2.799, 56.34039];
 
@@ -182,39 +183,44 @@ export function generateTasks(n: number): Task[] {
   return Array.from({ length: n }, generateTask);
 }
 
-export function generateLocation(): Location {
+export async function generateLocation(): Promise<Location> {
+  const coordinates = faker.location.nearbyGPSCoordinate({
+    origin: ST_ANDREWS,
+    radius: 2,
+    isMetric: true
+  });
+
+  const address =
+    (await reverseGeocode(coordinates))?.display_name ?? faker.location.streetAddress();
+
   return createLocation({
     name: generateLocationName(),
-    address: faker.location.streetAddress(),
     image_url: faker.image.url(),
-    coordinates: faker.location.nearbyGPSCoordinate({
-      origin: ST_ANDREWS,
-      radius: 5,
-      isMetric: true
-    })
+    coordinates,
+    address
   });
 }
 
-export function generateLocations(n: number): Location[] {
-  return Array.from({ length: n }, generateLocation);
+export async function generateLocations(n: number): Promise<Location[]> {
+  return Promise.all(Array.from({ length: n }, generateLocation));
 }
 
-export function generateShift(): Shift {
+export async function generateShift(): Promise<Shift> {
   let loc = sampleLocation();
-  if (loc === undefined) loc = generateLocation();
+  if (loc === undefined) loc = await generateLocation();
 
   return createShift({
     name: generateShiftName(),
     description: faker.lorem.sentence(),
     start_date_time: faker.date.recent(),
     end_date_time: faker.date.soon(),
-    location: loc,
+    location_uuid: loc.uuid,
     task_uuids: sampleTasks(faker.number.int({ min: 1, max: 3 })).map((t) => t.uuid)
   });
 }
 
-export function generateShifts(n: number): Shift[] {
-  return Array.from({ length: n }, generateShift).filter((s) => s !== undefined) as Shift[];
+export function generateShifts(n: number): Promise<Shift[]> {
+  return Promise.all(Array.from({ length: n }, generateShift));
 }
 
 export function samplePerson(): Person | undefined {

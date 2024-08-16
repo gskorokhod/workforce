@@ -5,7 +5,7 @@
   import EmployeesDataTable from "$lib/components/elements/data-tables/employees-data-table.svelte";
   import PersonEditDialog from "$lib/components/elements/person/person-edit-dialog.svelte";
 
-  import { FlatColumn, type ReadOrWritable } from "svelte-headless-table";
+  import { FlatColumn } from "svelte-headless-table";
   import { type Person, type PersonProps } from "$lib/types";
   import { deleteEmployee, employees } from "$lib/stores.ts";
   import { writable, type Writable } from "svelte/store";
@@ -15,7 +15,7 @@
   import { PlusIcon } from "lucide-svelte";
   import { createPerson, defaultPersonProps } from "$lib/types/person.ts";
 
-  let data: ReadOrWritable<Person[]> = employees;
+  let data: Writable<Person[]> = employees;
   let filterValue: Writable<string> = writable("");
   let sortKeys: WritableSortKeys = createSortKeysStore([]);
   let flatColumns: FlatColumn<Person, AnyPlugins, string>[];
@@ -37,8 +37,6 @@
   }
 
   function onSubmit(props: PersonProps) {
-    console.log("onSubmit");
-
     employees.update((people) => {
       if (personUUID !== undefined) {
         const index = people.findIndex((p) => p.uuid === personUUID);

@@ -4,7 +4,7 @@
   import TasksDataTable from "$lib/components/elements/data-tables/tasks-data-table.svelte";
   import TaskEditDialog from "$lib/components/elements/task/task-edit-dialog.svelte";
   import ColumnHideSelector from "$lib/components/elements/data-tables/lib/column-hide-selector.svelte";
-  import { FlatColumn, type ReadOrWritable } from "svelte-headless-table";
+  import { FlatColumn } from "svelte-headless-table";
   import type { Task } from "$lib/types";
   import { deleteTask, tasks } from "$lib/stores.ts";
   import { writable, type Writable } from "svelte/store";
@@ -15,7 +15,7 @@
   import { Button } from "$lib/components/ui/button";
 
 
-  let data: ReadOrWritable<Task[]> = tasks;
+  let data: Writable<Task[]> = tasks;
   let filterValue: Writable<string> = writable("");
   let sortKeys: WritableSortKeys = createSortKeysStore([]);
   let flatColumns: FlatColumn<Task, AnyPlugins, string>[];
@@ -37,8 +37,6 @@
   }
 
   function onSubmit(props: TaskProps) {
-    console.log("onSubmit");
-
     tasks.update((taskList) => {
       if (taskUUID !== undefined) {
         const index = taskList.findIndex((t) => t.uuid === taskUUID);

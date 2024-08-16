@@ -1,11 +1,12 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import type { Location } from "$lib/types";
+  import * as Avatar from "$lib/components/ui/avatar/index.js";
   import * as Tooltip from "$lib/components/ui/tooltip";
-  import { MapPinIcon, PlusIcon } from "lucide-svelte";
   import Chip from "$lib/components/ui/chip/chip.svelte";
+  import type { Location } from "$lib/types";
+  import { MapPinIcon, PlusIcon } from "lucide-svelte";
   import { ChipVariant } from "$lib/components/ui/chip";
-  import { capitalize } from "$lib/utils/utils.ts";
+  import { capitalize, getInitials } from "$lib/utils/utils.ts";
 
   let location: Location | undefined = undefined;
   let placeholder: string = "Unassigned";
@@ -24,19 +25,17 @@
     {#if location}
       {#if compact}
         <Chip class="{className} !p-0">
-          <img
-            slot="icon"
-            src={location.image_url}
-            alt={location.name}
-            class="rounded-full h-10 w-10" />
+          <Avatar.Root class="h-10 w-10" slot="icon">
+            <Avatar.Image src={location.image_url} alt={location.name} />
+            <Avatar.Fallback>{getInitials(location.name)}</Avatar.Fallback>
+          </Avatar.Root>
         </Chip>
       {:else }
         <Chip class={className}>
-          <img
-            slot="icon"
-            src={location.image_url}
-            alt={location.name}
-            class="rounded-full h-10 w-10" />
+          <Avatar.Root class="h-10 w-10" slot="icon">
+            <Avatar.Image src={location.image_url} alt={location.name} />
+            <Avatar.Fallback>{getInitials(location.name)}</Avatar.Fallback>
+          </Avatar.Root>
           {capitalize(location.name)}
         </Chip>
       {/if}

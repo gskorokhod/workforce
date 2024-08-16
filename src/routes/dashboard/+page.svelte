@@ -10,33 +10,41 @@
   import PersonEditDialog from "$lib/components/elements/person/person-edit-dialog.svelte";
   import TaskEditDialog from "$lib/components/elements/task/task-edit-dialog.svelte";
   import SkillEditDialog from "$lib/components/elements/skill/skill-edit-dialog.svelte";
+  import LocationEditDialog from "$lib/components/elements/location/location-edit-dialog.svelte";
   import Chip from "$lib/components/ui/chip/chip.svelte";
   import Search from "$lib/components/ui/search/search.svelte";
   import type { ComboboxItem } from "$lib/components/ui/combobox";
   import { employees, tasks } from "$lib/stores.ts";
   import type { PersonProps } from "$lib/types";
   import { skills } from "$lib/stores.ts";
-  import { generatePerson, generateSkill, generateTask } from "$lib/utils/dummy_data.ts";
+  import { generateLocation, generatePerson, generateSkill, generateTask } from "$lib/utils/dummy_data.ts";
   import { Button } from "$lib/components/ui/button";
   import { type TaskProps } from "$lib/types/task.ts";
   import { GraduationCapIcon, PaletteIcon, XIcon } from "lucide-svelte";
   import { ChipSize, ChipVariant } from "$lib/components/ui/chip";
   import { faker } from "@faker-js/faker";
-  import { writable } from "svelte/store";
+  import { type Writable, writable } from "svelte/store";
   import type { SkillProps } from "$lib/types/skill.ts";
+  import type { LocationProps } from "$lib/types/location.ts";
+  import { onMount } from "svelte";
 
   const schedules: ComboboxItem[] = [
     { label: "Schedule 1", value: "schedule1" },
     { label: "Schedule 2", value: "schedule2" }
   ];
 
-  function getSuggestions(value: string): string[] {
-    return [
+  function getSuggestions(value: string): Promise<string[]> {
+    let ans = [
       "Mornington Crescent",
       "Euston",
       "St Pancras",
-      "Elephant & Castle"
+      "Elephant & Castle",
+      "Waterloo",
+      "London Bridge",
+      "A very long station name that is very long to test the overflow"
     ].filter((s) => s.toLowerCase().includes(value.toLowerCase()));
+    console.log(ans);
+    return Promise.resolve(ans);
   }
 
   const task = generateTask();
@@ -46,6 +54,15 @@
   let taskProps = writable(task as TaskProps);
   let skillProps = writable(skill as SkillProps);
   let color = faker.color.rgb();
+  let input = writable("");
+  let submitted = writable("");
+  let locationProps: Writable<LocationProps> | undefined;
+
+  onMount(async () => {
+    const location = await generateLocation();
+    locationProps = writable(location);
+  });
+
 </script>
 
 <div class="w-full h-dvh bg-gray-50 overflow-y-scroll">
@@ -53,7 +70,13 @@
     <h1 class="text-2xl font-semibold">Components playground</h1>
     <section class="w-full flex flex-col gap-3">
       <h2 class="text-xl">Search</h2>
-      <Search {getSuggestions} class="w-[200px]" />
+      <p>
+        Last input: "{$input}"
+      </p>
+      <p>
+        Last submitted: "{$submitted}"
+      </p>
+      <Search {getSuggestions} class="w-[250px]" onInput={(s) => input.set(s)} onSubmit={(s) => submitted.set(s)} />
     </section>
     <section class="w-full flex flex-col gap-3">
       <h2 class="text-xl">Chip</h2>
@@ -146,6 +169,13 @@
           Edit task
         </Button>
       </TaskEditDialog>
+      {#if locationProps}
+        <LocationEditDialog bind:locationProps>
+          <Button>
+            Edit location
+          </Button>
+        </LocationEditDialog>
+      {/if}
     </section>
     <section class="w-full flex flex-col gap-3">
       <h2 class="text-xl">People list</h2>

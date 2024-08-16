@@ -15,7 +15,8 @@
   style={"https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
   class={className}
   bounds={findBoundingBox(locs.map((l) => l.coordinates))}
-  standardControls={true}>
+  standardControls
+>
   {#each locs as location}
     {#if location.coordinates}
       <LocationMapMarker {location} />

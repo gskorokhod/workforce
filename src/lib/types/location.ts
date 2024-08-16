@@ -22,3 +22,12 @@ export function createLocation(props: LocationProps): Location {
     ...props
   };
 }
+
+export function defaultLocationProps(): LocationProps {
+  return {
+    name: "",
+    address: "",
+    image_url: "",
+    coordinates: [0, 0]
+  };
+}

@@ -1,74 +1,112 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
   import { type Writable, writable } from "svelte/store";
-  import { onMount } from "svelte";
   import { Button } from "$lib/components/ui/button";
   import { SearchIcon } from "lucide-svelte";
   import { Input } from "$lib/components/ui/input";
   import * as Popover from "$lib/components/ui/popover";
+  import { debounce } from "$lib/utils/utils.ts";
 
+  let suggestions: Writable<string[]> = writable([]);
   let searchInput: Writable<string> = writable("");
   let placeholder: string = "Search";
-  let debounceTimeout: number;
+  let submitOnSelect: boolean = true;
   let className: string = "";
-  let suggestions: string[] = [];
   let debounceDelay: number = 300;
+  let useSuggestionOnSubmit: boolean = true;
+  let selectedSuggestion: number = 0;
+  let formElement: HTMLFormElement;
   let open: boolean = false;
   let onInput: (value: string) => void = () => {
   };
   let onSubmit: (value: string) => void = () => {
   };
-  let getSuggestions: (value: string) => string[] = () => [];
+  let getSuggestions: (value: string) => Promise<string[]> = () => Promise.resolve([]);
 
-  function handleInputChange() {
-    clearTimeout(debounceTimeout);
-    suggestions = getSuggestions($searchInput);
-    debounceTimeout = setTimeout(() => {
-      onInput($searchInput);
-    }, debounceDelay);
+  function updateSuggestions(value: string) {
+    getSuggestions(value)
+      .then((s) => {
+        suggestions.set(s);
+        open = true;
+      });
   }
 
-  function handleSubmit(e: Event) {
-    e.preventDefault();
+  const handleInputChange = debounce(() => {
+    updateSuggestions($searchInput);
+    onInput($searchInput);
+  }, debounceDelay);
+
+  function handleSubmit() {
+    open = false;
+
+    if (useSuggestionOnSubmit && $suggestions.length > selectedSuggestion) {
+      searchInput.set($suggestions[selectedSuggestion]);
+    }
+
     onSubmit($searchInput);
+
+    const focusedElement = document.activeElement as HTMLElement;
+    focusedElement.blur();
   }
 
   function handleFocusIn() {
-    suggestions = getSuggestions($searchInput);
+    updateSuggestions($searchInput);
   }
 
   function handleSelect(suggestion: string) {
     searchInput.set(suggestion);
-    open = false;
+    suggestions.set([suggestion]);
+
+    if (submitOnSelect) {
+      handleSubmit();
+    } else {
+      onInput(suggestion);
+      formElement.querySelector("input")?.focus();
+    }
   }
 
-  onMount(() => {
-    return () => clearTimeout(debounceTimeout);
-  });
-
-  export { searchInput, placeholder, debounceDelay, onInput, onSubmit, getSuggestions, className as class };
+  export {
+    searchInput,
+    placeholder,
+    submitOnSelect,
+    useSuggestionOnSubmit,
+    onInput,
+    onSubmit,
+    getSuggestions,
+    className as class
+  };
 </script>
 
-<form class="group/search relative h-10 rounded-md bg-white shadow overflow-clip {className}"
-      on:submit|preventDefault={handleSubmit}>
-  <Popover.Root bind:open openFocus="search_input" closeFocus="search_input" disableFocusTrap>
-    <Popover.Trigger>
-      <Input type="text" id="search_input" placeholder={placeholder} bind:value={$searchInput}
-             on:input={handleInputChange} class={className} on:focusin={handleFocusIn} />
-      <Button type="submit" variant="ghost" size="icon"
-              class="absolute right-0 top-1/2 transform -translate-y-1/2 transition-all text-muted-foreground group-hover/search:text-accent-foreground group-focus/search:text-accent-foreground">
-        <SearchIcon />
-      </Button>
-    </Popover.Trigger>
-    <Popover.Content class="p-0 py-1 w-fit">
-      <div class="flex flex-col p-0 w-fit min-w-[200px] max-h-[300px] overflow-y-scroll">
-        {#each suggestions as suggestion}
-          <Button type="button" variant="ghost" size="sm" class="w-full justify-start"
-                  on:click={() => handleSelect(suggestion)}>
-            {suggestion}
-          </Button>
-        {/each}
-      </div>
-    </Popover.Content>
+<form class="group/search relative h-10 rounded-md bg-white shadow overflow-visible {className}"
+      on:submit|preventDefault={handleSubmit}
+      bind:this={formElement}
+>
+  <Input type="text"
+         placeholder={placeholder} bind:value={$searchInput}
+         on:input={handleInputChange} on:focus={handleFocusIn}
+         class="outline-none focus:outline-accent-foreground pr-12 overflow-ellipsis {className}"
+  />
+  <Button type="submit" variant="ghost" size="icon"
+          class="absolute right-0 top-1/2 transform -translate-y-1/2 transition-all text-muted-foreground group-hover/search:text-accent-foreground group-focus/search:text-accent-foreground">
+    <SearchIcon />
+  </Button>
+  <Popover.Root bind:open disableFocusTrap>
+    <Popover.Trigger class="absolute left-0 right-0 -bottom-2" disabled />
+    {#if $suggestions.length > 0}
+      <Popover.Content class="p-0 {className}">
+        <div class="group/suggestions flex flex-col p-0 w-full max-h-[300px] overflow-y-scroll">
+          {#each $suggestions as suggestion, i}
+            <Button type="button" variant="ghost" size="sm"
+                    class="w-full justify-start !h-fit !whitespace-normal text-left {selectedSuggestion === i && 'bg-muted'}"
+                    on:click={() => handleSelect(suggestion)}
+                    on:mouseenter={() => selectedSuggestion = i}
+                    on:mouseleave={() => selectedSuggestion = 0}
+            >
+              {suggestion}
+            </Button>
+          {/each}
+        </div>
+      </Popover.Content>
+    {/if}
   </Popover.Root>
 </form>

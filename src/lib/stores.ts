@@ -74,10 +74,17 @@ export function deleteSkill(skill: Skill) {
 export function deleteTask(task: Task) {
   shifts.update((list) =>
     list.map((s) => {
-      s.tasks = s.tasks.filter((t) => t !== task.uuid);
+      s.task_uuids = s.task_uuids.filter((t) => t !== task.uuid);
       return s;
     })
   );
   constraints.update((list) => list.filter((c) => !appliesTo(c, task)));
   tasks.update((list) => list.filter((t) => t.uuid !== task.uuid));
+}
+
+export function deleteLocation(location: Location) {
+  shifts.update((list) => {
+    return list.filter((s) => s.location_uuid !== location.uuid);
+  });
+  locations.update((list) => list.filter((l) => l.uuid !== location.uuid));
 }

@@ -41,7 +41,7 @@
       variant="outline"
       role="combobox"
       aria-expanded={open}
-      class="w-[250px] justify-start"
+      class="w-[250px] justify-start shadow"
     >
       {#if icon}
         <Icon icon={icon} class="h-full w-auto opacity-50 mr-2" />

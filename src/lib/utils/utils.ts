@@ -180,3 +180,29 @@ export function toCalendarDate(date: Date): CalendarDate {
   // Date methods are confusing, month is 0-indexed and the day of month is called getDate
   return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
 }
+
+export function debounce<T extends (...args: unknown[]) => void>(callback: T, wait: number = 300) {
+  let timeoutId: ReturnType<typeof setTimeout>;
+
+  return (...args: Parameters<T>): void => {
+    clearTimeout(timeoutId);
+
+    timeoutId = setTimeout(() => {
+      callback(...args);
+    }, wait);
+  };
+}
+
+export function getCentrePoint(coords: LngLat[]): LngLat | undefined {
+  if (coords.length === 0) return undefined;
+
+  let sumLng = 0;
+  let sumLat = 0;
+
+  for (const [lng, lat] of coords) {
+    sumLng += lng;
+    sumLat += lat;
+  }
+
+  return [sumLng / coords.length, sumLat / coords.length];
+}
