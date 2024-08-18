@@ -3,7 +3,7 @@ import type { Skill } from "$lib/types/skill.ts";
 import type { Person } from "$lib/types/person.ts";
 import type { Location } from "$lib/types/location.ts";
 import type { Task } from "$lib/types/task.ts";
-import type { Shift } from "$lib/types/shift.ts";
+import type { Assignment } from "$lib/types/assignment.ts";
 import { appliesTo, type Constraint, type ConstraintOperand } from "$lib/types/constraints.ts";
 import { persisted } from "svelte-persisted-store";
 import * as devalue from "devalue";
@@ -13,7 +13,7 @@ export const employees = persisted<Person[]>("employees", [], { serializer: deva
 export const locations = persisted<Location[]>("locations", [], { serializer: devalue });
 export const tasks = persisted<Task[]>("tasks", [], { serializer: devalue });
 export const constraints = persisted<Constraint[]>("constraints", [], { serializer: devalue });
-export const shifts = persisted<Shift[]>("shifts", [], { serializer: devalue });
+export const assignments = persisted<Assignment[]>("assignments", [], { serializer: devalue });
 
 export function getConstraintsFor(item: ConstraintOperand): Constraint[] {
   return get(constraints).filter((c) => appliesTo(c, item));
@@ -39,9 +39,9 @@ export function getLocation(uuid: string | undefined): Location | undefined {
   return get(locations).find((l) => l.uuid === uuid);
 }
 
-export function getShift(uuid: string | undefined): Shift | undefined {
+export function getAssignment(uuid: string | undefined): Assignment | undefined {
   if (uuid === undefined) return undefined;
-  return get(shifts).find((s) => s.uuid === uuid);
+  return get(assignments).find((a) => a.uuid === uuid);
 }
 
 export function deleteEmployee(employee: Person) {
@@ -72,7 +72,7 @@ export function deleteSkill(skill: Skill) {
 }
 
 export function deleteTask(task: Task) {
-  shifts.update((list) =>
+  assignments.update((list) =>
     list.map((s) => {
       s.task_uuids = s.task_uuids.filter((t) => t !== task.uuid);
       return s;
@@ -83,7 +83,7 @@ export function deleteTask(task: Task) {
 }
 
 export function deleteLocation(location: Location) {
-  shifts.update((list) => {
+  assignments.update((list) => {
     return list.filter((s) => s.location_uuid !== location.uuid);
   });
   locations.update((list) => list.filter((l) => l.uuid !== location.uuid));

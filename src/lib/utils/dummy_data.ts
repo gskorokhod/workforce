@@ -1,16 +1,14 @@
-import type { Person, Skill, Task, Location, Shift } from "$lib/types";
-import { faker } from "@faker-js/faker";
+import type { Person, Skill, Task, Location, Assignment } from "$lib/types";
 import { type Constraint, ConstraintType } from "$lib/types/constraints.ts";
-import { constraints, employees, locations, tasks, shifts, skills } from "$lib/stores.ts";
-import { get } from "svelte/store";
 import type { IconType } from "$lib/types/ui.ts";
 import { sample, sampleOne } from "$lib/utils/utils.ts";
 import { createSkill } from "$lib/types/skill.ts";
 import { createPerson } from "$lib/types/person.ts";
 import { createTask } from "$lib/types/task.ts";
 import { createLocation } from "$lib/types/location.ts";
-import { createShift } from "$lib/types/shift.ts";
+import { createAssignment } from "$lib/types/assignment.ts";
 import { reverseGeocode } from "$lib/utils/osm.ts";
+import { faker } from "@faker-js/faker";
 
 const ST_ANDREWS: [latitude: number, longitude: number] = [-2.799, 56.34039];
 
@@ -119,6 +117,35 @@ const SHIFT_SUFFIX_GENERATORS: (() => string)[] = [
   () => ""
 ];
 
+export interface DummyDataGenProps {
+  people: number;
+  tasks: number;
+  locations: number;
+  assignments: number;
+  skills: number;
+  constraints: number;
+}
+
+export interface DummyData {
+  people: Person[];
+  tasks: Task[];
+  locations: Location[];
+  assignments: Assignment[];
+  skills: Skill[];
+  constraints: Constraint[];
+}
+
+export async function generateDummyData(props: DummyDataGenProps): Promise<DummyData> {
+  const skills = generateSkills(props.skills);
+  const locations = await generateLocations(props.locations);
+  const people = generatePeople(props.people, skills);
+  const tasks = generateTasks(props.tasks, skills, people);
+  const assignments = await generateAssignments(props.assignments, locations, tasks);
+  const constraints = generateConstraints(props.constraints, locations, people, tasks);
+
+  return { people, tasks, locations, assignments, skills, constraints };
+}
+
 export function generateLocationName(): string {
   const suffixGen = sampleOne(LOCATION_SUFFIX_GENERATORS) as () => string;
   return `${sampleOne(LOCATION_WORDS)} ${suffixGen()}`;
@@ -153,36 +180,6 @@ export function generateSkills(n: number): Skill[] {
   return Array.from({ length: n }, generateSkill);
 }
 
-export function generatePerson(): Person {
-  return createPerson({
-    name: faker.person.fullName(),
-    job_title: faker.person.jobTitle(),
-    image_url: faker.image.avatar(),
-    birthday: faker.date.birthdate(),
-    skill_uuids: sampleSkills(faker.number.int({ min: 1, max: 3 })).map((s) => s.uuid)
-  });
-}
-
-export function generatePeople(n: number): Person[] {
-  return Array.from({ length: n }, generatePerson);
-}
-
-export function generateTask(): Task {
-  return createTask({
-    name: generateTaskName(),
-    description: faker.lorem.sentence(),
-    icon: generateIcon(),
-    min_people: faker.number.int({ min: 1, max: 3 }),
-    max_people: faker.number.int({ min: 3, max: 5 }),
-    required_skill_uuids: sampleSkills(faker.number.int({ min: 0, max: 3 })).map((s) => s.uuid),
-    people_uuids: samplePeople(faker.number.int({ min: 0, max: 3 })).map((p) => p.uuid)
-  });
-}
-
-export function generateTasks(n: number): Task[] {
-  return Array.from({ length: n }, generateTask);
-}
-
 export async function generateLocation(): Promise<Location> {
   const coordinates = faker.location.nearbyGPSCoordinate({
     origin: ST_ANDREWS,
@@ -205,85 +202,77 @@ export async function generateLocations(n: number): Promise<Location[]> {
   return Promise.all(Array.from({ length: n }, generateLocation));
 }
 
-export async function generateShift(): Promise<Shift> {
-  let loc = sampleLocation();
-  if (loc === undefined) loc = await generateLocation();
+export function generatePerson(skills: Skill[]): Person {
+  return createPerson({
+    name: faker.person.fullName(),
+    job_title: faker.person.jobTitle(),
+    image_url: faker.image.avatar(),
+    birthday: faker.date.birthdate(),
+    skill_uuids: sample(skills, faker.number.int({ min: 1, max: 3 })).map((s) => s.uuid)
+  });
+}
 
-  return createShift({
+export function generatePeople(n: number, skills: Skill[]): Person[] {
+  return Array.from({ length: n }, () => generatePerson(skills));
+}
+
+export function generateTask(skills: Skill[], people: Person[]): Task {
+  return createTask({
+    name: generateTaskName(),
+    description: faker.lorem.sentence(),
+    icon: generateIcon(),
+    min_people: faker.number.int({ min: 1, max: 3 }),
+    max_people: faker.number.int({ min: 3, max: 5 }),
+    required_skill_uuids: sample(skills, faker.number.int({ min: 1, max: 3 })).map((s) => s.uuid),
+    people_uuids: sample(people, faker.number.int({ min: 1, max: 3 })).map((p) => p.uuid)
+  });
+}
+
+export function generateTasks(n: number, skills: Skill[], people: Person[]): Task[] {
+  return Array.from({ length: n }, () => generateTask(skills, people));
+}
+
+export async function generateAssignment(
+  locations: Location[],
+  tasks: Task[]
+): Promise<Assignment> {
+  const loc = sampleOne(locations) as Location;
+
+  return createAssignment({
     name: generateShiftName(),
     description: faker.lorem.sentence(),
     start_date_time: faker.date.recent(),
     end_date_time: faker.date.soon(),
     location_uuid: loc.uuid,
-    task_uuids: sampleTasks(faker.number.int({ min: 1, max: 3 })).map((t) => t.uuid)
+    task_uuids: sample(tasks, faker.number.int({ min: 1, max: 3 })).map((t) => t.uuid)
   });
 }
 
-export function generateShifts(n: number): Promise<Shift[]> {
-  return Promise.all(Array.from({ length: n }, generateShift));
+export function generateAssignments(
+  n: number,
+  locations: Location[],
+  tasks: Task[]
+): Promise<Assignment[]> {
+  return Promise.all(Array.from({ length: n }, () => generateAssignment(locations, tasks)));
 }
 
-export function samplePerson(): Person | undefined {
-  return sampleOne(get(employees));
-}
-
-export function sampleTask(): Task | undefined {
-  return sampleOne(get(tasks));
-}
-
-export function sampleLocation(): Location | undefined {
-  return sampleOne(get(locations));
-}
-
-export function sampleSkill(): Skill | undefined {
-  return sampleOne(get(skills));
-}
-
-export function sampleConstraint(): Constraint | undefined {
-  return sampleOne(get(constraints));
-}
-
-export function sampleShift(): Shift | undefined {
-  return sampleOne(get(shifts));
-}
-
-export function samplePeople(n: number, unique: boolean = true): Person[] {
-  return sample(get(employees), n, unique);
-}
-
-export function sampleTasks(n: number, unique: boolean = true): Task[] {
-  return sample(get(tasks), n, unique);
-}
-
-export function sampleLocations(n: number, unique: boolean = true): Location[] {
-  return sample(get(locations), n, unique);
-}
-
-export function sampleConstraints(n: number, unique: boolean = true): Constraint[] {
-  return sample(get(constraints), n, unique);
-}
-
-export function sampleShifts(n: number, unique: boolean = true): Shift[] {
-  return sample(get(shifts), n, unique);
-}
-
-export function sampleSkills(n: number, unique: boolean = true): Skill[] {
-  return sample(get(skills), n, unique);
-}
-
-export function generateConstraintForLocation(loc: Location): Constraint {
+export function generateConstraintForLocation(
+  loc: Location,
+  people: Person[],
+  tasks: Task[]
+): Constraint {
   const CONSTRAINT_GENERATORS: (() => Constraint)[] = [
     () => {
       return {
         type: ConstraintType.NoTask,
-        task: sampleTask() as Task,
+        task: sampleOne(tasks) as Task,
         applies_to: loc
       };
     },
     () => {
       return {
         type: ConstraintType.NoPerson,
-        person: samplePerson() as Person,
+        person: sampleOne(people) as Person,
         applies_to: loc
       };
     },
@@ -291,14 +280,14 @@ export function generateConstraintForLocation(loc: Location): Constraint {
       return {
         type: ConstraintType.NoLocation,
         location: loc,
-        applies_to: sampleTask() as Task
+        applies_to: sampleOne(tasks) as Task
       };
     },
     () => {
       return {
         type: ConstraintType.NoLocation,
         location: loc,
-        applies_to: samplePerson() as Person
+        applies_to: sampleOne(people) as Person
       };
     }
   ];
@@ -308,33 +297,37 @@ export function generateConstraintForLocation(loc: Location): Constraint {
   else return gen();
 }
 
-export function generateConstraintForTask(task: Task): Constraint {
+export function generateConstraintForTask(
+  task: Task,
+  locations: Location[],
+  people: Person[]
+): Constraint {
   const CONSTRAINT_GENERATORS: (() => Constraint)[] = [
     () => {
       return {
         type: ConstraintType.NoTask,
         task: task,
-        applies_to: sampleLocation() as Location
+        applies_to: sampleOne(locations) as Location
       };
     },
     () => {
       return {
         type: ConstraintType.NoTask,
         task: task,
-        applies_to: samplePerson() as Person
+        applies_to: sampleOne(people) as Person
       };
     },
     () => {
       return {
         type: ConstraintType.NoLocation,
-        location: sampleLocation() as Location,
+        location: sampleOne(locations) as Location,
         applies_to: task
       };
     },
     () => {
       return {
         type: ConstraintType.NoPerson,
-        person: samplePerson() as Person,
+        person: sampleOne(people) as Person,
         applies_to: task
       };
     }
@@ -345,33 +338,45 @@ export function generateConstraintForTask(task: Task): Constraint {
   else return gen();
 }
 
-export function generateConstraintForPerson(person: Person): Constraint {
+export function generateConstraintForPerson(
+  person: Person,
+  locations: Location[],
+  people: Person[],
+  tasks: Task[]
+): Constraint {
   const CONSTRAINT_GENERATORS: (() => Constraint)[] = [
     () => {
       return {
         type: ConstraintType.NoPerson,
         person: person,
-        applies_to: sampleLocation() as Location
+        applies_to: sampleOne(locations) as Location
       };
     },
     () => {
       return {
         type: ConstraintType.NoPerson,
         person: person,
-        applies_to: sampleTask() as Task
+        applies_to: sampleOne(tasks) as Task
+      };
+    },
+    () => {
+      return {
+        type: ConstraintType.NoPerson,
+        person: person,
+        applies_to: sampleOne(people) as Person
       };
     },
     () => {
       return {
         type: ConstraintType.NoLocation,
-        location: sampleLocation() as Location,
+        location: sampleOne(locations) as Location,
         applies_to: person
       };
     },
     () => {
       return {
         type: ConstraintType.NoTask,
-        task: sampleTask() as Task,
+        task: sampleOne(tasks) as Task,
         applies_to: person
       };
     }
@@ -382,29 +387,46 @@ export function generateConstraintForPerson(person: Person): Constraint {
   else return gen();
 }
 
-export function generateConstraintForRandomLocation(): Constraint | undefined {
-  const loc = sampleLocation();
+export function generateConstraintForRandomLocation(
+  locations: Location[],
+  people: Person[],
+  tasks: Task[]
+): Constraint | undefined {
+  const loc = sampleOne(locations);
   if (loc === undefined) return undefined;
-  return generateConstraintForLocation(loc);
+  return generateConstraintForLocation(loc, people, tasks);
 }
 
-export function generateConstraintForRandomTask(): Constraint | undefined {
-  const task = sampleTask();
+export function generateConstraintForRandomTask(
+  locations: Location[],
+  people: Person[],
+  tasks: Task[]
+): Constraint | undefined {
+  const task = sampleOne(tasks);
   if (task === undefined) return undefined;
-  return generateConstraintForTask(task);
+  return generateConstraintForTask(task, locations, people);
 }
 
-export function generateConstraintForRandomPerson(): Constraint | undefined {
-  const person = samplePerson();
+export function generateConstraintForRandomPerson(
+  locations: Location[],
+  people: Person[],
+  tasks: Task[]
+): Constraint | undefined {
+  const person = sampleOne(people);
   if (person === undefined) return undefined;
-  return generateConstraintForPerson(person);
+  return generateConstraintForPerson(person, locations, people, tasks);
 }
 
-export function generateConstraints(n: number): Constraint[] {
+export function generateConstraints(
+  n: number,
+  locations: Location[],
+  people: Person[],
+  tasks: Task[]
+): Constraint[] {
   const GENERATORS: (() => Constraint | undefined)[] = [
-    generateConstraintForRandomLocation,
-    generateConstraintForRandomTask,
-    generateConstraintForRandomPerson
+    () => generateConstraintForRandomLocation(locations, people, tasks),
+    () => generateConstraintForRandomTask(locations, people, tasks),
+    () => generateConstraintForRandomPerson(locations, people, tasks)
   ];
 
   return Array.from({ length: n }, () => {

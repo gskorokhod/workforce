@@ -5,15 +5,15 @@
   import Combobox from "$lib/components/ui/combobox/combobox.svelte";
   import Search from "$lib/components/ui/search/search.svelte";
   import Sidebar from "$lib/components/ui/sidebar/sidebar.svelte";
-  import ShiftCard from "$lib/components/elements/shift/shift-card.svelte";
+  import AssignmentCard from "$lib/components/elements/assignment/assignment-card.svelte";
   import { Button } from "$lib/components/ui/button";
   import { FilterIcon } from "lucide-svelte";
   import type { ComboboxItem } from "$lib/components/ui/combobox";
   import { SidebarPosition } from "$lib/components/ui/sidebar/index.ts";
-  import type { Shift } from "$lib/types";
-  import { shifts } from "$lib/stores.ts";
+  import type { Assignment } from "$lib/types";
+  import { assignments } from "$lib/stores.ts";
   import MiniSearch from "minisearch";
-  import { getLocationForShift, getPeopleForShift, getTasksForShift } from "$lib/types/shift.ts";
+  import { getLocationForAssignment, getPeopleForAssignment, getTasksForAssignment } from "$lib/types/assignment.ts";
 
   let schedules: ComboboxItem[] = [
     { label: "Schedule 1", value: "schedule1" },
@@ -22,24 +22,24 @@
 
   let miniSearch = new MiniSearch({
     idField: "uuid",
-    extractField: (shift: Shift, fieldName: string) => {
+    extractField: (assignment: Assignment, fieldName: string) => {
       switch (fieldName) {
         case "uuid":
-          return shift.uuid;
+          return assignment.uuid;
         case "name":
-          return shift.name;
+          return assignment.name;
         case "description":
-          return shift.description;
+          return assignment.description;
         case "location":
-          return getLocationForShift(shift)?.name ?? "No Location";
+          return getLocationForAssignment(assignment)?.name ?? "No Location";
         case "tasks":
-          return getTasksForShift(shift).map((task) => task.name).join(" ");
+          return getTasksForAssignment(assignment).map((task) => task.name).join(" ");
         case "people":
-          return getPeopleForShift(shift).map((person) => person.name).join(" ");
+          return getPeopleForAssignment(assignment).map((person) => person.name).join(" ");
         case "start_time":
-          return shift.start_date_time.toString();
+          return assignment.start_date_time.toString();
         case "end_time":
-          return shift.end_date_time.toString();
+          return assignment.end_date_time.toString();
         default:
           return "";
       }
@@ -53,9 +53,9 @@
     prefix: true,
     fuzzy: 0.2
   }).map((res) => res.id);
-  $: filtered_shifts = search === "" ? $shifts : $shifts.filter((shift) => search_ids.includes(shift.uuid));
+  $: filtered_assignments = search === "" ? $assignments : $assignments.filter((assignment) => search_ids.includes(assignment.uuid));
 
-  shifts.subscribe(value => {
+  assignments.subscribe(value => {
     miniSearch.removeAll();
     miniSearch.addAllAsync(value);
   });
@@ -76,12 +76,12 @@
       </svelte:fragment>
     </TopBar>
 
-    <!-- The !important styles are needed to override the default styling of the component and make it grow with the number of shift cards -->
+    <!-- The !important styles are needed to override the default styling of the component and make it grow with the number of assignment cards -->
     <Resizable.PaneGroup direction="horizontal" style="overflow: unset !important; height: fit-content !important;">
       <Resizable.Pane class="flex flex-col gap-4 p-4 h-fit">
-        {#each filtered_shifts as shift}
-          {#if shift !== undefined}
-            <ShiftCard shift={shift} />
+        {#each filtered_assignments as assignment}
+          {#if assignment !== undefined}
+            <AssignmentCard {assignment} />
           {/if}
         {/each}
       </Resizable.Pane>
