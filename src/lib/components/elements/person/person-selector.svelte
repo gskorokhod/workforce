@@ -2,7 +2,8 @@
 <script lang="ts">
   import type { Person } from "$lib/types";
 
-  import PersonAvatar from "$lib/components/elements/person/person-avatar.svelte"; import { Button } from "$lib/components/ui/button";
+  import PersonAvatar from "$lib/components/elements/person/person-avatar.svelte";
+   import { Button } from "$lib/components/ui/button";
   import { ChipVariant } from "$lib/components/ui/chip";
   import * as Command from "$lib/components/ui/command";
   import * as Popover from "$lib/components/ui/popover";

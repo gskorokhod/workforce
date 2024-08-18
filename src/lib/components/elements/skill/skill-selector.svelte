@@ -2,7 +2,8 @@
 <script lang="ts">
   import type { Skill } from "$lib/types";
 
-  import SkillBadge from "$lib/components/elements/skill/skill-badge.svelte"; import { Button } from "$lib/components/ui/button";
+  import SkillBadge from "$lib/components/elements/skill/skill-badge.svelte";
+   import { Button } from "$lib/components/ui/button";
   import { ChipVariant } from "$lib/components/ui/chip";
   import * as Command from "$lib/components/ui/command";
   import * as Popover from "$lib/components/ui/popover";

@@ -4,7 +4,8 @@
 
   import ColumnHideSelector from "$lib/components/elements/data-tables/lib/column-hide-selector.svelte";
   import SkillsDataTable from "$lib/components/elements/data-tables/skills-data-table.svelte";
-  import SkillEditDialog from "$lib/components/elements/skill/skill-edit-dialog.svelte"; import TopBar from "$lib/components/elements/top-bar/top_bar.svelte";
+  import SkillEditDialog from "$lib/components/elements/skill/skill-edit-dialog.svelte"; 
+  import TopBar from "$lib/components/elements/top-bar/top_bar.svelte";
   import { Button } from "$lib/components/ui/button";
   import Search from "$lib/components/ui/search/search.svelte";
   import { deleteSkill, skills } from "$lib/stores.ts";

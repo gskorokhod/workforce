@@ -6,7 +6,8 @@
   import type { FlatColumn } from "svelte-headless-table";
   import type { AnyPlugins } from "svelte-headless-table/plugins";
 
-  import { Button } from "$lib/components/ui/button"; import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+  import { Button } from "$lib/components/ui/button";
+   import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
   import * as Tooltip from "$lib/components/ui/tooltip";
   import { EyeOffIcon } from "lucide-svelte";
 

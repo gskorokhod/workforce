@@ -2,7 +2,8 @@
 <script lang="ts">
   import type { Location, LocationProps } from "$lib/types/location.ts";
 
-  import LocationMapMarker from "$lib/components/elements/location/location-map-marker.svelte"; import * as Avatar from "$lib/components/ui/avatar/index.js";
+  import LocationMapMarker from "$lib/components/elements/location/location-map-marker.svelte";
+   import * as Avatar from "$lib/components/ui/avatar/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
   import * as Dialog from "$lib/components/ui/dialog/index.js";
   import { Input } from "$lib/components/ui/input";

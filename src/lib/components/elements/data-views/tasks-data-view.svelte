@@ -4,7 +4,8 @@
 
   import ColumnHideSelector from "$lib/components/elements/data-tables/lib/column-hide-selector.svelte";
   import TasksDataTable from "$lib/components/elements/data-tables/tasks-data-table.svelte";
-  import TaskEditDialog from "$lib/components/elements/task/task-edit-dialog.svelte"; import TopBar from "$lib/components/elements/top-bar/top_bar.svelte";
+  import TaskEditDialog from "$lib/components/elements/task/task-edit-dialog.svelte"; 
+  import TopBar from "$lib/components/elements/top-bar/top_bar.svelte";
   import { Button } from "$lib/components/ui/button";
   import Search from "$lib/components/ui/search/search.svelte";
   import { deleteTask, tasks } from "$lib/stores.ts";

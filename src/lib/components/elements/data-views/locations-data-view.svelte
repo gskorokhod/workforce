@@ -4,7 +4,8 @@
 
   import ColumnHideSelector from "$lib/components/elements/data-tables/lib/column-hide-selector.svelte";
   import LocationsDataTable from "$lib/components/elements/data-tables/locations-data-table.svelte";
-  import LocationEditDialog from "$lib/components/elements/location/location-edit-dialog.svelte"; import LocationsMap from "$lib/components/elements/location/locations-map.svelte";
+  import LocationEditDialog from "$lib/components/elements/location/location-edit-dialog.svelte"; 
+  import LocationsMap from "$lib/components/elements/location/locations-map.svelte";
   import TopBar from "$lib/components/elements/top-bar/top_bar.svelte";
   import { Button } from "$lib/components/ui/button";
   import Search from "$lib/components/ui/search/search.svelte";
