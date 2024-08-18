@@ -1,12 +1,13 @@
-import { get } from "svelte/store";
-import type { Skill } from "$lib/types/skill.ts";
-import type { Person } from "$lib/types/person.ts";
-import type { Location } from "$lib/types/location.ts";
-import type { Task } from "$lib/types/task.ts";
 import type { Assignment } from "$lib/types/assignment.ts";
+import type { Location } from "$lib/types/location.ts";
+import type { Person } from "$lib/types/person.ts";
+import type { Skill } from "$lib/types/skill.ts";
+import type { Task } from "$lib/types/task.ts";
+
 import { appliesTo, type Constraint, type ConstraintOperand } from "$lib/types/constraints.ts";
-import { persisted } from "svelte-persisted-store";
 import * as devalue from "devalue";
+import { get } from "svelte/store";
+import { persisted } from "svelte-persisted-store";
 
 export const skills = persisted<Skill[]>("skills", [], { serializer: devalue });
 export const employees = persisted<Person[]>("employees", [], { serializer: devalue });

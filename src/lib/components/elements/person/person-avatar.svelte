@@ -1,13 +1,14 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
   import type { Person } from "$lib/types";
-  import * as Tooltip from "$lib/components/ui/tooltip";
-  import * as Avatar from "$lib/components/ui/avatar";
-  import Chip from "$lib/components/ui/chip/chip.svelte";
+
   import PersonTooltip from "$lib/components/elements/person/person-tooltip.svelte";
-  import { PlusIcon, UserIcon } from "lucide-svelte";
-  import { getInitialsForPerson } from "$lib/types/person.ts";
+  import * as Avatar from "$lib/components/ui/avatar";
   import { ChipSize, ChipVariant } from "$lib/components/ui/chip";
+  import Chip from "$lib/components/ui/chip/chip.svelte";
+  import * as Tooltip from "$lib/components/ui/tooltip";
+  import { getInitialsForPerson } from "$lib/types/person.ts";
+  import { PlusIcon, UserIcon } from "lucide-svelte";
 
   let person: Person | undefined = undefined;
   let popoverEnabled: boolean = true;
@@ -16,29 +17,29 @@
   let className: string = "";
 
   // noinspection ReservedWordAsName
-  export { person, placeholder, popoverEnabled, variant, className as class };
+  export { className as class,person, placeholder, popoverEnabled, variant };
 </script>
 
 <Tooltip.Root>
   <Tooltip.Trigger>
     {#if person}
-      <Chip {variant} class="{className} !p-0" size={ChipSize.lg}>
-        <Avatar.Root slot="icon" class="w-10 h-10">
-          <Avatar.Image src={person.image_url} alt={person.name} />
+      <Chip class="{className} !p-0" size={ChipSize.lg} {variant}>
+        <Avatar.Root class="h-10 w-10" slot="icon">
+          <Avatar.Image alt={person.name} src={person.image_url} />
           <Avatar.Fallback>{getInitialsForPerson(person)}</Avatar.Fallback>
         </Avatar.Root>
       </Chip>
-    {:else }
-      <Chip {variant} class="{className} !p-1" size={ChipSize.lg}>
-        <UserIcon slot="icon" class="w-8 h-8" />
-        <PlusIcon slot="hover_icon" class="w-8 h-8" />
+    {:else}
+      <Chip class="{className} !p-1" size={ChipSize.lg} {variant}>
+        <UserIcon class="h-8 w-8" slot="icon" />
+        <PlusIcon class="h-8 w-8" slot="hover_icon" />
       </Chip>
     {/if}
   </Tooltip.Trigger>
   {#if popoverEnabled}
     <Tooltip.Content>
       {#if person}
-        <PersonTooltip person={person} />
+        <PersonTooltip {person} />
       {:else}
         {placeholder}
       {/if}

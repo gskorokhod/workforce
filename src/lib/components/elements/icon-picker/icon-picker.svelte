@@ -1,19 +1,19 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import * as Popover from "$lib/components/ui/popover";
-  import * as Tooltip from "$lib/components/ui/tooltip";
-  import { Button } from "$lib/components/ui/button";
-  import { ChevronDownIcon, LoaderIcon } from "lucide-svelte";
-  import { writable, type Writable } from "svelte/store";
-  import { tick } from "svelte";
-  import Icon from "$lib/components/ui/icon/icon.svelte";
-  import Search from "$lib/components/ui/search/search.svelte";
-  import ColourPicker from "$lib/components/ui/color-picker/color-picker.svelte";
-  import Chip from "$lib/components/ui/chip/chip.svelte";
   import type { IconType } from "$lib/types/ui.ts";
+
+  import { Button } from "$lib/components/ui/button";
+  import { ChipVariant } from "$lib/components/ui/chip"; import Chip from "$lib/components/ui/chip/chip.svelte";
+  import ColourPicker from "$lib/components/ui/color-picker/color-picker.svelte";
+  import Icon from "$lib/components/ui/icon/icon.svelte";
+  import * as Popover from "$lib/components/ui/popover";
+  import Search from "$lib/components/ui/search/search.svelte";
   import { Separator } from "$lib/components/ui/separator";
+  import * as Tooltip from "$lib/components/ui/tooltip";
   import { capitalize, stripPrefix } from "$lib/utils/utils.js";
-  import { ChipVariant } from "$lib/components/ui/chip";
+  import { ChevronDownIcon, LoaderIcon } from "lucide-svelte";
+  import { tick } from "svelte";
+  import { type Writable,writable } from "svelte/store";
 
   const LIMIT: number = 64;
   const ICON_SET: string = "mdi";
@@ -56,15 +56,17 @@
 
   function onColourSelect(color: string) {
     icon = {
-      icon: icon?.icon ?? "",
-      color: color
+      color: color,
+      icon: icon?.icon ?? ""
     };
   }
 
   async function fetchIconList(query: string) {
     loading = true;
     try {
-      const response = await fetch(`https://api.iconify.design/search?query=${query}&prefix=${ICON_SET}&limit=${LIMIT}`);
+      const response = await fetch(
+        `https://api.iconify.design/search?query=${query}&prefix=${ICON_SET}&limit=${LIMIT}`
+      );
       const data = await response.json();
       iconList.set(data.icons);
     } catch (error) {
@@ -94,68 +96,74 @@
     });
   }
 
-  export { icon, className as class };
+  export { className as class,icon };
 </script>
 
-
 <Popover.Root bind:open let:ids>
-  <Popover.Trigger asChild let:builder class={className}>
+  <Popover.Trigger asChild class={className} let:builder>
     <Button
+      aria-expanded={open}
       builders={[builder]}
-      variant="ghost"
+      class="h-fit w-fit rounded-full p-0 outline-none"
       role="combobox"
       size="icon_lg"
-      aria-expanded={open}
-      class="w-fit h-fit rounded-full outline-none p-0"
+      variant="ghost"
     >
-      {#if ((icon === undefined) || icon.icon === "")}
+      {#if icon === undefined || icon.icon === ""}
         <Chip variant={ChipVariant.outline}>
-          <ChevronDownIcon slot="icon" class="w-5 h-5" />
+          <ChevronDownIcon class="h-5 w-5" slot="icon" />
         </Chip>
       {:else}
-        <Chip variant={ChipVariant.colorOutline} color={icon.color}>
-          <Icon {icon} slot="icon" variant="monochrome" class="w-5 h-5" />
+        <Chip color={icon.color} variant={ChipVariant.colorOutline}>
+          <Icon class="h-5 w-5" {icon} slot="icon" variant="monochrome" />
         </Chip>
       {/if}
     </Button>
   </Popover.Trigger>
   <Popover.Content class="w-[310px] p-0">
-    <ColourPicker class="mt-4 mb-4 justify-center" color={icon?.color} onSelect={(c) => onColourSelect(c)} />
+    <ColourPicker
+      class="mb-4 mt-4 justify-center"
+      color={icon?.color}
+      onSelect={(c) => onColourSelect(c)}
+    />
 
     <Separator orientation="horizontal" />
 
-    <Search debounceDelay={200} onInput={onSearch} class="!shadow-none !border-none !rounded-none" />
+    <Search class="!rounded-none !border-none !shadow-none" onInput={onSearch} />
 
     <Separator orientation="horizontal" />
 
     {#if loading}
-      <div class="flex flex-row items-center justify-center w-full h-20">
+      <div class="flex h-20 w-full flex-row items-center justify-center">
         <LoaderIcon class="animate-spin" />
       </div>
     {:else if $iconList.length === 0}
-      <div class="flex flex-row items-center justify-center w-full h-20 text-muted-foreground">
+      <div class="flex h-20 w-full flex-row items-center justify-center text-muted-foreground">
         No icons found
       </div>
     {:else}
-      <div class="flex flex-row flex-wrap max-h-[300px] w-full overflow-y-scroll my-2">
+      <div class="my-2 flex max-h-[300px] w-full flex-row flex-wrap overflow-y-scroll">
         {#each $iconList as icon_name}
           <Tooltip.Root>
             <Tooltip.Trigger>
               <Button
                 on:click={() => {
                   icon = {
-                    icon: icon_name,
-                    color: icon?.color
+                    color: icon?.color,
+                    icon: icon_name
                   };
                   closeAndFocusTrigger(ids.trigger);
                 }}
-                variant="ghost"
                 size="icon_lg"
+                variant="ghost"
               >
-                <Icon icon={{
-                    icon: icon_name,
-                    color: icon?.color
-                  }} class="text-primary transition-all" />
+                <Icon
+                  class="text-primary transition-all"
+                  icon={{
+                    color: icon?.color,
+                    icon: icon_name
+                  }}
+                />
               </Button>
             </Tooltip.Trigger>
             <Tooltip.Content class="text-muted-foreground">

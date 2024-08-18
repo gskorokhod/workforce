@@ -1,16 +1,25 @@
 <script lang="ts">
+  import type { ColumnInitializer } from "$lib/components/elements/data-tables/core";
   import type { Person, Skill } from "$lib/types";
-  import { employees, getConstraintsFor } from "$lib/stores.ts";
-  import { createRender, DataBodyCell, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
+
+  import ConstraintsList from "$lib/components/elements/constraint/constraints-for-list.svelte"; import DataTable from "$lib/components/elements/data-tables/core/data-table.svelte";
+  import RowActions from "$lib/components/elements/data-tables/lib/row-actions.svelte";
   import PersonAvatar from "$lib/components/elements/person/person-avatar.svelte";
   import SkillsList from "$lib/components/elements/skill/skills-list.svelte";
-  import ConstraintsList from "$lib/components/elements/constraint/constraints-for-list.svelte";
-  import DataTable from "$lib/components/elements/data-tables/core/data-table.svelte";
-  import RowActions from "$lib/components/elements/data-tables/lib/row-actions.svelte";
-  import { writable, type Writable } from "svelte/store";
-  import { type AnyPlugins, createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
-  import type { ColumnInitializer } from "$lib/components/elements/data-tables/core";
+  import { employees, getConstraintsFor } from "$lib/stores.ts";
   import { getAgeForPerson, getSkillsForPerson } from "$lib/types/person.ts";
+  import { type Writable,writable } from "svelte/store";
+  import {
+    createRender,
+    DataBodyCell,
+    FlatColumn,
+    type ReadOrWritable
+  } from "svelte-headless-table";
+  import {
+    type AnyPlugins,
+    createSortKeysStore,
+    type WritableSortKeys
+  } from "svelte-headless-table/plugins";
 
   let data: ReadOrWritable<Person[]> = employees;
   let actions: Map<string, (item: Person) => void> = new Map();
@@ -22,61 +31,70 @@
 
   let columnInitializers: ColumnInitializer[] = [
     {
-      id: "avatar",
       accessor: (row: Person) => row,
+      cell: (cell: DataBodyCell<unknown>) =>
+        createRender(PersonAvatar, { person: cell.value as Person }),
       header: "Avatar",
-      cell: (cell: DataBodyCell<unknown>) => createRender(PersonAvatar, { person: cell.value as Person }),
+      id: "avatar",
       plugins: {
-        tableFilter: {
+        sort: {
           disable: true
         },
-        sort: {
+        tableFilter: {
           disable: true
         }
       }
     },
     {
-      id: "name",
       accessor: "name",
-      header: "Name"
+      header: "Name",
+      id: "name"
     },
     {
-      id: "age",
       accessor: (row: Person) => getAgeForPerson(row),
-      header: "Age"
+      header: "Age",
+      id: "age"
     },
     {
-      id: "job_title",
       accessor: "job_title",
-      header: "Job Title"
+      header: "Job Title",
+      id: "job_title"
     },
     {
-      id: "skills",
       accessor: (row: Person) => getSkillsForPerson(row),
+      cell: (cell: DataBodyCell<unknown>) =>
+        createRender(SkillsList, { skills: cell.value as Skill[] }),
       header: "Skills",
-      cell: (cell: DataBodyCell<unknown>) => createRender(SkillsList, { skills: cell.value as Skill[] }),
+      id: "skills",
       plugins: {
-        tableFilter: {
-          getFilterValue: (value: Skill[]) => value.map((skill) => skill.name).join(" ")
-        },
         sort: {
           getSortValue: (value: Skill[]) => value.map((skill) => skill.name).join(" ")
+        },
+        tableFilter: {
+          getFilterValue: (value: Skill[]) => value.map((skill) => skill.name).join(" ")
         }
       }
     },
     {
-      id: "constraints",
       accessor: (row: Person) => row,
+      cell: (cell: DataBodyCell<unknown>) =>
+        createRender(ConstraintsList, {
+          forOperand: cell.value as Person
+        }),
       header: "Constraints",
-      cell: (cell: DataBodyCell<unknown>) => createRender(ConstraintsList, {
-        forOperand: cell.value as Person
-      }),
+      id: "constraints",
       plugins: {
-        tableFilter: {
-          getFilterValue: (value: Person) => getConstraintsFor(value).map((constraint) => constraint.type).join(" ")
-        },
         sort: {
-          getSortValue: (value: Person) => getConstraintsFor(value).map((constraint) => constraint.type).join(" ")
+          getSortValue: (value: Person) =>
+            getConstraintsFor(value)
+              .map((constraint) => constraint.type)
+              .join(" ")
+        },
+        tableFilter: {
+          getFilterValue: (value: Person) =>
+            getConstraintsFor(value)
+              .map((constraint) => constraint.type)
+              .join(" ")
         }
       }
     }
@@ -84,23 +102,31 @@
 
   if (actions.size > 0) {
     columnInitializers.push({
-      id: "actions",
       accessor: (row: Person) => row,
+      cell: (cell: DataBodyCell<unknown>) =>
+        createRender(RowActions, { actions, item: cell.value as Person }),
       header: "Actions",
-      cell: (cell: DataBodyCell<unknown>) => createRender(RowActions, { item: cell.value as Person, actions }),
+      id: "actions",
       plugins: {
-        tableFilter: {
+        sort: {
           disable: true
         },
-        sort: {
+        tableFilter: {
           disable: true
         }
       }
     });
   }
 
-  export { data, actions, filterValue, sortKeys, hideForId, flatColumns, className as class };
+  export { actions, className as class,data, filterValue, flatColumns, hideForId, sortKeys };
 </script>
 
-<DataTable {data} {columnInitializers} bind:filterValue bind:sortKeys bind:hideForId bind:flatColumns
-           class={className} />
+<DataTable
+  bind:filterValue
+  bind:flatColumns
+  bind:hideForId
+  bind:sortKeys
+  class={className}
+  {columnInitializers}
+  {data}
+/>

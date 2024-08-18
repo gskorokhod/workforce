@@ -1,18 +1,23 @@
 <script lang="ts">
+  import type { ColumnInitializer } from "$lib/components/elements/data-tables/core";
   import type { Person, Skill, Task } from "$lib/types";
-  import { skills } from "$lib/stores.ts";
-  import { createRender, DataBodyCell, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
+  import type { AnyPlugins } from "svelte-headless-table/plugins";
+
+  import DataTable from "$lib/components/elements/data-tables/core/data-table.svelte"; import RowActions from "$lib/components/elements/data-tables/lib/row-actions.svelte";
+  import PeopleList from "$lib/components/elements/person/people-list.svelte";
   import SkillBadge from "$lib/components/elements/skill/skill-badge.svelte";
   import TasksList from "$lib/components/elements/task/tasks-list.svelte";
-  import PeopleList from "$lib/components/elements/person/people-list.svelte";
-  import DataTable from "$lib/components/elements/data-tables/core/data-table.svelte";
-  import { writable, type Writable } from "svelte/store";
-  import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
-  import { capitalize } from "$lib/utils/utils.ts";
-  import type { AnyPlugins } from "svelte-headless-table/plugins";
-  import type { ColumnInitializer } from "$lib/components/elements/data-tables/core";
+  import { skills } from "$lib/stores.ts";
   import { getPeopleWithSkill, getTasksWithSkill } from "$lib/types/skill.ts";
-  import RowActions from "$lib/components/elements/data-tables/lib/row-actions.svelte";
+  import { capitalize } from "$lib/utils/utils.ts";
+  import { type Writable,writable } from "svelte/store";
+  import {
+    createRender,
+    DataBodyCell,
+    FlatColumn,
+    type ReadOrWritable
+  } from "svelte-headless-table";
+  import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
 
   let data: ReadOrWritable<Skill[]> = skills;
   let actions: Map<string, (item: Skill) => void> = new Map();
@@ -24,58 +29,61 @@
 
   let columnInitializers: ColumnInitializer[] = [
     {
-      id: "icon",
       accessor: (row: Skill) => row,
+      cell: (cell: DataBodyCell<unknown>) =>
+        createRender(SkillBadge, { skill: cell.value as Skill }),
       header: "Icon",
-      cell: (cell: DataBodyCell<unknown>) => createRender(SkillBadge, { skill: cell.value as Skill }),
+      id: "icon",
       plugins: {
-        tableFilter: {
+        sort: {
           disable: true
         },
-        sort: {
+        tableFilter: {
           disable: true
         }
       }
     },
     {
-      id: "name",
       accessor: "name",
+      cell: (cell: DataBodyCell<unknown>) => capitalize(cell.value as string),
       header: "Name",
-      cell: (cell: DataBodyCell<unknown>) => capitalize(cell.value as string)
+      id: "name"
     },
     {
-      id: "description",
       accessor: "description",
-      header: "Description"
+      header: "Description",
+      id: "description"
     },
     {
-      id: "tasks",
       accessor: (row: Skill) => getTasksWithSkill(row),
+      cell: (cell: DataBodyCell<unknown>) =>
+        createRender(TasksList, { tasks: cell.value as Task[] }),
       header: "Required for tasks",
-      cell: (cell: DataBodyCell<unknown>) => createRender(TasksList, { tasks: cell.value as Task[] }),
+      id: "tasks",
       plugins: {
-        tableFilter: {
-          getFilterValue: (value: Task[]) => value.map((task) => task.name).join(" ")
-        },
         sort: {
           getSortValue: (value: Task[]) => value.map((task) => task.name).join(" ")
+        },
+        tableFilter: {
+          getFilterValue: (value: Task[]) => value.map((task) => task.name).join(" ")
         }
       }
     },
     {
-      id: "people",
       accessor: (row: Skill) => getPeopleWithSkill(row),
+      cell: (cell: DataBodyCell<unknown>) =>
+        createRender(PeopleList, {
+          compact: true,
+          people: cell.value as Person[]
+        }),
       header: "People with this skill",
-      cell: (cell: DataBodyCell<unknown>) => createRender(PeopleList, {
-        people: cell.value as Person[],
-        compact: true
-      }),
+      id: "people",
       plugins: {
-        tableFilter: {
-          getFilterValue: (value: Person[]) => value.map((person) => person.name).join(" ")
-        },
         sort: {
           getSortValue: (value: Person[]) => value.map((person) => person.name).join(" ")
+        },
+        tableFilter: {
+          getFilterValue: (value: Person[]) => value.map((person) => person.name).join(" ")
         }
       }
     }
@@ -83,24 +91,31 @@
 
   if (actions.size > 0) {
     columnInitializers.push({
-      id: "actions",
       accessor: (row: Skill) => row,
+      cell: (cell: DataBodyCell<unknown>) =>
+        createRender(RowActions, { actions, item: cell.value as Skill }),
       header: "Actions",
-      cell: (cell: DataBodyCell<unknown>) => createRender(RowActions, { item: cell.value as Skill, actions }),
+      id: "actions",
       plugins: {
-        tableFilter: {
+        sort: {
           disable: true
         },
-        sort: {
+        tableFilter: {
           disable: true
         }
       }
     });
   }
 
-
-  export { data, actions, filterValue, sortKeys, hideForId, flatColumns, className as class };
+  export { actions, className as class,data, filterValue, flatColumns, hideForId, sortKeys };
 </script>
 
-<DataTable {data} {columnInitializers} bind:filterValue bind:sortKeys bind:hideForId bind:flatColumns
-           class={className} />
+<DataTable
+  bind:filterValue
+  bind:flatColumns
+  bind:hideForId
+  bind:sortKeys
+  class={className}
+  {columnInitializers}
+  {data}
+/>

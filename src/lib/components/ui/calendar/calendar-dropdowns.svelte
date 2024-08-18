@@ -1,11 +1,7 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
   import { Calendar as CalendarPrimitive } from "bits-ui";
-  import {
-    DateFormatter,
-    getLocalTimeZone,
-    today
-  } from "@internationalized/date";
+  import { DateFormatter, getLocalTimeZone, today } from "@internationalized/date";
   import * as Select from "$lib/components/ui/select/index.js";
   import * as Calendar from "$lib/components/ui/calendar/index.ts";
 
@@ -40,16 +36,16 @@
 
   $: defaultYear = value
     ? {
-      value: value.year,
-      label: String(value.year)
-    }
+        value: value.year,
+        label: String(value.year)
+      }
     : undefined;
 
   $: defaultMonth = value
     ? {
-      value: value.month,
-      label: monthFmt.format(value.toDate(getLocalTimeZone()))
-    }
+        value: value.month,
+        label: monthFmt.format(value.toDate(getLocalTimeZone()))
+      }
     : undefined;
 
   let className: $$Props["class"] = undefined;
@@ -61,10 +57,10 @@
     selected={defaultMonth}
     items={monthOptions}
     onSelectedChange={(v) => {
-          if (!v || !value) return;
-          if (v.value === value?.month) return;
-          value = value.set({ month: v.value });
-        }}
+      if (!v || !value) return;
+      if (v.value === value?.month) return;
+      value = value.set({ month: v.value });
+    }}
   >
     <Select.Trigger aria-label="Select month" class="w-[60%]">
       <Select.Value placeholder="Select month" />
@@ -81,10 +77,10 @@
     selected={defaultYear}
     items={yearOptions}
     onSelectedChange={(v) => {
-          if (!v || !value) return;
-          if (v.value === value?.year) return;
-          value = value.set({ year: v.value });
-        }}
+      if (!v || !value) return;
+      if (v.value === value?.year) return;
+      value = value.set({ year: v.value });
+    }}
   >
     <Select.Trigger aria-label="Select year" class="w-[40%]">
       <Select.Value placeholder="Select year" />

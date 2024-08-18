@@ -17,9 +17,7 @@
   let icon: IconType;
   let placeholder = "Select a value";
 
-  $: selectedValue =
-    options.find((f) => f.value === value)?.label ??
-    placeholder;
+  $: selectedValue = options.find((f) => f.value === value)?.label ?? placeholder;
 
   // We want to refocus the trigger button when the user selects
   // an item from the list so users can continue navigating the
@@ -44,7 +42,7 @@
       class="w-[250px] justify-start shadow"
     >
       {#if icon}
-        <Icon icon={icon} class="h-full w-auto opacity-50 mr-2" />
+        <Icon {icon} class="mr-2 h-full w-auto opacity-50" />
       {/if}
       {selectedValue}
       <ChevronsUpDown class="ml-auto h-5 w-5 shrink-0 opacity-50" />
@@ -64,12 +62,7 @@
             }}
           >
             {option.label}
-            <Check
-              class={cn(
-                "ml-auto h-5 w-5",
-                value !== option.value && "text-transparent"
-              )}
-            />
+            <Check class={cn("ml-auto h-5 w-5", value !== option.value && "text-transparent")} />
           </Command.Item>
         {/each}
       </Command.Group>

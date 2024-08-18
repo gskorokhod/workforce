@@ -1,12 +1,13 @@
 <script lang="ts">
+  import type { Link } from "$lib/types/ui.ts";
+
+  import { base } from "$app/paths";
   import { page } from "$app/stores";
   import { Button } from "$lib/components/ui/button";
-  import Sidebar from "$lib/components/ui/sidebar/sidebar.svelte";
-  import { SidebarPosition } from "$lib/components/ui/sidebar";
   import Icon from "$lib/components/ui/icon/icon.svelte";
+  import { SidebarPosition } from "$lib/components/ui/sidebar";
+  import Sidebar from "$lib/components/ui/sidebar/sidebar.svelte";
   import { SettingsIcon } from "lucide-svelte";
-  import type { Link } from "$lib/types/ui.ts";
-  import { base } from "$app/paths";
 
   let links: Link[];
   let position: SidebarPosition = SidebarPosition.left;
@@ -21,17 +22,21 @@
     return $page.url.pathname.includes(href);
   };
 
-  export { links, position, isExpanded };
+  export { isExpanded,links, position };
 </script>
 
-<Sidebar position={position} collapsedWidth={collapsedWidth} expandedWidth={expandedWidth} isExpanded={isExpanded}>
-  <h1 slot="expanded_top" class="font-bold py-1 text-3xl w-[200px] pl-3">Workforce Planning</h1>
+<Sidebar {collapsedWidth} {expandedWidth} {isExpanded} {position}>
+  <h1 class="w-[200px] py-1 pl-3 text-3xl font-bold" slot="expanded_top">Workforce Planning</h1>
 
-  <ul slot="expanded_main" class="list-none p-0 m-0 w-full">
+  <ul class="m-0 w-full list-none p-0" slot="expanded_main">
     {#each links as link}
-      <li class="m-0 py-1 h-12">
-        <Button href={link.href} variant={isActive(link.href) ? "default" : "ghost"} size="xl"
-                class="w-full justify-start">
+      <li class="m-0 h-12 py-1">
+        <Button
+          class="w-full justify-start"
+          href={link.href}
+          size="xl"
+          variant={isActive(link.href) ? "default" : "ghost"}
+        >
           {#if link.icon !== undefined}
             <Icon icon={link.icon} />
           {/if}
@@ -41,10 +46,10 @@
     {/each}
   </ul>
 
-  <ul slot="collapsed_main" class="list-none p-0 m-0 w-full">
+  <ul class="m-0 w-full list-none p-0" slot="collapsed_main">
     {#each links as link}
-      <li class="m-0 py-1 h-12">
-        <Button href={link.href} variant={isActive(link.href) ? "default" : "ghost"} size="icon_xl">
+      <li class="m-0 h-12 py-1">
+        <Button href={link.href} size="icon_xl" variant={isActive(link.href) ? "default" : "ghost"}>
           {#if link.icon !== undefined}
             <Icon icon={link.icon} />
           {:else}
@@ -55,15 +60,23 @@
     {/each}
   </ul>
 
-  <div slot="collapsed_bottom" class="flex w-full">
-    <Button href="{base}/settings/" variant={isActive(`${base}/settings/`) ? "default" : "ghost"} size="icon_xl">
+  <div class="flex w-full" slot="collapsed_bottom">
+    <Button
+      href="{base}/settings/"
+      size="icon_xl"
+      variant={isActive(`${base}/settings/`) ? "default" : "ghost"}
+    >
       <SettingsIcon />
     </Button>
   </div>
 
-  <div slot="expanded_bottom" class="flex w-full">
-    <Button href="{base}/settings/" variant={isActive(`${base}/settings/`) ? "default" : "ghost"} size="xl"
-            class="w-full justify-start">
+  <div class="flex w-full" slot="expanded_bottom">
+    <Button
+      class="w-full justify-start"
+      href="{base}/settings/"
+      size="xl"
+      variant={isActive(`${base}/settings/`) ? "default" : "ghost"}
+    >
       <SettingsIcon />
       Settings
     </Button>

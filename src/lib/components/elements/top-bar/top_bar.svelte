@@ -4,14 +4,17 @@
 </script>
 
 <div
-  class="w-full h-fit px-4 py-3 flex flex-row items-center justify-between bg-gray-200 z-10 {sticky ? 'sticky top-0' : ''}">
-  <menu class="w-auto h-fit flex flex-row gap-3 items-center justify-start list-none">
+  class="z-10 flex h-fit w-full flex-row items-center justify-between bg-gray-200 px-4 py-3 {sticky
+    ? 'sticky top-0'
+    : ''}"
+>
+  <menu class="flex h-fit w-auto list-none flex-row items-center justify-start gap-3">
     <slot name="start" />
   </menu>
-  <menu class="w-auto h-fit flex flex-row gap-3 items-center justify-center list-none">
+  <menu class="flex h-fit w-auto list-none flex-row items-center justify-center gap-3">
     <slot name="middle" />
   </menu>
-  <menu class="w-auto h-fit flex flex-row gap-3 items-center justify-end list-none">
+  <menu class="flex h-fit w-auto list-none flex-row items-center justify-end gap-3">
     <slot name="end" />
   </menu>
 </div>

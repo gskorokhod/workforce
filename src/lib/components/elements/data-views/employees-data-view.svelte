@@ -1,19 +1,18 @@
 <script lang="ts">
-  import TopBar from "$lib/components/elements/top-bar/top_bar.svelte";
-  import Search from "$lib/components/ui/search/search.svelte";
-  import ColumnHideSelector from "$lib/components/elements/data-tables/lib/column-hide-selector.svelte";
-  import EmployeesDataTable from "$lib/components/elements/data-tables/employees-data-table.svelte";
-  import PersonEditDialog from "$lib/components/elements/person/person-edit-dialog.svelte";
-
-  import { FlatColumn } from "svelte-headless-table";
-  import { type Person, type PersonProps } from "$lib/types";
-  import { deleteEmployee, employees } from "$lib/stores.ts";
-  import { writable, type Writable } from "svelte/store";
-  import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
   import type { AnyPlugins } from "svelte-headless-table/plugins";
-  import { Button } from "$lib/components/ui/button";
-  import { PlusIcon } from "lucide-svelte";
+
+  import EmployeesDataTable from "$lib/components/elements/data-tables/employees-data-table.svelte";
+  import ColumnHideSelector from "$lib/components/elements/data-tables/lib/column-hide-selector.svelte";
+  import PersonEditDialog from "$lib/components/elements/person/person-edit-dialog.svelte";
+  import TopBar from "$lib/components/elements/top-bar/top_bar.svelte"; import { Button } from "$lib/components/ui/button";
+  import Search from "$lib/components/ui/search/search.svelte";
+  import { deleteEmployee, employees } from "$lib/stores.ts";
+  import { type Person, type PersonProps } from "$lib/types";
   import { createPerson, defaultPersonProps } from "$lib/types/person.ts";
+  import { PlusIcon } from "lucide-svelte";
+  import { type Writable,writable } from "svelte/store";
+  import { FlatColumn } from "svelte-headless-table";
+  import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
 
   let data: Writable<Person[]> = employees;
   let filterValue: Writable<string> = writable("");
@@ -71,19 +70,23 @@
   }
 
   const actions: Map<string, (p: Person) => void> = new Map([
-    ["Edit", handleEdit],
-    ["Delete", handleDelete]
+    ["Delete", handleDelete],
+    ["Edit", handleEdit]
   ]);
 
-  export { data, className as class };
+  export { className as class,data };
 </script>
 
-<div class="h-full w-full flex flex-col items-start justify-start overflow-y-scroll {className}">
+<div class="flex h-full w-full flex-col items-start justify-start overflow-y-scroll {className}">
   <TopBar sticky={true}>
     <svelte:fragment slot="start">
       <slot name="start" />
-      <Button size="icon_xl" variant="ghost" on:click={handleAdd}
-              class="text-muted-foreground hover:text-accent-foreground">
+      <Button
+        class="text-muted-foreground hover:text-accent-foreground"
+        on:click={handleAdd}
+        size="icon_xl"
+        variant="ghost"
+      >
         <PlusIcon />
       </Button>
     </svelte:fragment>
@@ -94,10 +97,18 @@
 
     <svelte:fragment slot="end">
       <slot name="end" />
-      <ColumnHideSelector {flatColumns} bind:hideForId />
+      <ColumnHideSelector bind:hideForId {flatColumns} />
       <Search onInput={(s) => filterValue.set(s)} />
     </svelte:fragment>
   </TopBar>
-  <EmployeesDataTable {data} {actions} bind:filterValue bind:sortKeys bind:hideForId bind:flatColumns class="w-full" />
+  <EmployeesDataTable
+    {actions}
+    bind:filterValue
+    bind:flatColumns
+    bind:hideForId
+    bind:sortKeys
+    class="w-full"
+    {data}
+  />
 </div>
-<PersonEditDialog bind:personProps bind:open {onSubmit} />
+<PersonEditDialog bind:open bind:personProps {onSubmit} />

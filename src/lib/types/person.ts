@@ -1,26 +1,27 @@
-import { getInitials } from "$lib/utils/utils.ts";
 import type { Skill } from "$lib/types/skill.ts";
-import { v4 as uuidv4 } from "uuid";
-import { Type } from "$lib/types/index.ts";
+
 import { getSkill } from "$lib/stores.ts";
+import { Type } from "$lib/types/index.ts";
+import { getInitials } from "$lib/utils/utils.ts";
+import { v4 as uuidv4 } from "uuid";
 
 export interface PersonProps {
-  name: string;
-  job_title: string;
-  image_url: string;
   birthday: Date;
+  image_url: string;
+  job_title: string;
+  name: string;
   skill_uuids: string[];
 }
 
 export interface Person extends PersonProps {
-  uuid: string;
   type: Type.Person;
+  uuid: string;
 }
 
 export function createPerson(props: PersonProps): Person {
   return {
-    uuid: uuidv4(),
     type: Type.Person,
+    uuid: uuidv4(),
     ...props
   };
 }
@@ -40,10 +41,10 @@ export function getSkillsForPerson(person: Person | PersonProps): Skill[] {
 
 export function defaultPersonProps(): PersonProps {
   return {
-    name: "",
-    job_title: "",
-    skill_uuids: [],
+    birthday: new Date(),
     image_url: "",
-    birthday: new Date()
+    job_title: "",
+    name: "",
+    skill_uuids: []
   };
 }

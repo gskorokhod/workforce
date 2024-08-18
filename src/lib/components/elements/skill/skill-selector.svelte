@@ -1,18 +1,21 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import Check from "lucide-svelte/icons/check";
+  import type { Skill } from "$lib/types";
+
+  import SkillBadge from "$lib/components/elements/skill/skill-badge.svelte"; import { Button } from "$lib/components/ui/button";
+  import { ChipVariant } from "$lib/components/ui/chip";
   import * as Command from "$lib/components/ui/command";
   import * as Popover from "$lib/components/ui/popover";
-  import { Button } from "$lib/components/ui/button";
-  import SkillBadge from "$lib/components/elements/skill/skill-badge.svelte";
-  import { capitalize, cn } from "$lib/utils/utils.js";
-  import { tick } from "svelte";
   import { getSkill, skills } from "$lib/stores.ts";
-  import type { Skill } from "$lib/types";
-  import { ChipVariant } from "$lib/components/ui/chip";
+  import { capitalize, cn } from "$lib/utils/utils.js";
+  import Check from "lucide-svelte/icons/check";
+  import { tick } from "svelte";
 
   type Filter = (s: Skill | undefined) => boolean;
-  type OnChange = (old_value: string | undefined, new_value: string | undefined) => string | undefined;
+  type OnChange = (
+    old_value: string | undefined,
+    new_value: string | undefined
+  ) => string | undefined;
 
   let skill_uuid: string | undefined = undefined;
   let options: Skill[] = $skills;
@@ -38,19 +41,27 @@
   }
 
   // noinspection ReservedWordAsName
-  export { skill_uuid, variant, compact, placeholder, options, filter, onChange, className as class };
+  export {
+    className as class,
+    compact,
+    filter,
+    onChange,
+    options,
+    placeholder,
+    skill_uuid,
+    variant  };
 </script>
 
 <Popover.Root bind:open let:ids>
-  <Popover.Trigger asChild let:builder class={className}>
+  <Popover.Trigger asChild class={className} let:builder>
     <Button
-      builders={[builder]}
-      variant="ghost"
-      role="combobox"
       aria-expanded={open}
-      class="w-fit h-fit !p-0 rounded-full overflow-visible"
+      builders={[builder]}
+      class="h-fit w-fit overflow-visible rounded-full !p-0"
+      role="combobox"
+      variant="ghost"
     >
-      <SkillBadge skill={getSkill(skill_uuid)} {variant} {placeholder} {compact} />
+      <SkillBadge {compact} {placeholder} skill={getSkill(skill_uuid)} {variant} />
     </Button>
   </Popover.Trigger>
   <Popover.Content class="w-[200px] p-0">
@@ -60,39 +71,31 @@
       <Command.Group class="max-h-[250px] overflow-y-scroll">
         {#each filtered_options as option}
           <Command.Item
-            value="{option.name};{option.uuid}"
+            class="flex flex-row items-center justify-start gap-2"
             onSelect={() => {
               skill_uuid = onChange(skill_uuid, option.uuid);
               closeAndFocusTrigger(ids.trigger);
             }}
-            class="flex flex-row items-center justify-start gap-2"
+            value="{option.name};{option.uuid}"
           >
-            <SkillBadge skill={option} compact={true} />
+            <SkillBadge compact={true} skill={option} />
             {capitalize(option.name)}
             <Check
-              class={cn(
-                "ml-auto h-6 w-6",
-                skill_uuid !== option.uuid && "text-transparent"
-              )}
+              class={cn("ml-auto h-6 w-6", skill_uuid !== option.uuid && "text-transparent")}
             />
           </Command.Item>
         {/each}
         <Command.Item
-          value="unassigned"
-          onSelect={() => {
-              skill_uuid = onChange(skill_uuid, undefined);
-              closeAndFocusTrigger(ids.trigger);
-            }}
           class="flex flex-row items-center justify-start gap-2"
+          onSelect={() => {
+            skill_uuid = onChange(skill_uuid, undefined);
+            closeAndFocusTrigger(ids.trigger);
+          }}
+          value="unassigned"
         >
-          <SkillBadge skill={undefined} popoverEnabled={false} />
+          <SkillBadge popoverEnabled={false} skill={undefined} />
           Unassigned
-          <Check
-            class={cn(
-                "ml-auto h-6 w-6",
-                skill_uuid !== undefined && "text-transparent"
-              )}
-          />
+          <Check class={cn("ml-auto h-6 w-6", skill_uuid !== undefined && "text-transparent")} />
         </Command.Item>
       </Command.Group>
     </Command.Root>

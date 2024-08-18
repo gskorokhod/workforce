@@ -1,26 +1,27 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { cubicOut } from "svelte/easing";
-import type { TransitionConfig } from "svelte/transition";
-import { faker } from "@faker-js/faker";
 import type { LngLat } from "$lib/types/location.ts";
-import Color from "color";
+import type { TransitionConfig } from "svelte/transition";
+
+import { faker } from "@faker-js/faker";
 import { CalendarDate, ZonedDateTime } from "@internationalized/date";
+import { type ClassValue, clsx } from "clsx";
+import Color from "color";
+import { cubicOut } from "svelte/easing";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 type FlyAndScaleParams = {
-  y?: number;
-  x?: number;
-  start?: number;
   duration?: number;
+  start?: number;
+  x?: number;
+  y?: number;
 };
 
 export const flyAndScale = (
   node: Element,
-  params: FlyAndScaleParams = { y: -8, x: 0, start: 0.95, duration: 150 }
+  params: FlyAndScaleParams = { duration: 150, start: 0.95, x: 0, y: -8 }
 ): TransitionConfig => {
   const style = getComputedStyle(node);
   const transform = style.transform === "none" ? "" : style.transform;
@@ -41,18 +42,18 @@ export const flyAndScale = (
   };
 
   return {
-    duration: params.duration ?? 200,
-    delay: 0,
     css: (t) => {
       const y = scaleConversion(t, [0, 1], [params.y ?? 5, 0]);
       const x = scaleConversion(t, [0, 1], [params.x ?? 0, 0]);
       const scale = scaleConversion(t, [0, 1], [params.start ?? 0.95, 1]);
 
       return styleToString({
-        transform: `${transform} translate3d(${x}px, ${y}px, 0) scale(${scale})`,
-        opacity: t
+        opacity: t,
+        transform: `${transform} translate3d(${x}px, ${y}px, 0) scale(${scale})`
       });
     },
+    delay: 0,
+    duration: params.duration ?? 200,
     easing: cubicOut
   };
 };
@@ -107,7 +108,7 @@ export function lighten(color: string | undefined, amount: number): string {
 
 export function sampleOne<T>(arr: T[]): T | undefined {
   if (arr.length === 0) return undefined;
-  return arr[faker.number.int({ min: 0, max: arr.length - 1 })];
+  return arr[faker.number.int({ max: arr.length - 1, min: 0 })];
 }
 
 export function sample<T>(arr: T[], n: number, unique: boolean = true): T[] {
@@ -171,7 +172,7 @@ export function getInitials(name: string): string {
     .join("");
 }
 
-export function fmtDateTime(dt: ZonedDateTime | Date): string {
+export function fmtDateTime(dt: Date | ZonedDateTime): string {
   if (dt instanceof Date) return dt.toLocaleString([], { hour: "2-digit", minute: "2-digit" });
   return dt.toDate().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }

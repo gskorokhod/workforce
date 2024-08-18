@@ -1,13 +1,14 @@
-import type { Person, Skill, Task, Location, Assignment } from "$lib/types";
-import { type Constraint, ConstraintType } from "$lib/types/constraints.ts";
+import type { Assignment,Location, Person, Skill, Task } from "$lib/types";
 import type { IconType } from "$lib/types/ui.ts";
-import { sample, sampleOne } from "$lib/utils/utils.ts";
-import { createSkill } from "$lib/types/skill.ts";
-import { createPerson } from "$lib/types/person.ts";
-import { createTask } from "$lib/types/task.ts";
-import { createLocation } from "$lib/types/location.ts";
+
 import { createAssignment } from "$lib/types/assignment.ts";
+import { type Constraint, ConstraintType } from "$lib/types/constraints.ts";
+import { createLocation } from "$lib/types/location.ts";
+import { createPerson } from "$lib/types/person.ts";
+import { createSkill } from "$lib/types/skill.ts";
+import { createTask } from "$lib/types/task.ts";
 import { reverseGeocode } from "$lib/utils/osm.ts";
+import { sample, sampleOne } from "$lib/utils/utils.ts";
 import { faker } from "@faker-js/faker";
 
 const ST_ANDREWS: [latitude: number, longitude: number] = [-2.799, 56.34039];
@@ -104,7 +105,7 @@ const SHIFT_PREFIXES = [
 
 const LOCATION_SUFFIX_GENERATORS: (() => string)[] = [
   () => sampleOne(["A", "B", "C", "D", "E", "F"]) as string,
-  () => faker.number.int({ min: 1, max: 100 }).toString()
+  () => faker.number.int({ max: 100, min: 1 }).toString()
 ];
 
 const TASK_SUFFIX_GENERATORS: (() => string)[] = [
@@ -118,21 +119,21 @@ const SHIFT_SUFFIX_GENERATORS: (() => string)[] = [
 ];
 
 export interface DummyDataGenProps {
-  people: number;
-  tasks: number;
-  locations: number;
   assignments: number;
-  skills: number;
   constraints: number;
+  locations: number;
+  people: number;
+  skills: number;
+  tasks: number;
 }
 
 export interface DummyData {
-  people: Person[];
-  tasks: Task[];
-  locations: Location[];
   assignments: Assignment[];
-  skills: Skill[];
   constraints: Constraint[];
+  locations: Location[];
+  people: Person[];
+  skills: Skill[];
+  tasks: Task[];
 }
 
 export async function generateDummyData(props: DummyDataGenProps): Promise<DummyData> {
@@ -143,7 +144,7 @@ export async function generateDummyData(props: DummyDataGenProps): Promise<Dummy
   const assignments = await generateAssignments(props.assignments, locations, tasks);
   const constraints = generateConstraints(props.constraints, locations, people, tasks);
 
-  return { people, tasks, locations, assignments, skills, constraints };
+  return { assignments, constraints, locations, people, skills, tasks };
 }
 
 export function generateLocationName(): string {
@@ -163,16 +164,16 @@ export function generateShiftName(): string {
 
 export function generateIcon(): IconType {
   return {
-    icon: ICONIFY_ICONS[Math.floor(Math.random() * ICONIFY_ICONS.length)],
-    color: faker.color.rgb()
+    color: faker.color.rgb(),
+    icon: ICONIFY_ICONS[Math.floor(Math.random() * ICONIFY_ICONS.length)]
   };
 }
 
 export function generateSkill(): Skill {
   return createSkill({
-    name: faker.hacker.ingverb(),
     description: faker.lorem.sentence(),
-    icon: generateIcon()
+    icon: generateIcon(),
+    name: faker.hacker.ingverb()
   });
 }
 
@@ -182,19 +183,19 @@ export function generateSkills(n: number): Skill[] {
 
 export async function generateLocation(): Promise<Location> {
   const coordinates = faker.location.nearbyGPSCoordinate({
+    isMetric: true,
     origin: ST_ANDREWS,
-    radius: 2,
-    isMetric: true
+    radius: 2
   });
 
   const address =
     (await reverseGeocode(coordinates))?.display_name ?? faker.location.streetAddress();
 
   return createLocation({
-    name: generateLocationName(),
-    image_url: faker.image.url(),
+    address,
     coordinates,
-    address
+    image_url: faker.image.url(),
+    name: generateLocationName()
   });
 }
 
@@ -204,11 +205,11 @@ export async function generateLocations(n: number): Promise<Location[]> {
 
 export function generatePerson(skills: Skill[]): Person {
   return createPerson({
-    name: faker.person.fullName(),
-    job_title: faker.person.jobTitle(),
-    image_url: faker.image.avatar(),
     birthday: faker.date.birthdate(),
-    skill_uuids: sample(skills, faker.number.int({ min: 1, max: 3 })).map((s) => s.uuid)
+    image_url: faker.image.avatar(),
+    job_title: faker.person.jobTitle(),
+    name: faker.person.fullName(),
+    skill_uuids: sample(skills, faker.number.int({ max: 3, min: 1 })).map((s) => s.uuid)
   });
 }
 
@@ -218,13 +219,13 @@ export function generatePeople(n: number, skills: Skill[]): Person[] {
 
 export function generateTask(skills: Skill[], people: Person[]): Task {
   return createTask({
-    name: generateTaskName(),
     description: faker.lorem.sentence(),
     icon: generateIcon(),
-    min_people: faker.number.int({ min: 1, max: 3 }),
-    max_people: faker.number.int({ min: 3, max: 5 }),
-    required_skill_uuids: sample(skills, faker.number.int({ min: 1, max: 3 })).map((s) => s.uuid),
-    people_uuids: sample(people, faker.number.int({ min: 1, max: 3 })).map((p) => p.uuid)
+    max_people: faker.number.int({ max: 5, min: 3 }),
+    min_people: faker.number.int({ max: 3, min: 1 }),
+    name: generateTaskName(),
+    people_uuids: sample(people, faker.number.int({ max: 3, min: 1 })).map((p) => p.uuid),
+    required_skill_uuids: sample(skills, faker.number.int({ max: 3, min: 1 })).map((s) => s.uuid)
   });
 }
 
@@ -239,12 +240,12 @@ export async function generateAssignment(
   const loc = sampleOne(locations) as Location;
 
   return createAssignment({
-    name: generateShiftName(),
     description: faker.lorem.sentence(),
-    start_date_time: faker.date.recent(),
     end_date_time: faker.date.soon(),
     location_uuid: loc.uuid,
-    task_uuids: sample(tasks, faker.number.int({ min: 1, max: 3 })).map((t) => t.uuid)
+    name: generateShiftName(),
+    start_date_time: faker.date.recent(),
+    task_uuids: sample(tasks, faker.number.int({ max: 3, min: 1 })).map((t) => t.uuid)
   });
 }
 
@@ -264,37 +265,36 @@ export function generateConstraintForLocation(
   const CONSTRAINT_GENERATORS: (() => Constraint)[] = [
     () => {
       return {
-        type: ConstraintType.NoTask,
+        applies_to: loc,
         task: sampleOne(tasks) as Task,
-        applies_to: loc
+        type: ConstraintType.NoTask
       };
     },
     () => {
       return {
-        type: ConstraintType.NoPerson,
+        applies_to: loc,
         person: sampleOne(people) as Person,
-        applies_to: loc
+        type: ConstraintType.NoPerson
       };
     },
     () => {
       return {
-        type: ConstraintType.NoLocation,
+        applies_to: sampleOne(tasks) as Task,
         location: loc,
-        applies_to: sampleOne(tasks) as Task
+        type: ConstraintType.NoLocation
       };
     },
     () => {
       return {
-        type: ConstraintType.NoLocation,
+        applies_to: sampleOne(people) as Person,
         location: loc,
-        applies_to: sampleOne(people) as Person
+        type: ConstraintType.NoLocation
       };
     }
   ];
 
-  const gen = sampleOne(CONSTRAINT_GENERATORS);
-  if (gen === undefined) throw new Error("No constraint generator found");
-  else return gen();
+  const gen = sampleOne(CONSTRAINT_GENERATORS) as () => Constraint;
+  return gen();
 }
 
 export function generateConstraintForTask(
@@ -305,37 +305,36 @@ export function generateConstraintForTask(
   const CONSTRAINT_GENERATORS: (() => Constraint)[] = [
     () => {
       return {
-        type: ConstraintType.NoTask,
+        applies_to: sampleOne(locations) as Location,
         task: task,
-        applies_to: sampleOne(locations) as Location
+        type: ConstraintType.NoTask
       };
     },
     () => {
       return {
-        type: ConstraintType.NoTask,
+        applies_to: sampleOne(people) as Person,
         task: task,
-        applies_to: sampleOne(people) as Person
+        type: ConstraintType.NoTask
       };
     },
     () => {
       return {
-        type: ConstraintType.NoLocation,
+        applies_to: task,
         location: sampleOne(locations) as Location,
-        applies_to: task
+        type: ConstraintType.NoLocation
       };
     },
     () => {
       return {
-        type: ConstraintType.NoPerson,
+        applies_to: task,
         person: sampleOne(people) as Person,
-        applies_to: task
+        type: ConstraintType.NoPerson
       };
     }
   ];
 
-  const gen = sampleOne(CONSTRAINT_GENERATORS);
-  if (gen === undefined) throw new Error("No constraint generator found");
-  else return gen();
+  const gen = sampleOne(CONSTRAINT_GENERATORS) as () => Constraint;
+  return gen();
 }
 
 export function generateConstraintForPerson(
@@ -347,44 +346,43 @@ export function generateConstraintForPerson(
   const CONSTRAINT_GENERATORS: (() => Constraint)[] = [
     () => {
       return {
-        type: ConstraintType.NoPerson,
+        applies_to: sampleOne(locations) as Location,
         person: person,
-        applies_to: sampleOne(locations) as Location
+        type: ConstraintType.NoPerson
       };
     },
     () => {
       return {
-        type: ConstraintType.NoPerson,
+        applies_to: sampleOne(tasks) as Task,
         person: person,
-        applies_to: sampleOne(tasks) as Task
+        type: ConstraintType.NoPerson
       };
     },
     () => {
       return {
-        type: ConstraintType.NoPerson,
+        applies_to: sampleOne(people) as Person,
         person: person,
-        applies_to: sampleOne(people) as Person
+        type: ConstraintType.NoPerson
       };
     },
     () => {
       return {
-        type: ConstraintType.NoLocation,
+        applies_to: person,
         location: sampleOne(locations) as Location,
-        applies_to: person
+        type: ConstraintType.NoLocation
       };
     },
     () => {
       return {
-        type: ConstraintType.NoTask,
+        applies_to: person,
         task: sampleOne(tasks) as Task,
-        applies_to: person
+        type: ConstraintType.NoTask
       };
     }
   ];
 
-  const gen = sampleOne(CONSTRAINT_GENERATORS);
-  if (gen === undefined) throw new Error("No constraint generator found");
-  else return gen();
+  const gen = sampleOne(CONSTRAINT_GENERATORS) as () => Constraint;
+  return gen();
 }
 
 export function generateConstraintForRandomLocation(

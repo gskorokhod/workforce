@@ -1,17 +1,17 @@
 <script lang="ts">
-  import { Marker, type MarkerClickInfo, Popup } from "svelte-maplibre";
-  import { MapPinIcon } from "lucide-svelte";
   import type { Location } from "$lib/types";
-  import { debounce } from "$lib/utils/utils.ts";
-  import { reverseGeocode } from "$lib/utils/osm.ts";
   import type { LngLat, LocationProps } from "$lib/types/location.ts";
+
+  import { reverseGeocode } from "$lib/utils/osm.ts";
+  import { debounce } from "$lib/utils/utils.ts";
+  import { MapPinIcon } from "lucide-svelte";
+  import { Marker, type MarkerClickInfo, Popup } from "svelte-maplibre";
 
   let location: Location | LocationProps;
   let draggable: boolean = false;
   let disabled: boolean = false;
   let debounceDelay: number = 300;
-  let onDrag: (coords: LngLat) => void = () => {
-  };
+  let onDrag: (coords: LngLat) => void = () => {};
   let className: string = "";
 
   const handleDrag = debounce((e) => {
@@ -27,23 +27,34 @@
     return address.split(",").slice(0, 4).join(",");
   }
 
-  export { location, disabled, draggable, onDrag, className as class };
+  export { className as class,disabled, draggable, location, onDrag };
 </script>
 
-<Marker lngLat={location.coordinates} class={className} draggable={draggable && !disabled} on:drag={handleDrag}>
+<Marker
+  class={className}
+  draggable={draggable && !disabled}
+  lngLat={location.coordinates}
+  on:drag={handleDrag}
+>
   {#if location.image_url}
-    <div class="relative w-10 h-10 group {disabled && 'opacity-50'}">
-      <img src={location.image_url} alt={location.name}
-           class="absolute top-0 left-0 rounded-full h-10 w-10 outline outline-2 outline-offset-0 outline-muted-foreground shadow cursor-pointer group-hover:outline-3 group-hover:outline-accent-foreground transition-all z-20" />
+    <div class="group relative h-10 w-10 {disabled && 'opacity-50'}">
+      <img
+        alt={location.name}
+        class="group-hover:outline-3 absolute left-0 top-0 z-20 h-10 w-10 cursor-pointer rounded-full shadow outline outline-2 outline-offset-0 outline-muted-foreground transition-all group-hover:outline-accent-foreground"
+        src={location.image_url}
+      />
       <div
-        class="absolute -bottom-4 left-1/4 w-0 h-0 border-[10px] border-transparent border-t-muted-foreground group-hover:border-t-accent-foreground z-10"></div>
+        class="absolute -bottom-4 left-1/4 z-10 h-0 w-0 border-[10px] border-transparent border-t-muted-foreground group-hover:border-t-accent-foreground"
+      ></div>
     </div>
   {:else}
     <MapPinIcon
-      class="rounded-full h-10 w-10 p-1 outline-none outline-offset-0 cursor-pointer bg-transparent text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:outline-accent-foreground transition-all {disabled && 'opacity-50'}" />
+      class="h-10 w-10 cursor-pointer rounded-full bg-transparent p-1 text-muted-foreground outline-none outline-offset-0 transition-all hover:bg-accent hover:text-accent-foreground hover:outline-accent-foreground {disabled &&
+        'opacity-50'}"
+    />
   {/if}
 
-  <Popup openOn="hover" offset={[0, -25]}>
+  <Popup offset={[0, -25]} openOn="hover">
     <div class="max-w-[250px]">
       <h3 class="font-semibold {disabled && 'text-muted-foreground'}">{location.name}</h3>
       {#if !disabled}

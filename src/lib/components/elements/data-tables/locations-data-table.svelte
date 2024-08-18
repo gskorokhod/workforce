@@ -1,16 +1,21 @@
 <script lang="ts">
-  import type { Location } from "$lib/types";
-  import { getConstraintsFor, locations } from "$lib/stores.ts";
-  import { createRender, DataBodyCell, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
-  import LocationBadge from "$lib/components/elements/location/location-badge.svelte";
-  import DataTable from "$lib/components/elements/data-tables/core/data-table.svelte";
-  import { writable, type Writable } from "svelte/store";
-  import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
-  import { capitalize } from "$lib/utils/utils.ts";
-  import ConstraintsList from "$lib/components/elements/constraint/constraints-for-list.svelte";
-  import type { AnyPlugins } from "svelte-headless-table/plugins";
   import type { ColumnInitializer } from "$lib/components/elements/data-tables/core";
+  import type { Location } from "$lib/types";
+  import type { AnyPlugins } from "svelte-headless-table/plugins";
+
+  import ConstraintsList from "$lib/components/elements/constraint/constraints-for-list.svelte"; import DataTable from "$lib/components/elements/data-tables/core/data-table.svelte";
   import RowActions from "$lib/components/elements/data-tables/lib/row-actions.svelte";
+  import LocationBadge from "$lib/components/elements/location/location-badge.svelte";
+  import { getConstraintsFor, locations } from "$lib/stores.ts";
+  import { capitalize } from "$lib/utils/utils.ts";
+  import { type Writable,writable } from "svelte/store";
+  import {
+    createRender,
+    DataBodyCell,
+    FlatColumn,
+    type ReadOrWritable
+  } from "svelte-headless-table";
+  import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
 
   let data: ReadOrWritable<Location[]> = locations;
   let actions: Map<string, (item: Location) => void> = new Map();
@@ -22,41 +27,49 @@
 
   let columnInitializers: ColumnInitializer[] = [
     {
-      id: "image",
       accessor: (row: Location) => row,
+      cell: (cell: DataBodyCell<unknown>) =>
+        createRender(LocationBadge, { location: cell.value as Location }),
       header: "Image",
-      cell: (cell: DataBodyCell<unknown>) => createRender(LocationBadge, { location: cell.value as Location }),
+      id: "image",
       plugins: {
-        tableFilter: {
+        sort: {
           disable: true
         },
-        sort: {
+        tableFilter: {
           disable: true
         }
       }
     },
     {
-      id: "name",
       accessor: "name",
+      cell: (cell: DataBodyCell<unknown>) => capitalize(cell.value as string),
       header: "Name",
-      cell: (cell: DataBodyCell<unknown>) => capitalize(cell.value as string)
+      id: "name"
     },
     {
-      id: "address",
       accessor: "address",
-      header: "Address"
+      header: "Address",
+      id: "address"
     },
     {
-      id: "constraints",
       accessor: (row: Location) => row,
+      cell: (cell: DataBodyCell<unknown>) =>
+        createRender(ConstraintsList, { forOperand: cell.value as Location }),
       header: "Constraints",
-      cell: (cell: DataBodyCell<unknown>) => createRender(ConstraintsList, { forOperand: cell.value as Location }),
+      id: "constraints",
       plugins: {
-        tableFilter: {
-          getFilterValue: (value: Location) => getConstraintsFor(value).map((constraint) => constraint.type).join(" ")
-        },
         sort: {
-          getSortValue: (value: Location) => getConstraintsFor(value).map((constraint) => constraint.type).join(" ")
+          getSortValue: (value: Location) =>
+            getConstraintsFor(value)
+              .map((constraint) => constraint.type)
+              .join(" ")
+        },
+        tableFilter: {
+          getFilterValue: (value: Location) =>
+            getConstraintsFor(value)
+              .map((constraint) => constraint.type)
+              .join(" ")
         }
       }
     }
@@ -64,23 +77,31 @@
 
   if (actions.size > 0) {
     columnInitializers.push({
-      id: "actions",
       accessor: (row: Location) => row,
+      cell: (cell: DataBodyCell<unknown>) =>
+        createRender(RowActions, { actions, item: cell.value as Location }),
       header: "Actions",
-      cell: (cell: DataBodyCell<unknown>) => createRender(RowActions, { item: cell.value as Location, actions }),
+      id: "actions",
       plugins: {
-        tableFilter: {
+        sort: {
           disable: true
         },
-        sort: {
+        tableFilter: {
           disable: true
         }
       }
     });
   }
 
-  export { data, actions, filterValue, sortKeys, hideForId, flatColumns, className as class };
+  export { actions, className as class,data, filterValue, flatColumns, hideForId, sortKeys };
 </script>
 
-<DataTable {data} {columnInitializers} bind:filterValue bind:sortKeys bind:hideForId bind:flatColumns
-           class={className} />
+<DataTable
+  bind:filterValue
+  bind:flatColumns
+  bind:hideForId
+  bind:sortKeys
+  class={className}
+  {columnInitializers}
+  {data}
+/>

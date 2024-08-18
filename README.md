@@ -21,7 +21,7 @@ This app is written in Typescript for type-safety. See: [svelte & typescript](ht
   - [Playwright](https://playwright.dev/) for end-to-end testing
   - [Prettier](https://prettier.io/) for formatting
   - ESLint for linting
- 
+
 See:
 
 - [How do I test svelte apps?](https://svelte.dev/docs/faq#how-do-i-test-svelte-apps)
@@ -33,6 +33,7 @@ Install dependencies:
 ```
 npm install
 ```
+
 Run development server:
 
 ```bash

@@ -10,5 +10,8 @@
   export { icon, variant, className as class };
 </script>
 
-<Icon icon={icon.icon} class={className}
-      style={(icon.color && variant !== "monochrome") ? `color: ${icon.color}` : ""} />
+<Icon
+  icon={icon.icon}
+  class={className}
+  style={icon.color && variant !== "monochrome" ? `color: ${icon.color}` : ""}
+/>

@@ -3,4 +3,4 @@ enum SidebarPosition {
   right = "sidebar-right"
 }
 
-export { SidebarPosition }
+export { SidebarPosition };

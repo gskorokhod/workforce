@@ -1,26 +1,27 @@
-import type { IconType } from "$lib/types/ui.ts";
-import { get } from "svelte/store";
-import { employees, tasks } from "$lib/stores.ts";
 import type { Person } from "$lib/types/person.ts";
 import type { Task } from "$lib/types/task.ts";
-import { v4 as uuidv4 } from "uuid";
+import type { IconType } from "$lib/types/ui.ts";
+
+import { employees, tasks } from "$lib/stores.ts";
 import { Type } from "$lib/types/index.ts";
+import { get } from "svelte/store";
+import { v4 as uuidv4 } from "uuid";
 
 export interface SkillProps {
-  name: string;
   description: string;
   icon: IconType;
+  name: string;
 }
 
 export interface Skill extends SkillProps {
-  uuid: string;
   type: Type.Skill;
+  uuid: string;
 }
 
 export function createSkill(props: SkillProps): Skill {
   return {
-    uuid: uuidv4(),
     type: Type.Skill,
+    uuid: uuidv4(),
     ...props
   };
 }
@@ -37,11 +38,11 @@ export function getTasksWithSkill(skill: Skill): Task[] {
 
 export function defaultSkillProps(): SkillProps {
   return {
-    name: "",
     description: "",
     icon: {
-      icon: "",
-      color: undefined
-    }
+      color: undefined,
+      icon: ""
+    },
+    name: ""
   };
 }

@@ -1,33 +1,33 @@
-import { v4 as uuidv4 } from "uuid";
 import { Type } from "$lib/types/index.ts";
+import { v4 as uuidv4 } from "uuid";
 
 export type LngLat = [number, number];
 
 export interface LocationProps {
-  name: string;
   address: string;
-  image_url: string;
   coordinates: LngLat;
+  image_url: string;
+  name: string;
 }
 
 export interface Location extends LocationProps {
-  uuid: string;
   type: Type.Location;
+  uuid: string;
 }
 
 export function createLocation(props: LocationProps): Location {
   return {
-    uuid: uuidv4(),
     type: Type.Location,
+    uuid: uuidv4(),
     ...props
   };
 }
 
 export function defaultLocationProps(): LocationProps {
   return {
-    name: "",
     address: "",
+    coordinates: [0, 0],
     image_url: "",
-    coordinates: [0, 0]
+    name: ""
   };
 }

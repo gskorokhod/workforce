@@ -1,27 +1,28 @@
-import { getAssignedPeopleForTask, type Task } from "$lib/types/task.ts";
 import type { Person } from "$lib/types/person.ts";
-import { v4 as uuidv4 } from "uuid";
-import { Type } from "$lib/types/index.ts";
+
 import { getLocation, getTask } from "$lib/stores.ts";
+import { Type } from "$lib/types/index.ts";
+import { getAssignedPeopleForTask, type Task } from "$lib/types/task.ts";
+import { v4 as uuidv4 } from "uuid";
 
 export interface AssignmentProps {
-  name: string;
   description: string;
-  start_date_time: Date;
   end_date_time: Date;
   location_uuid: string;
+  name: string;
+  start_date_time: Date;
   task_uuids: string[];
 }
 
 export interface Assignment extends AssignmentProps {
-  uuid: string;
   type: Type.Assignment;
+  uuid: string;
 }
 
 export function createAssignment(props: AssignmentProps): Assignment {
   return {
-    uuid: uuidv4(),
     type: Type.Assignment,
+    uuid: uuidv4(),
     ...props
   };
 }

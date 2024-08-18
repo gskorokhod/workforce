@@ -4,54 +4,54 @@ const MIN_SEARCH_LENGTH = 3;
 
 type BoundingBox = [string, string, string, string];
 type OSMSearchResponse = OSMSearchResult[];
-type OSMReverseResponse = OSMReverseResult | { error: string };
+type OSMReverseResponse = { error: string } | OSMReverseResult;
 
 interface Address {
-  country_code?: string;
-  country?: string;
-  state?: string;
-  county?: string;
-  municipality?: string;
-  postcode?: string;
+  amenity?: string;
   city?: string;
-  town?: string;
-  village?: string;
-  hamlet?: string;
-  suburb?: string;
-  neighbourhood?: string;
   city_district?: string;
+  country?: string;
+  country_code?: string;
+  county?: string;
+  hamlet?: string;
+  house_number?: string;
+  municipality?: string;
+  neighbourhood?: string;
+  office?: string;
+  postcode?: string;
   quarter?: string;
   road?: string;
-  house_number?: string;
-  office?: string;
-  amenity?: string;
   shop?: string;
+  state?: string;
+  suburb?: string;
   tourism?: string;
+  town?: string;
+  village?: string;
 }
 
 interface OSMSearchResult {
-  place_id: number;
-  licence: string;
-  osm_type: string;
-  osm_id: number;
+  boundingbox: BoundingBox;
+  display_name: string;
   lat: string;
+  licence: string;
   lon: string;
   name: string;
-  display_name: string;
-  boundingbox: BoundingBox;
+  osm_id: number;
+  osm_type: string;
+  place_id: number;
 }
 
 interface OSMReverseResult {
-  place_id: number;
-  licence: string;
-  osm_type: string;
-  osm_id: number;
-  lat: string;
-  lon: string;
-  name: string;
-  display_name: string;
   address: Address;
   boundingbox: BoundingBox;
+  display_name: string;
+  lat: string;
+  licence: string;
+  lon: string;
+  name: string;
+  osm_id: number;
+  osm_type: string;
+  place_id: number;
 }
 
 export async function getAddressCompletions(

@@ -1,19 +1,18 @@
 <script lang="ts">
-  import TopBar from "$lib/components/elements/top-bar/top_bar.svelte";
-  import Search from "$lib/components/ui/search/search.svelte";
-  import TasksDataTable from "$lib/components/elements/data-tables/tasks-data-table.svelte";
-  import TaskEditDialog from "$lib/components/elements/task/task-edit-dialog.svelte";
-  import ColumnHideSelector from "$lib/components/elements/data-tables/lib/column-hide-selector.svelte";
-  import { FlatColumn } from "svelte-headless-table";
   import type { Task } from "$lib/types";
-  import { deleteTask, tasks } from "$lib/stores.ts";
-  import { writable, type Writable } from "svelte/store";
-  import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
   import type { AnyPlugins } from "svelte-headless-table/plugins";
+
+  import ColumnHideSelector from "$lib/components/elements/data-tables/lib/column-hide-selector.svelte";
+  import TasksDataTable from "$lib/components/elements/data-tables/tasks-data-table.svelte";
+  import TaskEditDialog from "$lib/components/elements/task/task-edit-dialog.svelte"; import TopBar from "$lib/components/elements/top-bar/top_bar.svelte";
+  import { Button } from "$lib/components/ui/button";
+  import Search from "$lib/components/ui/search/search.svelte";
+  import { deleteTask, tasks } from "$lib/stores.ts";
   import { createTask, defaultTaskProps, type TaskProps } from "$lib/types/task.ts";
   import { PlusIcon } from "lucide-svelte";
-  import { Button } from "$lib/components/ui/button";
-
+  import { type Writable,writable } from "svelte/store";
+  import { FlatColumn } from "svelte-headless-table";
+  import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
 
   let data: Writable<Task[]> = tasks;
   let filterValue: Writable<string> = writable("");
@@ -69,19 +68,22 @@
   }
 
   const actions: Map<string, (t: Task) => void> = new Map([
-    ["Edit", handleEdit],
-    ["Delete", handleDelete]
+    ["Delete", handleDelete],
+    ["Edit", handleEdit]
   ]);
 
-
-  export { data, className as class };
+  export { className as class,data };
 </script>
 
-<div class="h-full w-full flex flex-col items-start justify-start overflow-y-scroll {className}">
+<div class="flex h-full w-full flex-col items-start justify-start overflow-y-scroll {className}">
   <TopBar sticky={true}>
     <svelte:fragment slot="start">
-      <Button size="icon_xl" variant="ghost" on:click={handleAdd}
-              class="text-muted-foreground hover:text-accent-foreground">
+      <Button
+        class="text-muted-foreground hover:text-accent-foreground"
+        on:click={handleAdd}
+        size="icon_xl"
+        variant="ghost"
+      >
         <PlusIcon />
       </Button>
       <slot name="start" />
@@ -92,10 +94,18 @@
     </svelte:fragment>
 
     <svelte:fragment slot="end">
-      <ColumnHideSelector {flatColumns} bind:hideForId />
+      <ColumnHideSelector bind:hideForId {flatColumns} />
       <Search onInput={(s) => filterValue.set(s)} />
     </svelte:fragment>
   </TopBar>
-  <TasksDataTable {data} {actions} bind:filterValue bind:sortKeys bind:flatColumns bind:hideForId class="w-full" />
+  <TasksDataTable
+    {actions}
+    bind:filterValue
+    bind:flatColumns
+    bind:hideForId
+    bind:sortKeys
+    class="w-full"
+    {data}
+  />
 </div>
-<TaskEditDialog bind:taskProps bind:open {onSubmit} />
+<TaskEditDialog bind:open bind:taskProps {onSubmit} />

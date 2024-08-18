@@ -1,36 +1,36 @@
 // ToDo: Each constraint must contain an ical type to reflect the time when it applies
 // ToDo: Discuss with Oz & add more constraints
 
-import type { Person } from "$lib/types/person.ts";
 import type { Location } from "$lib/types/location.ts";
+import type { Person } from "$lib/types/person.ts";
 import type { Task } from "$lib/types/task.ts";
 
 export enum ConstraintType {
-  NoPerson = "NoPerson",
   NoLocation = "NoLocation",
+  NoPerson = "NoPerson",
   NoTask = "NoTask"
 }
 
 export interface NoPersonConstraint {
-  type: ConstraintType.NoPerson;
-  applies_to: Person | Task | Location;
+  applies_to: Location | Person | Task;
   person: Person;
+  type: ConstraintType.NoPerson;
 }
 
 export interface NoLocationConstraint {
-  type: ConstraintType.NoLocation;
   applies_to: Person | Task;
   location: Location;
+  type: ConstraintType.NoLocation;
 }
 
 export interface NoTaskConstraint {
-  type: ConstraintType.NoTask;
-  applies_to: Person | Location;
+  applies_to: Location | Person;
   task: Task;
+  type: ConstraintType.NoTask;
 }
 
-export type Constraint = NoPersonConstraint | NoLocationConstraint | NoTaskConstraint;
-export type ConstraintOperand = Person | Location | Task;
+export type Constraint = NoLocationConstraint | NoPersonConstraint | NoTaskConstraint;
+export type ConstraintOperand = Location | Person | Task;
 
 export function getOperands(constraint: Constraint): ConstraintOperand[] {
   switch (constraint.type) {

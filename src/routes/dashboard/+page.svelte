@@ -1,32 +1,38 @@
 <script lang="ts">
-  import Combobox from "$lib/components/ui/combobox/combobox.svelte";
-  import PeopleList from "$lib/components/elements/person/people-list.svelte";
+  import type { ComboboxItem } from "$lib/components/ui/combobox";
+
+  import IconPicker from "$lib/components/elements/icon-picker/icon-picker.svelte";
+  import LocationEditDialog from "$lib/components/elements/location/location-edit-dialog.svelte"; import PeopleList from "$lib/components/elements/person/people-list.svelte";
   import PeopleSelectorList from "$lib/components/elements/person/people-selector-list.svelte";
+  import PersonEditDialog from "$lib/components/elements/person/person-edit-dialog.svelte";
+  import SkillEditDialog from "$lib/components/elements/skill/skill-edit-dialog.svelte";
   import SkillsList from "$lib/components/elements/skill/skills-list.svelte";
   import SkillsSelectorList from "$lib/components/elements/skill/skills-selector-list.svelte";
-  import IconPicker from "$lib/components/elements/icon-picker/icon-picker.svelte";
-  import TasksList from "$lib/components/elements/task/tasks-list.svelte";
-  import ColourPicker from "$lib/components/ui/color-picker/color-picker.svelte";
-  import PersonEditDialog from "$lib/components/elements/person/person-edit-dialog.svelte";
   import TaskEditDialog from "$lib/components/elements/task/task-edit-dialog.svelte";
-  import SkillEditDialog from "$lib/components/elements/skill/skill-edit-dialog.svelte";
-  import LocationEditDialog from "$lib/components/elements/location/location-edit-dialog.svelte";
-  import Chip from "$lib/components/ui/chip/chip.svelte";
-  import Search from "$lib/components/ui/search/search.svelte";
-  import type { ComboboxItem } from "$lib/components/ui/combobox";
-  import { employees, tasks } from "$lib/stores.ts";
-  import type { PersonProps } from "$lib/types";
-  import { skills } from "$lib/stores.ts";
-  import { generateLocation, generatePerson, generateSkill, generateTask } from "$lib/utils/dummy_data.ts";
+  import TasksList from "$lib/components/elements/task/tasks-list.svelte";
   import { Button } from "$lib/components/ui/button";
-  import { type TaskProps } from "$lib/types/task.ts";
-  import { GraduationCapIcon, PaletteIcon, XIcon } from "lucide-svelte";
   import { ChipSize, ChipVariant } from "$lib/components/ui/chip";
+  import Chip from "$lib/components/ui/chip/chip.svelte";
+  import ColourPicker from "$lib/components/ui/color-picker/color-picker.svelte";
+  import Combobox from "$lib/components/ui/combobox/combobox.svelte";
+  import Search from "$lib/components/ui/search/search.svelte";
+  import { employees, locations, skills, tasks } from "$lib/stores.ts";
+  import {
+    defaultLocationProps,
+    defaultPersonProps,
+    defaultSkillProps,
+    defaultTaskProps,
+    type IconType,
+    type LocationProps,
+    type PersonProps,
+    type SkillProps,
+    type TaskProps
+  } from "$lib/types";
+  import { generateIcon } from "$lib/utils/dummy_data.ts";
+  import { sampleOne } from "$lib/utils/utils.ts";
   import { faker } from "@faker-js/faker";
+  import { GraduationCapIcon, PaletteIcon, XIcon } from "lucide-svelte";
   import { type Writable, writable } from "svelte/store";
-  import type { SkillProps } from "$lib/types/skill.ts";
-  import type { LocationProps } from "$lib/types/location.ts";
-  import { onMount } from "svelte";
 
   const schedules: ComboboxItem[] = [
     { label: "Schedule 1", value: "schedule1" },
@@ -47,28 +53,37 @@
     return Promise.resolve(ans);
   }
 
-  const task = generateTask();
-  let skill = generateSkill();
-  let person = generatePerson();
-  let personProps = writable(person as PersonProps);
-  let taskProps = writable(task as TaskProps);
-  let skillProps = writable(skill as SkillProps);
-  let color = faker.color.rgb();
-  let input = writable("");
-  let submitted = writable("");
-  let locationProps: Writable<LocationProps> | undefined;
+  let personProps: Writable<PersonProps> = writable(defaultPersonProps());
+  let skillProps: Writable<SkillProps> = writable(defaultSkillProps());
+  let taskProps: Writable<TaskProps> = writable(defaultTaskProps());
+  let locationProps: Writable<LocationProps> = writable(defaultLocationProps());
 
-  onMount(async () => {
-    const location = await generateLocation();
-    locationProps = writable(location);
+  let input: Writable<string> = writable("");
+  let submitted: Writable<string> = writable("");
+  let color: string = faker.color.rgb();
+  let icon: IconType = generateIcon();
+
+  employees.subscribe((value) => {
+    personProps.set(sampleOne(value) as PersonProps);
   });
 
+  tasks.subscribe((value) => {
+    taskProps.set(sampleOne(value) as TaskProps);
+  });
+
+  locations.subscribe((value) => {
+    locationProps.set(sampleOne(value) as LocationProps);
+  });
+
+  skills.subscribe((value) => {
+    skillProps.set(sampleOne(value) as SkillProps);
+  });
 </script>
 
-<div class="w-full h-dvh bg-gray-50 overflow-y-scroll">
-  <main class="w-full flex flex-col gap-6 pl-6 pt-4">
+<div class="h-dvh w-full overflow-y-scroll bg-gray-50">
+  <main class="flex w-full flex-col gap-6 pl-6 pt-4">
     <h1 class="text-2xl font-semibold">Components playground</h1>
-    <section class="w-full flex flex-col gap-3">
+    <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Search</h2>
       <p>
         Last input: "{$input}"
@@ -76,9 +91,14 @@
       <p>
         Last submitted: "{$submitted}"
       </p>
-      <Search {getSuggestions} class="w-[250px]" onInput={(s) => input.set(s)} onSubmit={(s) => submitted.set(s)} />
+      <Search
+        class="w-[250px]"
+        {getSuggestions}
+        onInput={(s) => input.set(s)}
+        onSubmit={(s) => submitted.set(s)}
+      />
     </section>
-    <section class="w-full flex flex-col gap-3">
+    <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Chip</h2>
       <Chip>
         <GraduationCapIcon slot="icon" />
@@ -99,112 +119,115 @@
         <GraduationCapIcon slot="icon" />
         <XIcon slot="hover_icon" />
         Hover over me
-        <svelte:fragment slot="hover">
-          Hello world!
-        </svelte:fragment>
+        <svelte:fragment slot="hover">Hello world!</svelte:fragment>
       </Chip>
-      <Chip variant={ChipVariant.color} {color}>
+      <Chip {color} variant={ChipVariant.color}>
         <PaletteIcon slot="icon" />
         <XIcon slot="hover_icon" />
         Colour (default)
       </Chip>
-      <Chip variant={ChipVariant.colorOutline} {color}>
+      <Chip {color} variant={ChipVariant.colorOutline}>
         <PaletteIcon slot="icon" />
         <XIcon slot="hover_icon" />
         Colour (outline)
       </Chip>
-      <Chip variant={ChipVariant.colorSolid} {color}>
+      <Chip {color} variant={ChipVariant.colorSolid}>
         <PaletteIcon slot="icon" />
         <XIcon slot="hover_icon" />
         Colour (solid)
       </Chip>
-      <Chip variant={ChipVariant.color} {color}>
+      <Chip {color} variant={ChipVariant.color}>
         <PaletteIcon slot="icon" />
       </Chip>
-      <Chip variant={ChipVariant.colorOutline} {color}>
+      <Chip {color} variant={ChipVariant.colorOutline}>
         <PaletteIcon slot="icon" />
       </Chip>
-      <Chip variant={ChipVariant.colorSolid} {color}>
+      <Chip {color} variant={ChipVariant.colorSolid}>
         <PaletteIcon slot="icon" />
       </Chip>
-      <Chip variant={ChipVariant.destructive} size={ChipSize.lg}>
-        <GraduationCapIcon slot="icon" class="h-7 w-7" />
-        <XIcon slot="hover_icon" class="h-7 w-7" />
+      <Chip size={ChipSize.lg} variant={ChipVariant.destructive}>
+        <GraduationCapIcon class="h-7 w-7" slot="icon" />
+        <XIcon class="h-7 w-7" slot="hover_icon" />
         Chip content
       </Chip>
-      <Chip variant={ChipVariant.outline} size={ChipSize.sm}>
-        <GraduationCapIcon slot="icon" class="h-5 w-5" />
-        <XIcon slot="hover_icon" class="h-5 w-5" />
+      <Chip size={ChipSize.sm} variant={ChipVariant.outline}>
+        <GraduationCapIcon class="h-5 w-5" slot="icon" />
+        <XIcon class="h-5 w-5" slot="hover_icon" />
         Chip content
       </Chip>
-
     </section>
-    <section class="w-full flex flex-col gap-3">
+    <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Combobox</h2>
-      <Combobox options={schedules} placeholder="Select schedule..." icon={{ icon: "mdi:calendar" }} />
+      <Combobox
+        icon={{ icon: "mdi:calendar" }}
+        options={schedules}
+        placeholder="Select schedule..."
+      />
     </section>
-    <section class="w-full flex flex-col gap-3">
+    <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Icon Picker</h2>
       <IconPicker />
-      <IconPicker bind:icon={skill.icon} />
+      <IconPicker bind:icon />
     </section>
-    <section class="w-full flex flex-col gap-3">
+    <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Colour Picker</h2>
       <ColourPicker />
     </section>
-    <section class="w-full flex flex-col items-start gap-3">
+    <section class="flex w-full flex-col items-start gap-3">
       <h2 class="text-xl">Edit dialogs</h2>
       <PersonEditDialog bind:personProps>
-        <Button>
-          Edit employee
-        </Button>
+        <Button>Edit employee</Button>
       </PersonEditDialog>
       <SkillEditDialog bind:skillProps>
-        <Button>
-          Edit skill
-        </Button>
+        <Button>Edit skill</Button>
       </SkillEditDialog>
       <TaskEditDialog bind:taskProps>
-        <Button>
-          Edit task
-        </Button>
+        <Button>Edit task</Button>
       </TaskEditDialog>
       {#if locationProps}
         <LocationEditDialog bind:locationProps>
-          <Button>
-            Edit location
-          </Button>
+          <Button>Edit location</Button>
         </LocationEditDialog>
       {/if}
     </section>
-    <section class="w-full flex flex-col gap-3">
+    <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">People list</h2>
-      <PeopleList people={$employees} compact={true} />
-      <PeopleList people={$employees} compact={true} max={3} />
-      <PeopleList people={$employees} compact={false} />
-      <PeopleList people={$employees} compact={false} max={3} />
+      <PeopleList compact={true} people={$employees} />
+      <PeopleList compact={true} max={3} people={$employees} />
+      <PeopleList compact={false} people={$employees} />
+      <PeopleList compact={false} max={3} people={$employees} />
     </section>
-    <section class="w-full flex flex-col gap-3">
+    <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">People selector list</h2>
       <p>People selector list (compact)</p>
-      <PeopleSelectorList people_uuids={task.people_uuids} min_people={task.min_people} max_people={task.max_people}
-                          compact={true} />
+      <PeopleSelectorList
+        compact={true}
+        max_people={$taskProps.max_people}
+        min_people={$taskProps.min_people}
+        options={$employees}
+        people_uuids={$taskProps.people_uuids}
+      />
       <p>People selector list (full)</p>
-      <PeopleSelectorList people_uuids={task.people_uuids} min_people={task.min_people} max_people={task.max_people} />
+      <PeopleSelectorList
+        max_people={$taskProps.max_people}
+        min_people={$taskProps.min_people}
+        options={$employees}
+        people_uuids={$taskProps.people_uuids}
+      />
     </section>
-    <section class="w-full flex flex-col gap-3">
+    <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Skills</h2>
       <SkillsList skills={$skills} />
-      <SkillsList skills={$skills} compact={false} />
+      <SkillsList compact={false} skills={$skills} />
       <SkillsSelectorList />
       <SkillsSelectorList n_skills={3} />
       <SkillsSelectorList compact={false} />
-      <SkillsSelectorList n_skills={3} compact={false} />
+      <SkillsSelectorList compact={false} n_skills={3} />
     </section>
-    <section class="w-full flex flex-col gap-3">
+    <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Task lists</h2>
       <TasksList tasks={$tasks} />
-      <TasksList tasks={$tasks} compact={false} />
+      <TasksList compact={false} tasks={$tasks} />
     </section>
   </main>
 </div>

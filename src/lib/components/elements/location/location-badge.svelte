@@ -1,12 +1,13 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import * as Avatar from "$lib/components/ui/avatar/index.js";
-  import * as Tooltip from "$lib/components/ui/tooltip";
-  import Chip from "$lib/components/ui/chip/chip.svelte";
   import type { Location } from "$lib/types";
-  import { MapPinIcon, PlusIcon } from "lucide-svelte";
+
+  import * as Avatar from "$lib/components/ui/avatar/index.js";
   import { ChipVariant } from "$lib/components/ui/chip";
+  import Chip from "$lib/components/ui/chip/chip.svelte";
+  import * as Tooltip from "$lib/components/ui/tooltip";
   import { capitalize, getInitials } from "$lib/utils/utils.ts";
+  import { MapPinIcon, PlusIcon } from "lucide-svelte";
 
   let location: Location | undefined = undefined;
   let placeholder: string = "Unassigned";
@@ -16,9 +17,8 @@
   let className: string = "";
 
   // noinspection ReservedWordAsName
-  export { location, placeholder, compact, popoverEnabled, variant, className as class };
+  export { className as class,compact, location, placeholder, popoverEnabled, variant };
 </script>
-
 
 <Tooltip.Root>
   <Tooltip.Trigger>
@@ -26,32 +26,30 @@
       {#if compact}
         <Chip class="{className} !p-0">
           <Avatar.Root class="h-10 w-10" slot="icon">
-            <Avatar.Image src={location.image_url} alt={location.name} />
+            <Avatar.Image alt={location.name} src={location.image_url} />
             <Avatar.Fallback>{getInitials(location.name)}</Avatar.Fallback>
           </Avatar.Root>
         </Chip>
-      {:else }
+      {:else}
         <Chip class={className}>
           <Avatar.Root class="h-10 w-10" slot="icon">
-            <Avatar.Image src={location.image_url} alt={location.name} />
+            <Avatar.Image alt={location.name} src={location.image_url} />
             <Avatar.Fallback>{getInitials(location.name)}</Avatar.Fallback>
           </Avatar.Root>
           {capitalize(location.name)}
         </Chip>
       {/if}
+    {:else if compact}
+      <Chip class={className} {variant}>
+        <MapPinIcon slot="icon" />
+        <PlusIcon slot="hover_icon" />
+      </Chip>
     {:else}
-      {#if compact}
-        <Chip class={className} {variant}>
-          <MapPinIcon slot="icon" />
-          <PlusIcon slot="hover_icon" />
-        </Chip>
-      {:else}
-        <Chip class={className} {variant}>
-          <MapPinIcon slot="icon" />
-          <PlusIcon slot="hover_icon" />
-          {capitalize(placeholder)}
-        </Chip>
-      {/if}
+      <Chip class={className} {variant}>
+        <MapPinIcon slot="icon" />
+        <PlusIcon slot="hover_icon" />
+        {capitalize(placeholder)}
+      </Chip>
     {/if}
   </Tooltip.Trigger>
   {#if popoverEnabled}

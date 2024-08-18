@@ -1,9 +1,10 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
   import type { Person } from "$lib/types";
-  import * as Tooltip from "$lib/components/ui/tooltip";
-  import * as Avatar from "$lib/components/ui/avatar";
+
   import PersonTooltip from "$lib/components/elements/person/person-tooltip.svelte";
+  import * as Avatar from "$lib/components/ui/avatar";
+  import * as Tooltip from "$lib/components/ui/tooltip";
   import { getInitialsForPerson } from "$lib/types/person.ts";
 
   let person: Person;
@@ -11,14 +12,14 @@
   let showAvatar: boolean = true;
   let className: string = "";
 
-  export { person, showAvatar, popoverEnabled, className };
+  export { className,person, popoverEnabled, showAvatar };
 </script>
 
 <Tooltip.Root>
-  <Tooltip.Trigger class="underline align-middle {className}">
+  <Tooltip.Trigger class="align-middle underline {className}">
     {#if showAvatar}
-      <Avatar.Root class="h-5 w-5 rounded-full inline-flex align-middle mr-1">
-        <Avatar.Image src={person.image_url} alt={person.name} />
+      <Avatar.Root class="mr-1 inline-flex h-5 w-5 rounded-full align-middle">
+        <Avatar.Image alt={person.name} src={person.image_url} />
         <Avatar.Fallback>{getInitialsForPerson(person)}</Avatar.Fallback>
       </Avatar.Root>
     {/if}
@@ -26,7 +27,7 @@
   </Tooltip.Trigger>
   {#if popoverEnabled}
     <Tooltip.Content>
-      <PersonTooltip person={person} />
+      <PersonTooltip {person} />
     </Tooltip.Content>
   {/if}
 </Tooltip.Root>

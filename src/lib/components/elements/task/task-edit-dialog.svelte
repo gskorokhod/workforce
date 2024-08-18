@@ -1,29 +1,26 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import {
-    Button
-  } from "$lib/components/ui/button/index.js";
+  import type { TaskProps } from "$lib/types/task.ts"; import type { Writable } from "svelte/store";
+
+  import IconPicker from "$lib/components/elements/icon-picker/icon-picker.svelte";
+  import PeopleSelectorList from "$lib/components/elements/person/people-selector-list.svelte";
+  import SkillsSelectorList from "$lib/components/elements/skill/skills-selector-list.svelte";
+  import { Button } from "$lib/components/ui/button/index.js";
   import * as Dialog from "$lib/components/ui/dialog/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
-  import IconPicker from "$lib/components/elements/icon-picker/icon-picker.svelte";
-  import SkillsSelectorList from "$lib/components/elements/skill/skills-selector-list.svelte";
-  import PeopleSelectorList from "$lib/components/elements/person/people-selector-list.svelte";
-  import type { Writable } from "svelte/store";
   import { Textarea } from "$lib/components/ui/textarea";
-  import type { TaskProps } from "$lib/types/task.ts";
 
   let open: boolean = false;
   let taskProps: Writable<TaskProps>;
-  let onSubmit: (t: TaskProps) => void = () => {
-  };
+  let onSubmit: (t: TaskProps) => void = () => {};
 
   const handleSubmit = () => {
     onSubmit($taskProps);
     open = false;
   };
 
-  export { open, taskProps, onSubmit };
+  export { onSubmit,open, taskProps };
 </script>
 
 <Dialog.Root bind:open>
@@ -32,47 +29,70 @@
   </Dialog.Trigger>
   <Dialog.Content class="p-4">
     <Dialog.Header>
-      <Dialog.Title class="font-semibold text-xl">Edit Task Data</Dialog.Title>
+      <Dialog.Title class="text-xl font-semibold">Edit Task Data</Dialog.Title>
       <Dialog.Description>
         Make changes to the employee profile here. Click save when you're done.
       </Dialog.Description>
     </Dialog.Header>
-    <div class="flex flex-col w-full h-full gap-6 mt-4 mb-4 p-1 overflow-y-scroll max-h-[400px]">
-      <div class="flex flex-row gap-6 items-center justify-start">
+    <div class="mb-4 mt-4 flex h-full max-h-[400px] w-full flex-col gap-6 overflow-y-scroll p-1">
+      <div class="flex flex-row items-center justify-start gap-6">
         <div class="pt-6">
           <IconPicker bind:icon={$taskProps.icon} />
         </div>
         <div class="w-full">
-          <Label for="employee_name" class="font-semibold mb-0.5">Name</Label>
-          <Input type="text" id="employee_name" placeholder="Name" bind:value={$taskProps.name} />
+          <Label class="mb-0.5 font-semibold" for="employee_name">Name</Label>
+          <Input bind:value={$taskProps.name} id="employee_name" placeholder="Name" type="text" />
         </div>
       </div>
-      <div class="w-full flex flex-row items-center justify-start gap-6">
+      <div class="flex w-full flex-row items-center justify-start gap-6">
         <div class="grid w-full gap-1.5">
-          <Label for="description" class="font-semibold mb-0.5">Min. People</Label>
-          <Input placeholder="E.g. 0" id="description" type="number" bind:value={$taskProps.min_people} />
+          <Label class="mb-0.5 font-semibold" for="description">Min. People</Label>
+          <Input
+            bind:value={$taskProps.min_people}
+            id="description"
+            placeholder="E.g. 0"
+            type="number"
+          />
         </div>
         <div class="grid w-full gap-1.5">
-          <Label for="description" class="font-semibold mb-0.5">Max. People</Label>
-          <Input placeholder="E.g. 5" id="description" type="number" bind:value={$taskProps.max_people} />
+          <Label class="mb-0.5 font-semibold" for="description">Max. People</Label>
+          <Input
+            bind:value={$taskProps.max_people}
+            id="description"
+            placeholder="E.g. 5"
+            type="number"
+          />
         </div>
       </div>
       <div class="grid w-full gap-1.5">
-        <Label for="description" class="font-semibold mb-0.5">Description</Label>
-        <Textarea placeholder="Type a description here" id="description" bind:value={$taskProps.description} />
+        <Label class="mb-0.5 font-semibold" for="description">Description</Label>
+        <Textarea
+          bind:value={$taskProps.description}
+          id="description"
+          placeholder="Type a description here"
+        />
       </div>
       <div>
-        <span class="block font-semibold text-sm">Required Skills:</span>
-        <SkillsSelectorList bind:skill_uuids={$taskProps.required_skill_uuids} compact={false} class="mt-2 w-full" />
+        <span class="block text-sm font-semibold">Required Skills:</span>
+        <SkillsSelectorList
+          bind:skill_uuids={$taskProps.required_skill_uuids}
+          class="mt-2 w-full"
+          compact={false}
+        />
       </div>
       <div>
-        <span class="block font-semibold text-sm mb-2">Assigned Employees:</span>
-        <PeopleSelectorList bind:people_uuids={$taskProps.people_uuids} compact={false}
-                            min_people={$taskProps.min_people} max_people={$taskProps.max_people} class="mt-2 w-full" />
+        <span class="mb-2 block text-sm font-semibold">Assigned Employees:</span>
+        <PeopleSelectorList
+          bind:people_uuids={$taskProps.people_uuids}
+          class="mt-2 w-full"
+          compact={false}
+          max_people={$taskProps.max_people}
+          min_people={$taskProps.min_people}
+        />
       </div>
     </div>
     <Dialog.Footer>
-      <Button type="submit" on:click={handleSubmit}>Save changes</Button>
+      <Button on:click={handleSubmit} type="submit">Save changes</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>

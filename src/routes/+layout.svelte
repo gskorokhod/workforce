@@ -1,21 +1,23 @@
 <script lang="ts">
-  import "../app.css";
-  import NavigationMenu from "$lib/components/elements/navigation-menu/navigation-menu.svelte";
   import type { Link } from "$lib/types/ui.ts";
+
   import { base } from "$app/paths";
+  import NavigationMenu from "$lib/components/elements/navigation-menu/navigation-menu.svelte";
+
+  import "../app.css";
 
   let links: Link[] = [
-    { text: "Shifts", href: `${base}/`, icon: { icon: "mdi:calendar" } },
-    { text: "Employees", href: `${base}/employees/`, icon: { icon: "mdi:account" } },
-    { text: "Tasks", href: `${base}/tasks/`, icon: { icon: "mdi:clipboard-list" } },
-    { text: "Locations", href: `${base}/locations/`, icon: { icon: "mdi:map-marker" } },
-    { text: "Skills", href: `${base}/skills/`, icon: { icon: "mdi:briefcase" } },
-    { text: "Dashboard", href: `${base}/dashboard/`, icon: { icon: "mdi:view-dashboard" } }
+    { href: `${base}/`, icon: { icon: "mdi:calendar" }, text: "Shifts" },
+    { href: `${base}/employees/`, icon: { icon: "mdi:account" }, text: "Employees" },
+    { href: `${base}/tasks/`, icon: { icon: "mdi:clipboard-list" }, text: "Tasks" },
+    { href: `${base}/locations/`, icon: { icon: "mdi:map-marker" }, text: "Locations" },
+    { href: `${base}/skills/`, icon: { icon: "mdi:briefcase" }, text: "Skills" },
+    { href: `${base}/dashboard/`, icon: { icon: "mdi:view-dashboard" }, text: "Dashboard" }
   ];
 </script>
 
-<div class="h-screen w-screen flex flex-row">
-  <NavigationMenu links={links} />
+<div class="flex h-screen w-screen flex-row">
+  <NavigationMenu {links} />
   <slot />
 </div>
 

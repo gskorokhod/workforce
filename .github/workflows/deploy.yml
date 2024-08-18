@@ -1,24 +1,24 @@
 name: Deploy to GitHub Pages
 on:
-  workflow_dispatch:        # can be triggered manually
-  push:    
-    branches: 'main'
-jobs:  
-  build_site:    
-    runs-on: ubuntu-latest    
-    steps:      
-      - name: Checkout        
+  workflow_dispatch: # can be triggered manually
+  push:
+    branches: "main"
+jobs:
+  build_site:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
         uses: actions/checkout@v4
-      - name: Install Node.js        
-        uses: actions/setup-node@v4        
-        with:          
-          node-version: 20          
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
           cache: npm
-      - name: Install dependencies        
+      - name: Install dependencies
         run: npm install
-      - name: build        
-        env:          
-          BASE_PATH: '/${{ github.event.repository.name }}'        
+      - name: build
+        env:
+          BASE_PATH: "/${{ github.event.repository.name }}"
         run: |
           npm run build
       - name: Deploy to the gh-pages branch
@@ -27,4 +27,3 @@ jobs:
           branch: gh-pages
           folder: build
           clean: true
-  

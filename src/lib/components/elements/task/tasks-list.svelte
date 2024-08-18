@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Task } from "$lib/types";
+
   import TaskBadge from "$lib/components/elements/task/task-badge.svelte";
 
   let tasks: Task[] = [];
@@ -7,13 +8,13 @@
   let compact: boolean = true;
   let className: string = "";
 
-  export { tasks, compact, className as class };
+  export { className as class,compact, tasks };
 </script>
 
 {#if tasks.length > 0}
-  <div class="flex flex-row items-center justify-start gap-2 flex-wrap {className}">
+  <div class="flex flex-row flex-wrap items-center justify-start gap-2 {className}">
     {#each tasks as task}
-      <TaskBadge {task} {compact} />
+      <TaskBadge {compact} {task} />
     {/each}
   </div>
 {:else}

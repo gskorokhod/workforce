@@ -2,14 +2,14 @@ import { type Constraint, Type } from "$lib/types";
 import { type ConstraintOperand, ConstraintType, getOperands } from "$lib/types/constraints.ts";
 
 const OPERAND_ICONS: Map<Type, string> = new Map([
-  [Type.Person, "lucide:user-round-x"],
   [Type.Location, "lucide:map-pin-x"],
+  [Type.Person, "lucide:user-round-x"],
   [Type.Task, "lucide:clipboard-x"]
 ]);
 
 const CONSTRAINT_ICONS: Map<ConstraintType, string> = new Map([
-  [ConstraintType.NoPerson, "lucide:user-round-x"],
   [ConstraintType.NoLocation, "lucide:map-pin-x"],
+  [ConstraintType.NoPerson, "lucide:user-round-x"],
   [ConstraintType.NoTask, "lucide:clipboard-x"]
 ]);
 

@@ -17,18 +17,25 @@
 
 <div
   class="group/chip {cl.base} {cl.variants[variant]} {cl.sizes[size]} {className}"
-  class:color={[ChipVariant.color, ChipVariant.colorOutline, ChipVariant.colorSolid].includes(variant)}
+  class:color={[ChipVariant.color, ChipVariant.colorOutline, ChipVariant.colorSolid].includes(
+    variant
+  )}
   class:outline={variant === ChipVariant.colorOutline}
   class:solid={variant === ChipVariant.colorSolid}
   style="--chip-color: {chipColor}; --chip-text-color: {textColor}; --chip-darkened-color: {darkenedColor};"
 >
-  <span class="group-hover/chip:hidden {$$slots.default && 'pl-2'} {$$slots.hover && 'group-hover/chip:pl-2'}">
+  <span
+    class="group-hover/chip:hidden {$$slots.default && 'pl-2'} {$$slots.hover &&
+      'group-hover/chip:pl-2'}"
+  >
     <slot name="icon">
       <PlusIcon />
     </slot>
   </span>
   <span
-    class="hidden group-hover/chip:inline-block {$$slots.default && 'pl-2'} {$$slots.hover && 'group-hover/chip:pl-2'}">
+    class="hidden group-hover/chip:inline-block {$$slots.default && 'pl-2'} {$$slots.hover &&
+      'group-hover/chip:pl-2'}"
+  >
     <slot name="hover_icon">
       <slot name="icon">
         <PlusIcon />
@@ -36,12 +43,12 @@
     </slot>
   </span>
   {#if $$slots.default}
-    <span class="group-hover/chip:hidden pr-2">
+    <span class="pr-2 group-hover/chip:hidden">
       <slot />
     </span>
   {/if}
   {#if $$slots.default || $$slots.hover}
-    <span class="hidden group-hover/chip:inline-block pr-2">
+    <span class="hidden pr-2 group-hover/chip:inline-block">
       <slot name="hover">
         <slot />
       </slot>
@@ -76,7 +83,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    opacity: .1;
+    opacity: 0.1;
     z-index: -1;
     background: var(--chip-color);
     border-radius: 9999px;

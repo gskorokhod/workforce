@@ -1,9 +1,10 @@
 <script lang="ts">
-  import PersonSelector from "$lib/components/elements/person/person-selector.svelte";
   import type { Person } from "$lib/types";
-  import { pad } from "$lib/utils/utils.ts";
-  import { employees } from "$lib/stores.ts";
+
+  import PersonSelector from "$lib/components/elements/person/person-selector.svelte";
   import { ChipVariant } from "$lib/components/ui/chip";
+  import { employees } from "$lib/stores.ts";
+  import { pad } from "$lib/utils/utils.ts";
 
   let options: Person[] = $employees;
   let people_uuids: (string | undefined)[] = [];
@@ -14,14 +15,12 @@
 
   $: {
     people_uuids = pad(people_uuids, max_people, undefined);
-    people_uuids = people_uuids.sort((a, b) => a === undefined ? 1 : b === undefined ? -1 : 0); // put all undefined elements at the end
+    people_uuids = people_uuids.sort((a, b) => (a === undefined ? 1 : b === undefined ? -1 : 0)); // put all undefined elements at the end
   }
 
   function chooseVariant(p: string | undefined, i: number) {
-    if (i < min_people) {
-      if (p === undefined) {
-        return ChipVariant.destructive;
-      }
+    if (i < min_people && p === undefined) {
+      return ChipVariant.destructive;
     }
 
     return ChipVariant.default;
@@ -32,28 +31,34 @@
     return people.includes(person.uuid);
   }
 
-  export { people_uuids, compact, min_people, max_people, className as class };
+  export { className as class,compact, max_people, min_people, options, people_uuids };
 </script>
 
 {#if compact}
-  <div class="group flex flex-row items-center justify-start flex-wrap {className}">
+  <div class="group flex flex-row flex-wrap items-center justify-start {className}">
     {#each people_uuids as person_uuid, i}
-      <div class="relative transition-all w-4 h-10 hover:z-20 hover:w-5 group-hover:opacity-55 hover:!opacity-100">
-        <PersonSelector bind:person_uuid
-                        options={options}
-                        variant={chooseVariant(person_uuid, i)}
-                        filter={(p) => (!hasPerson(people_uuids, p) || (p === undefined) || (p.uuid === person_uuid))}
-                        class="absolute top-0 left-0 w-10 h-10" />
+      <div
+        class="relative h-10 w-4 transition-all hover:z-20 hover:w-5 hover:!opacity-100 group-hover:opacity-55"
+      >
+        <PersonSelector
+          bind:person_uuid
+          class="absolute left-0 top-0 h-10 w-10"
+          filter={(p) => !hasPerson(people_uuids, p) || p === undefined || p.uuid === person_uuid}
+          {options}
+          variant={chooseVariant(person_uuid, i)}
+        />
       </div>
     {/each}
   </div>
 {:else}
-  <div class="flex flex-row items-center justify-start gap-2 flex-wrap {className}">
+  <div class="flex flex-row flex-wrap items-center justify-start gap-2 {className}">
     {#each people_uuids as person_uuid, i}
-      <PersonSelector bind:person_uuid
-                      options={options}
-                      variant={chooseVariant(person_uuid, i)}
-                      filter={(p) => (!hasPerson(people_uuids, p) || (p === undefined) || (p.uuid === person_uuid))} />
+      <PersonSelector
+        bind:person_uuid
+        filter={(p) => !hasPerson(people_uuids, p) || p === undefined || p.uuid === person_uuid}
+        {options}
+        variant={chooseVariant(person_uuid, i)}
+      />
     {/each}
   </div>
 {/if}

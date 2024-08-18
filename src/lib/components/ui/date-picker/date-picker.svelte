@@ -1,11 +1,7 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
   import CalendarIcon from "lucide-svelte/icons/calendar";
-  import {
-    type DateValue,
-    DateFormatter,
-    getLocalTimeZone
-  } from "@internationalized/date";
+  import { type DateValue, DateFormatter, getLocalTimeZone } from "@internationalized/date";
   import { cn } from "$lib/utils/utils.js";
   import { Button } from "$lib/components/ui/button";
   import { Calendar } from "$lib/components/ui/calendar";
@@ -18,8 +14,7 @@
   let value: DateValue | undefined = undefined;
   let placeholder: string = "Select a date";
   let className: string = "";
-  let onChange: (value: DateValue | undefined) => void = () => {
-  };
+  let onChange: (value: DateValue | undefined) => void = () => {};
 
   export { value, placeholder, onChange, className as class };
 </script>

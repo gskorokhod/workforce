@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Skill } from "$lib/types";
+
   import SkillBadge from "$lib/components/elements/skill/skill-badge.svelte";
 
   let skills: Skill[] = [];
@@ -7,13 +8,13 @@
   let compact: boolean = true;
   let className: string = "";
 
-  export { skills, compact, className as class };
+  export { className as class,compact, skills };
 </script>
 
 {#if skills.length > 0}
-  <div class="flex flex-row items-center justify-start gap-2 flex-wrap {className}">
+  <div class="flex flex-row flex-wrap items-center justify-start gap-2 {className}">
     {#each skills as skill}
-      <SkillBadge {skill} {compact} />
+      <SkillBadge {compact} {skill} />
     {/each}
   </div>
 {:else}

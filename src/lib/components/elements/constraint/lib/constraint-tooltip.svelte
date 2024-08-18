@@ -1,7 +1,7 @@
 <script lang="ts">
   import PersonName from "$lib/components/elements/person/person-name.svelte";
-  import { type Constraint, type ConstraintOperand, getOperands } from "$lib/types/constraints.ts";
   import { Type } from "$lib/types";
+  import { type Constraint, type ConstraintOperand, getOperands } from "$lib/types/constraints.ts";
 
   let constraint: Constraint;
   let forOperand: ConstraintOperand | undefined = undefined;
@@ -40,7 +40,7 @@
     {:else if op2.type === Type.Task}
       cannot be used for task <b>"{op2.name}"</b>
     {/if}
-  {:else }
+  {:else}
     ??
   {/if}
 {:else if op1.type === Type.Task}

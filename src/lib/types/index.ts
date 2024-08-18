@@ -1,16 +1,38 @@
-import type { Skill } from "$lib/types/skill.ts";
+import type { Assignment, AssignmentProps } from "$lib/types/assignment.ts";
+import type { Constraint, ConstraintOperand,ConstraintType } from "$lib/types/constraints.ts";
+import type { Location, LocationProps } from "$lib/types/location.ts";
 import type { Person, PersonProps } from "$lib/types/person.ts";
-import type { Location } from "$lib/types/location.ts";
-import type { Task } from "$lib/types/task.ts";
-import type { Assignment } from "$lib/types/assignment.ts";
-import type { Constraint } from "$lib/types/constraints.ts";
+import type { Skill, SkillProps } from "$lib/types/skill.ts";
+import type { Task, TaskProps } from "$lib/types/task.ts";
+import type { IconType } from "$lib/types/ui.ts";
+
+import { defaultLocationProps } from "$lib/types/location.ts";
+import { defaultPersonProps } from "$lib/types/person.ts";
+import { defaultSkillProps } from "$lib/types/skill.ts";
+import { defaultTaskProps } from "$lib/types/task.ts";
 
 export enum Type {
-  Person = "Person",
-  Location = "Location",
-  Task = "Task",
   Assignment = "Assignment",
-  Skill = "Skill"
+  Location = "Location",
+  Person = "Person",
+  Skill = "Skill",
+  Task = "Task"
 }
 
-export type { Skill, Person, Location, Task, Assignment, PersonProps, Constraint };
+export type {
+  Assignment,
+  AssignmentProps,
+  Constraint,
+  ConstraintOperand,
+  ConstraintType,
+  IconType,
+  Location,
+  LocationProps,
+  Person,
+  PersonProps,
+  Skill,
+  SkillProps,
+  Task,
+  TaskProps};
+
+export { defaultLocationProps, defaultPersonProps, defaultSkillProps, defaultTaskProps };

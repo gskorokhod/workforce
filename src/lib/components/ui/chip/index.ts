@@ -27,9 +27,9 @@ export const chipClasses = {
     [ChipVariant.primary]:
       "bg-primary text-primary-foreground hover:bg-primary/90 hover:outline-primary/90",
     [ChipVariant.muted]: "bg-muted text-muted-foreground hover:bg-muted/90 hover:outline-muted/90",
-    [ChipVariant.destructive]: "bg-destructive/10 text-destructive hover:outline-destructive",
+    [ChipVariant.destructive]: "bg-red-100 text-destructive hover:outline-destructive",
     [ChipVariant.destructiveOutline]:
-      "bg-destructive/10 text-destructive outline-destructive hover:bg-destructive hover:text-destructive-foreground",
+      "bg-red-100 text-destructive outline-destructive hover:bg-destructive hover:text-destructive-foreground",
     [ChipVariant.color]: "",
     [ChipVariant.colorOutline]: "",
     [ChipVariant.colorSolid]: ""
