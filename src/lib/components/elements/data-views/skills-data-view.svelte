@@ -75,7 +75,6 @@
   export { data, className as class };
 </script>
 
-<SkillEditDialog bind:skillProps bind:open {onSubmit} />
 <div class="h-full w-full flex flex-col items-start justify-start overflow-y-scroll {className}">
   <TopBar sticky={true}>
     <svelte:fragment slot="start">
@@ -97,3 +96,4 @@
   </TopBar>
   <SkillsDataTable {data} {actions} bind:filterValue bind:sortKeys bind:hideForId bind:flatColumns class="w-full" />
 </div>
+<SkillEditDialog bind:skillProps bind:open {onSubmit} />

@@ -78,7 +78,6 @@
   export { data, className as class };
 </script>
 
-<PersonEditDialog bind:personProps bind:open {onSubmit} />
 <div class="h-full w-full flex flex-col items-start justify-start overflow-y-scroll {className}">
   <TopBar sticky={true}>
     <svelte:fragment slot="start">
@@ -101,3 +100,4 @@
   </TopBar>
   <EmployeesDataTable {data} {actions} bind:filterValue bind:sortKeys bind:hideForId bind:flatColumns class="w-full" />
 </div>
+<PersonEditDialog bind:personProps bind:open {onSubmit} />

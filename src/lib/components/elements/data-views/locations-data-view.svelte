@@ -4,6 +4,7 @@
   import ColumnHideSelector from "$lib/components/elements/data-tables/lib/column-hide-selector.svelte";
   import LocationEditDialog from "$lib/components/elements/location/location-edit-dialog.svelte";
   import LocationsDataTable from "$lib/components/elements/data-tables/locations-data-table.svelte";
+  import LocationsMap from "$lib/components/elements/location/locations-map.svelte";
   import { FlatColumn } from "svelte-headless-table";
   import type { Location } from "$lib/types";
   import { deleteLocation, locations } from "$lib/stores.ts";
@@ -85,8 +86,8 @@
   export { data, className as class };
 </script>
 
-<LocationEditDialog bind:locationProps bind:open {onSubmit} {otherLocations} />
 <div class="h-full w-full flex flex-col items-start justify-start overflow-y-scroll {className}">
+  <LocationsMap locations={data} class="w-full h-[600px]" />
   <TopBar sticky={true}>
     <svelte:fragment slot="start">
       <Button size="icon_xl" variant="ghost" on:click={handleAdd}
@@ -107,3 +108,4 @@
   </TopBar>
   <LocationsDataTable {data} {actions} bind:filterValue bind:sortKeys bind:hideForId bind:flatColumns class="w-full" />
 </div>
+<LocationEditDialog bind:locationProps bind:open {onSubmit} {otherLocations} />

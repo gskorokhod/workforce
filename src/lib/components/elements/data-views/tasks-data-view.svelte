@@ -77,7 +77,6 @@
   export { data, className as class };
 </script>
 
-<TaskEditDialog bind:taskProps bind:open {onSubmit} />
 <div class="h-full w-full flex flex-col items-start justify-start overflow-y-scroll {className}">
   <TopBar sticky={true}>
     <svelte:fragment slot="start">
@@ -99,3 +98,4 @@
   </TopBar>
   <TasksDataTable {data} {actions} bind:filterValue bind:sortKeys bind:flatColumns bind:hideForId class="w-full" />
 </div>
+<TaskEditDialog bind:taskProps bind:open {onSubmit} />
