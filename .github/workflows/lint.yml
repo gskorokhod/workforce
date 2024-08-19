@@ -23,7 +23,7 @@ jobs:
         run: npx eslint .
 
       - name: Run Prettier
-        run: prettier --check .
+        run: npx prettier --check .
 
       - name: Run SvelteKit check
-        run: svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+        run: npx svelte-kit sync && npx svelte-check --tsconfig ./tsconfig.json
