@@ -8,7 +8,6 @@ This is a [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/c
 
 ## Resources
 
-- [Pinterest board](https://www.pinterest.co.uk/hotdogice0/staris-2024-ui/)
 - [FigJam board](https://www.figma.com/board/yIjbMS3WQcrM8b9vHYLCl3/Whiteboard?node-id=0-1&t=c8V2wENENyR81JPP-1)
 - [Figma UI wireframe](https://www.figma.com/design/irzfj48pXn8jfiYQ7XBCVP/UI-Wireframe?node-id=183-23584&t=t7OhI3Lw7eZROIcT-1)
 
