@@ -3,4 +3,4 @@
 
 import type { DataColumnInitBase, DataColumnInitKey } from "svelte-headless-table";
 
-export type ColumnInitializer = DataColumnInitBase & DataColumnInitKey;
+export type ColumnInitializer = DataColumnInitBase<any> & DataColumnInitKey<any, any>;

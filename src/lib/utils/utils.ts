@@ -34,7 +34,7 @@ export const flyAndScale = (
     return percentage * (maxB - minB) + minB;
   };
 
-  const styleToString = (style: Record): string => {
+  const styleToString = (style: Record<string, number | string | undefined>): string => {
     return Object.keys(style).reduce((str, key) => {
       if (style[key] === undefined) return str;
       return str + `${key}:${style[key]};`;
@@ -183,9 +183,9 @@ export function toCalendarDate(date: Date): CalendarDate {
 }
 
 export function debounce<T extends (...args: unknown[]) => void>(callback: T, wait: number = 300) {
-  let timeoutId: ReturnType;
+  let timeoutId: ReturnType<typeof setTimeout>;
 
-  return (...args: Parameters): void => {
+  return (...args: Parameters<T>): void => {
     clearTimeout(timeoutId);
 
     timeoutId = setTimeout(() => {

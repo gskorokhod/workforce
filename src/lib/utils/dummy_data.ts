@@ -136,7 +136,7 @@ export interface DummyData {
   tasks: Task[];
 }
 
-export async function generateDummyData(props: DummyDataGenProps): Promise {
+export async function generateDummyData(props: DummyDataGenProps): Promise<DummyData> {
   const skills = generateSkills(props.skills);
   const locations = await generateLocations(props.locations);
   const people = generatePeople(props.people, skills);
@@ -181,7 +181,7 @@ export function generateSkills(n: number): Skill[] {
   return Array.from({ length: n }, generateSkill);
 }
 
-export async function generateLocation(): Promise {
+export async function generateLocation(): Promise<Location> {
   const coordinates = faker.location.nearbyGPSCoordinate({
     isMetric: true,
     origin: ST_ANDREWS,
@@ -199,7 +199,7 @@ export async function generateLocation(): Promise {
   });
 }
 
-export async function generateLocations(n: number): Promise {
+export async function generateLocations(n: number): Promise<Location[]> {
   return Promise.all(Array.from({ length: n }, generateLocation));
 }
 
@@ -233,7 +233,10 @@ export function generateTasks(n: number, skills: Skill[], people: Person[]): Tas
   return Array.from({ length: n }, () => generateTask(skills, people));
 }
 
-export async function generateAssignment(locations: Location[], tasks: Task[]): Promise {
+export async function generateAssignment(
+  locations: Location[],
+  tasks: Task[]
+): Promise<Assignment> {
   const loc = sampleOne(locations) as Location;
 
   return createAssignment({
@@ -246,7 +249,11 @@ export async function generateAssignment(locations: Location[], tasks: Task[]): 
   });
 }
 
-export function generateAssignments(n: number, locations: Location[], tasks: Task[]): Promise {
+export function generateAssignments(
+  n: number,
+  locations: Location[],
+  tasks: Task[]
+): Promise<Assignment[]> {
   return Promise.all(Array.from({ length: n }, () => generateAssignment(locations, tasks)));
 }
 
