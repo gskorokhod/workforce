@@ -1,6 +1,7 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import type { TaskProps } from "$lib/types/task.ts"; import type { Writable } from "svelte/store";
+  import type { TaskProps } from "$lib/types/task.ts";
+  import type { Writable } from "svelte/store";
 
   import IconPicker from "$lib/components/elements/icon-picker/icon-picker.svelte";
   import PeopleSelectorList from "$lib/components/elements/person/people-selector-list.svelte";
@@ -20,7 +21,7 @@
     open = false;
   };
 
-  export { onSubmit,open, taskProps };
+  export { onSubmit, open, taskProps };
 </script>
 
 <Dialog.Root bind:open>

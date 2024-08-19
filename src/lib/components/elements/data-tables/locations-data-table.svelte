@@ -3,12 +3,13 @@
   import type { Location } from "$lib/types";
   import type { AnyPlugins } from "svelte-headless-table/plugins";
 
-  import ConstraintsList from "$lib/components/elements/constraint/constraints-for-list.svelte"; import DataTable from "$lib/components/elements/data-tables/core/data-table.svelte";
+  import ConstraintsList from "$lib/components/elements/constraint/constraints-for-list.svelte";
+  import DataTable from "$lib/components/elements/data-tables/core/data-table.svelte";
   import RowActions from "$lib/components/elements/data-tables/lib/row-actions.svelte";
   import LocationBadge from "$lib/components/elements/location/location-badge.svelte";
   import { getConstraintsFor, locations } from "$lib/stores.ts";
   import { capitalize } from "$lib/utils/utils.ts";
-  import { type Writable,writable } from "svelte/store";
+  import { type Writable, writable } from "svelte/store";
   import {
     createRender,
     DataBodyCell,
@@ -93,7 +94,7 @@
     });
   }
 
-  export { actions, className as class,data, filterValue, flatColumns, hideForId, sortKeys };
+  export { actions, className as class, data, filterValue, flatColumns, hideForId, sortKeys };
 </script>
 
 <DataTable

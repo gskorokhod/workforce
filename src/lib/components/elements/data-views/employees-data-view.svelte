@@ -4,14 +4,14 @@
   import EmployeesDataTable from "$lib/components/elements/data-tables/employees-data-table.svelte";
   import ColumnHideSelector from "$lib/components/elements/data-tables/lib/column-hide-selector.svelte";
   import PersonEditDialog from "$lib/components/elements/person/person-edit-dialog.svelte";
-  import TopBar from "$lib/components/elements/top-bar/top_bar.svelte"; 
+  import TopBar from "$lib/components/elements/top-bar/top_bar.svelte";
   import { Button } from "$lib/components/ui/button";
   import Search from "$lib/components/ui/search/search.svelte";
   import { deleteEmployee, employees } from "$lib/stores.ts";
   import { type Person, type PersonProps } from "$lib/types";
   import { createPerson, defaultPersonProps } from "$lib/types/person.ts";
   import { PlusIcon } from "lucide-svelte";
-  import { type Writable,writable } from "svelte/store";
+  import { type Writable, writable } from "svelte/store";
   import { FlatColumn } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
 
@@ -75,7 +75,7 @@
     ["Edit", handleEdit]
   ]);
 
-  export { className as class,data };
+  export { className as class, data };
 </script>
 
 <div class="flex h-full w-full flex-col items-start justify-start overflow-y-scroll {className}">

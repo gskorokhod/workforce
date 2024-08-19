@@ -3,14 +3,15 @@
   import type { Person, Skill, Task } from "$lib/types";
   import type { AnyPlugins } from "svelte-headless-table/plugins";
 
-  import DataTable from "$lib/components/elements/data-tables/core/data-table.svelte"; import RowActions from "$lib/components/elements/data-tables/lib/row-actions.svelte";
+  import DataTable from "$lib/components/elements/data-tables/core/data-table.svelte";
+  import RowActions from "$lib/components/elements/data-tables/lib/row-actions.svelte";
   import PeopleList from "$lib/components/elements/person/people-list.svelte";
   import SkillBadge from "$lib/components/elements/skill/skill-badge.svelte";
   import TasksList from "$lib/components/elements/task/tasks-list.svelte";
   import { skills } from "$lib/stores.ts";
   import { getPeopleWithSkill, getTasksWithSkill } from "$lib/types/skill.ts";
   import { capitalize } from "$lib/utils/utils.ts";
-  import { type Writable,writable } from "svelte/store";
+  import { type Writable, writable } from "svelte/store";
   import {
     createRender,
     DataBodyCell,
@@ -107,7 +108,7 @@
     });
   }
 
-  export { actions, className as class,data, filterValue, flatColumns, hideForId, sortKeys };
+  export { actions, className as class, data, filterValue, flatColumns, hideForId, sortKeys };
 </script>
 
 <DataTable

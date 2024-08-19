@@ -31,7 +31,7 @@
     return people.includes(person.uuid);
   }
 
-  export { className as class,compact, max_people, min_people, options, people_uuids };
+  export { className as class, compact, max_people, min_people, options, people_uuids };
 </script>
 
 {#if compact}

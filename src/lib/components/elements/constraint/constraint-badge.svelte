@@ -1,6 +1,7 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import ConstraintTooltip from "$lib/components/elements/constraint/lib/constraint-tooltip.svelte"; import { ChipVariant } from "$lib/components/ui/chip";
+  import ConstraintTooltip from "$lib/components/elements/constraint/lib/constraint-tooltip.svelte";
+  import { ChipVariant } from "$lib/components/ui/chip";
   import Chip from "$lib/components/ui/chip/chip.svelte";
   import Icon from "$lib/components/ui/icon/icon.svelte";
   import * as Tooltip from "$lib/components/ui/tooltip";
@@ -23,7 +24,7 @@
   };
 
   // noinspection ReservedWordAsName
-  export { className as class,constraint, forOperand, placeholder, popoverEnabled, variant };
+  export { className as class, constraint, forOperand, placeholder, popoverEnabled, variant };
 </script>
 
 <Tooltip.Root>

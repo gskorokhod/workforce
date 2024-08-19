@@ -1,4 +1,4 @@
-import type { Assignment,Location, Person, Skill, Task } from "$lib/types";
+import type { Assignment, Location, Person, Skill, Task } from "$lib/types";
 import type { IconType } from "$lib/types/ui.ts";
 
 import { createAssignment } from "$lib/types/assignment.ts";
@@ -136,7 +136,7 @@ export interface DummyData {
   tasks: Task[];
 }
 
-export async function generateDummyData(props: DummyDataGenProps): Promise<DummyData> {
+export async function generateDummyData(props: DummyDataGenProps): Promise {
   const skills = generateSkills(props.skills);
   const locations = await generateLocations(props.locations);
   const people = generatePeople(props.people, skills);
@@ -181,7 +181,7 @@ export function generateSkills(n: number): Skill[] {
   return Array.from({ length: n }, generateSkill);
 }
 
-export async function generateLocation(): Promise<Location> {
+export async function generateLocation(): Promise {
   const coordinates = faker.location.nearbyGPSCoordinate({
     isMetric: true,
     origin: ST_ANDREWS,
@@ -199,7 +199,7 @@ export async function generateLocation(): Promise<Location> {
   });
 }
 
-export async function generateLocations(n: number): Promise<Location[]> {
+export async function generateLocations(n: number): Promise {
   return Promise.all(Array.from({ length: n }, generateLocation));
 }
 
@@ -233,10 +233,7 @@ export function generateTasks(n: number, skills: Skill[], people: Person[]): Tas
   return Array.from({ length: n }, () => generateTask(skills, people));
 }
 
-export async function generateAssignment(
-  locations: Location[],
-  tasks: Task[]
-): Promise<Assignment> {
+export async function generateAssignment(locations: Location[], tasks: Task[]): Promise {
   const loc = sampleOne(locations) as Location;
 
   return createAssignment({
@@ -249,11 +246,7 @@ export async function generateAssignment(
   });
 }
 
-export function generateAssignments(
-  n: number,
-  locations: Location[],
-  tasks: Task[]
-): Promise<Assignment[]> {
+export function generateAssignments(n: number, locations: Location[], tasks: Task[]): Promise {
   return Promise.all(Array.from({ length: n }, () => generateAssignment(locations, tasks)));
 }
 

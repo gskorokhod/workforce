@@ -27,7 +27,7 @@
     return address.split(",").slice(0, 4).join(",");
   }
 
-  export { className as class,disabled, draggable, location, onDrag };
+  export { className as class, disabled, draggable, location, onDrag };
 </script>
 
 <Marker

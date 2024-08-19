@@ -1,6 +1,7 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import { Button } from "$lib/components/ui/button"; import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+  import { Button } from "$lib/components/ui/button";
+  import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
   import Ellipsis from "lucide-svelte/icons/ellipsis";
 
   let item: unknown;
@@ -8,7 +9,7 @@
   let actions: Map<string, (item: any) => void>;
   let open: boolean = false;
 
-  export { actions,item };
+  export { actions, item };
 </script>
 
 <DropdownMenu.Root bind:open>

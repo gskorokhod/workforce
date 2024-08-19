@@ -4,14 +4,14 @@
 
   import ColumnHideSelector from "$lib/components/elements/data-tables/lib/column-hide-selector.svelte";
   import TasksDataTable from "$lib/components/elements/data-tables/tasks-data-table.svelte";
-  import TaskEditDialog from "$lib/components/elements/task/task-edit-dialog.svelte"; 
+  import TaskEditDialog from "$lib/components/elements/task/task-edit-dialog.svelte";
   import TopBar from "$lib/components/elements/top-bar/top_bar.svelte";
   import { Button } from "$lib/components/ui/button";
   import Search from "$lib/components/ui/search/search.svelte";
   import { deleteTask, tasks } from "$lib/stores.ts";
   import { createTask, defaultTaskProps, type TaskProps } from "$lib/types/task.ts";
   import { PlusIcon } from "lucide-svelte";
-  import { type Writable,writable } from "svelte/store";
+  import { type Writable, writable } from "svelte/store";
   import { FlatColumn } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
 
@@ -73,7 +73,7 @@
     ["Edit", handleEdit]
   ]);
 
-  export { className as class,data };
+  export { className as class, data };
 </script>
 
 <div class="flex h-full w-full flex-col items-start justify-start overflow-y-scroll {className}">

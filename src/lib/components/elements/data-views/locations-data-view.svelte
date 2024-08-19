@@ -4,7 +4,7 @@
 
   import ColumnHideSelector from "$lib/components/elements/data-tables/lib/column-hide-selector.svelte";
   import LocationsDataTable from "$lib/components/elements/data-tables/locations-data-table.svelte";
-  import LocationEditDialog from "$lib/components/elements/location/location-edit-dialog.svelte"; 
+  import LocationEditDialog from "$lib/components/elements/location/location-edit-dialog.svelte";
   import LocationsMap from "$lib/components/elements/location/locations-map.svelte";
   import TopBar from "$lib/components/elements/top-bar/top_bar.svelte";
   import { Button } from "$lib/components/ui/button";
@@ -13,7 +13,7 @@
   import { createLocation, defaultLocationProps, type LocationProps } from "$lib/types/location.ts";
   import { getCentrePoint } from "$lib/utils/utils.ts";
   import { PlusIcon } from "lucide-svelte";
-  import { type Writable,writable } from "svelte/store";
+  import { type Writable, writable } from "svelte/store";
   import { FlatColumn } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
 
@@ -84,7 +84,7 @@
     ["Edit", handleEdit]
   ]);
 
-  export { className as class,data };
+  export { className as class, data };
 </script>
 
 <div class="flex h-full w-full flex-col items-start justify-start overflow-y-scroll {className}">

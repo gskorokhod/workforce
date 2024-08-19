@@ -17,7 +17,7 @@
   let className: string = "";
 
   // noinspection ReservedWordAsName
-  export { className as class,compact, placeholder, popoverEnabled, task, variant };
+  export { className as class, compact, placeholder, popoverEnabled, task, variant };
 </script>
 
 <Tooltip.Root>

@@ -3,7 +3,8 @@
   import type { IconType } from "$lib/types/ui.ts";
 
   import { Button } from "$lib/components/ui/button";
-  import { ChipVariant } from "$lib/components/ui/chip"; import Chip from "$lib/components/ui/chip/chip.svelte";
+  import { ChipVariant } from "$lib/components/ui/chip";
+  import Chip from "$lib/components/ui/chip/chip.svelte";
   import ColourPicker from "$lib/components/ui/color-picker/color-picker.svelte";
   import Icon from "$lib/components/ui/icon/icon.svelte";
   import * as Popover from "$lib/components/ui/popover";
@@ -13,7 +14,7 @@
   import { capitalize, stripPrefix } from "$lib/utils/utils.js";
   import { ChevronDownIcon, LoaderIcon } from "lucide-svelte";
   import { tick } from "svelte";
-  import { type Writable,writable } from "svelte/store";
+  import { type Writable, writable } from "svelte/store";
 
   const LIMIT: number = 64;
   const ICON_SET: string = "mdi";
@@ -96,7 +97,7 @@
     });
   }
 
-  export { className as class,icon };
+  export { className as class, icon };
 </script>
 
 <Popover.Root bind:open let:ids>

@@ -12,7 +12,7 @@
   let showAvatar: boolean = true;
   let className: string = "";
 
-  export { className,person, popoverEnabled, showAvatar };
+  export { className, person, popoverEnabled, showAvatar };
 </script>
 
 <Tooltip.Root>

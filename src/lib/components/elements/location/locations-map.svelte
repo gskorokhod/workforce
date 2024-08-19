@@ -10,7 +10,7 @@
   let locations: ReadOrWritable<Location[]> = locationsStore;
   let className: string = "";
 
-  export { className as class,locations };
+  export { className as class, locations };
 </script>
 
 <MapLibre

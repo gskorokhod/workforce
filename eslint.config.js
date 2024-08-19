@@ -1,6 +1,6 @@
 import js from "@eslint/js";
 import prettier from "eslint-config-prettier";
-import perfectionist from 'eslint-plugin-perfectionist'
+import perfectionist from "eslint-plugin-perfectionist";
 import sonarjs from "eslint-plugin-sonarjs";
 import svelte from "eslint-plugin-svelte";
 import globals from "globals";

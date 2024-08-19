@@ -11,7 +11,7 @@
 
   $: required_skills = getRequiredSkillsForTask(task);
 
-  export { compact,task };
+  export { compact, task };
 </script>
 
 <div

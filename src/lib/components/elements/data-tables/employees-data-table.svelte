@@ -2,13 +2,14 @@
   import type { ColumnInitializer } from "$lib/components/elements/data-tables/core";
   import type { Person, Skill } from "$lib/types";
 
-  import ConstraintsList from "$lib/components/elements/constraint/constraints-for-list.svelte"; import DataTable from "$lib/components/elements/data-tables/core/data-table.svelte";
+  import ConstraintsList from "$lib/components/elements/constraint/constraints-for-list.svelte";
+  import DataTable from "$lib/components/elements/data-tables/core/data-table.svelte";
   import RowActions from "$lib/components/elements/data-tables/lib/row-actions.svelte";
   import PersonAvatar from "$lib/components/elements/person/person-avatar.svelte";
   import SkillsList from "$lib/components/elements/skill/skills-list.svelte";
   import { employees, getConstraintsFor } from "$lib/stores.ts";
   import { getAgeForPerson, getSkillsForPerson } from "$lib/types/person.ts";
-  import { type Writable,writable } from "svelte/store";
+  import { type Writable, writable } from "svelte/store";
   import {
     createRender,
     DataBodyCell,
@@ -118,7 +119,7 @@
     });
   }
 
-  export { actions, className as class,data, filterValue, flatColumns, hideForId, sortKeys };
+  export { actions, className as class, data, filterValue, flatColumns, hideForId, sortKeys };
 </script>
 
 <DataTable

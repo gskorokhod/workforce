@@ -5,18 +5,18 @@ type FormTextareaEvent<T extends Event = Event> = T & {
 };
 
 type TextareaEvents = {
-  blur: FormTextareaEvent<FocusEvent>;
-  change: FormTextareaEvent<Event>;
-  click: FormTextareaEvent<MouseEvent>;
-  focus: FormTextareaEvent<FocusEvent>;
-  keydown: FormTextareaEvent<KeyboardEvent>;
-  keypress: FormTextareaEvent<KeyboardEvent>;
-  keyup: FormTextareaEvent<KeyboardEvent>;
-  mouseover: FormTextareaEvent<MouseEvent>;
-  mouseenter: FormTextareaEvent<MouseEvent>;
-  mouseleave: FormTextareaEvent<MouseEvent>;
-  paste: FormTextareaEvent<ClipboardEvent>;
-  input: FormTextareaEvent<InputEvent>;
+  blur: FormTextareaEvent;
+  change: FormTextareaEvent;
+  click: FormTextareaEvent;
+  focus: FormTextareaEvent;
+  keydown: FormTextareaEvent;
+  keypress: FormTextareaEvent;
+  keyup: FormTextareaEvent;
+  mouseover: FormTextareaEvent;
+  mouseenter: FormTextareaEvent;
+  mouseleave: FormTextareaEvent;
+  paste: FormTextareaEvent;
+  input: FormTextareaEvent;
 };
 
 export {

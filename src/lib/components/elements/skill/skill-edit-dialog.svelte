@@ -1,6 +1,7 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import type { SkillProps } from "$lib/types/skill.ts"; import type { Writable } from "svelte/store";
+  import type { SkillProps } from "$lib/types/skill.ts";
+  import type { Writable } from "svelte/store";
 
   import IconPicker from "$lib/components/elements/icon-picker/icon-picker.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
@@ -18,7 +19,7 @@
     open = false;
   };
 
-  export { onSubmit,open, skillProps };
+  export { onSubmit, open, skillProps };
 </script>
 
 <Dialog.Root bind:open>

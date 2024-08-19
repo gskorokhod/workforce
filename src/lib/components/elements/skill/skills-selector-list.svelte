@@ -34,7 +34,7 @@
     return skills.map((s) => s).includes(skill.uuid);
   }
 
-  export { className as class,compact, n_skills, options, skill_uuids };
+  export { className as class, compact, n_skills, options, skill_uuids };
 </script>
 
 <div class="flex flex-row flex-wrap items-center justify-start gap-2 {className}">

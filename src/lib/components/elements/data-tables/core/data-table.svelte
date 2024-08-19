@@ -6,9 +6,10 @@
   import type { ColumnInitializer } from "$lib/components/elements/data-tables/core/index.ts";
 
   import { Button } from "$lib/components/ui/button";
-  import * as Table from "$lib/components/ui/table"; import { cn } from "$lib/utils/utils.ts";
+  import * as Table from "$lib/components/ui/table";
+  import { cn } from "$lib/utils/utils.ts";
   import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-svelte";
-  import { createTable, type ReadOrWritable, Render,Subscribe } from "svelte-headless-table";
+  import { createTable, type ReadOrWritable, Render, Subscribe } from "svelte-headless-table";
   import {
     addHiddenColumns,
     addPagination,
@@ -58,7 +59,8 @@
     flatColumns,
     hideForId,
     selectedDataIds,
-    sortKeys  };
+    sortKeys
+  };
 </script>
 
 <div class={className}>

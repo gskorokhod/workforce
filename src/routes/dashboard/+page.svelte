@@ -2,7 +2,8 @@
   import type { ComboboxItem } from "$lib/components/ui/combobox";
 
   import IconPicker from "$lib/components/elements/icon-picker/icon-picker.svelte";
-  import LocationEditDialog from "$lib/components/elements/location/location-edit-dialog.svelte"; import PeopleList from "$lib/components/elements/person/people-list.svelte";
+  import LocationEditDialog from "$lib/components/elements/location/location-edit-dialog.svelte";
+  import PeopleList from "$lib/components/elements/person/people-list.svelte";
   import PeopleSelectorList from "$lib/components/elements/person/people-selector-list.svelte";
   import PersonEditDialog from "$lib/components/elements/person/person-edit-dialog.svelte";
   import SkillEditDialog from "$lib/components/elements/skill/skill-edit-dialog.svelte";

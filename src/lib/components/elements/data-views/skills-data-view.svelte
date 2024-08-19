@@ -4,14 +4,14 @@
 
   import ColumnHideSelector from "$lib/components/elements/data-tables/lib/column-hide-selector.svelte";
   import SkillsDataTable from "$lib/components/elements/data-tables/skills-data-table.svelte";
-  import SkillEditDialog from "$lib/components/elements/skill/skill-edit-dialog.svelte"; 
+  import SkillEditDialog from "$lib/components/elements/skill/skill-edit-dialog.svelte";
   import TopBar from "$lib/components/elements/top-bar/top_bar.svelte";
   import { Button } from "$lib/components/ui/button";
   import Search from "$lib/components/ui/search/search.svelte";
   import { deleteSkill, skills } from "$lib/stores.ts";
   import { createSkill, defaultSkillProps, type SkillProps } from "$lib/types/skill.ts";
   import { PlusIcon } from "lucide-svelte";
-  import { type Writable,writable } from "svelte/store";
+  import { type Writable, writable } from "svelte/store";
   import { FlatColumn } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
 
@@ -73,7 +73,7 @@
     ["Edit", handleEdit]
   ]);
 
-  export { className as class,data };
+  export { className as class, data };
 </script>
 
 <div class="flex h-full w-full flex-col items-start justify-start overflow-y-scroll {className}">

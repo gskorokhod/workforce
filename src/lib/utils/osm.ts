@@ -60,7 +60,7 @@ export async function getAddressCompletions(
   countryCodes: string[] = [],
   boxSize: number = 0.1,
   bounded: boolean = false
-): Promise<string[]> {
+): Promise {
   if (address.length < MIN_SEARCH_LENGTH) return Promise.resolve([]);
 
   let query = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURI(address)}`;
@@ -78,7 +78,7 @@ export async function getAddressCompletions(
   return data.map((res) => res.display_name);
 }
 
-export async function geocode(address: string): Promise<LngLat | undefined> {
+export async function geocode(address: string): Promise {
   const response = await fetch(
     `https://nominatim.openstreetmap.org/search?format=json&q=${address}`
   );
@@ -87,7 +87,7 @@ export async function geocode(address: string): Promise<LngLat | undefined> {
   return [parseFloat(data[0].lon), parseFloat(data[0].lat)];
 }
 
-export async function reverseGeocode(coords: LngLat): Promise<OSMReverseResult | undefined> {
+export async function reverseGeocode(coords: LngLat): Promise {
   const response = await fetch(
     `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords[1]}&lon=${coords[0]}`
   );

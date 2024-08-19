@@ -22,7 +22,7 @@
     open = false;
   };
 
-  export { onSubmit,open, personProps };
+  export { onSubmit, open, personProps };
 </script>
 
 <Dialog.Root bind:open>

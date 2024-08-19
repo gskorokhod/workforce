@@ -8,7 +8,7 @@
   let compact: boolean = true;
   let className: string = "";
 
-  export { className as class,compact, skills };
+  export { className as class, compact, skills };
 </script>
 
 {#if skills.length > 0}

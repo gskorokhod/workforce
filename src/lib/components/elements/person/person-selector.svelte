@@ -3,7 +3,7 @@
   import type { Person } from "$lib/types";
 
   import PersonAvatar from "$lib/components/elements/person/person-avatar.svelte";
-   import { Button } from "$lib/components/ui/button";
+  import { Button } from "$lib/components/ui/button";
   import { ChipVariant } from "$lib/components/ui/chip";
   import * as Command from "$lib/components/ui/command";
   import * as Popover from "$lib/components/ui/popover";
@@ -40,7 +40,7 @@
   }
 
   // noinspection ReservedWordAsName
-  export { className as class,filter, onChange, options, person_uuid, placeholder, variant };
+  export { className as class, filter, onChange, options, person_uuid, placeholder, variant };
 </script>
 
 <Popover.Root bind:open let:ids>

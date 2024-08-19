@@ -10,7 +10,7 @@
 
   $: people_list = max ? people.slice(0, max) : people;
 
-  export { className as class,compact, max, people };
+  export { className as class, compact, max, people };
 </script>
 
 {#if compact}

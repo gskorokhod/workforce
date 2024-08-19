@@ -22,7 +22,7 @@
     return $page.url.pathname.includes(href);
   };
 
-  export { isExpanded,links, position };
+  export { isExpanded, links, position };
 </script>
 
 <Sidebar {collapsedWidth} {expandedWidth} {isExpanded} {position}>

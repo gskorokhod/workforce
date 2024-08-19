@@ -3,7 +3,7 @@
   import type { Location, LocationProps } from "$lib/types/location.ts";
 
   import LocationMapMarker from "$lib/components/elements/location/location-map-marker.svelte";
-   import * as Avatar from "$lib/components/ui/avatar/index.js";
+  import * as Avatar from "$lib/components/ui/avatar/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
   import * as Dialog from "$lib/components/ui/dialog/index.js";
   import { Input } from "$lib/components/ui/input";
@@ -12,7 +12,7 @@
   import { locations } from "$lib/stores.ts";
   import { geocode, getAddressCompletions } from "$lib/utils/osm.ts";
   import { getInitials } from "$lib/utils/utils.ts";
-  import { type Writable,writable } from "svelte/store";
+  import { type Writable, writable } from "svelte/store";
   import { MapLibre } from "svelte-maplibre";
 
   let open: boolean = false;
@@ -40,7 +40,7 @@
     });
   }
 
-  export { locationProps, onSubmit,open, otherLocations };
+  export { locationProps, onSubmit, open, otherLocations };
 </script>
 
 <Dialog.Root bind:open>

@@ -1,5 +1,5 @@
 import type { Assignment, AssignmentProps } from "$lib/types/assignment.ts";
-import type { Constraint, ConstraintOperand,ConstraintType } from "$lib/types/constraints.ts";
+import type { Constraint, ConstraintOperand, ConstraintType } from "$lib/types/constraints.ts";
 import type { Location, LocationProps } from "$lib/types/location.ts";
 import type { Person, PersonProps } from "$lib/types/person.ts";
 import type { Skill, SkillProps } from "$lib/types/skill.ts";
@@ -33,6 +33,7 @@ export type {
   Skill,
   SkillProps,
   Task,
-  TaskProps};
+  TaskProps
+};
 
 export { defaultLocationProps, defaultPersonProps, defaultSkillProps, defaultTaskProps };
