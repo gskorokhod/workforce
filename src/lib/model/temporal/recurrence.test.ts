@@ -8,7 +8,7 @@ import {
 } from "@internationalized/date";
 import { datetime, RRule } from "rrule";
 import { expect, test } from "vitest";
-import { DateOption, Recurrence, RecurrenceOptions } from "./recurrence";
+import { DateOption, Recurrence, type RecurrenceOptions } from "./recurrence";
 import { toUTCDate } from "./utils";
 
 test("Construct a Recurrence", () => {

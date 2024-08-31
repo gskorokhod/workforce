@@ -1,9 +1,5 @@
+import deepEqual from "deep-equal";
 import objectHash from "object-hash";
-import { isDeepStrictEqual } from "util";
-
-// We are importing it to use in documentation (via "@see")
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { deepStrictEqual as _deepStrictEqual } from "assert";
 
 type MapEntry<K, V> = [K, V];
 type Bucket<K, V> = MapEntry<K, V>[];
@@ -17,13 +13,14 @@ type Bucket<K, V> = MapEntry<K, V>[];
  * Note: the default hash function uses SHA-1 (object-hash implementation) and the default equality function uses `assert.deepStrictEqual`.
  * These should support most types, but if not, you can provide your own hash and equality functions.
  *
- * @see _deepStrictEqual
+ * @see https://github.com/inspect-js/node-deep-equal
+ * @see deepEqual
  * @see objectHash
  */
 export class HashMap<K extends objectHash.NotUndefined, V> implements Map<K, V> {
   private _map: Map<string, Bucket<K, V>> = new Map<string, Bucket<K, V>>();
   private _hash: (key: K) => string = objectHash.sha1;
-  private _equals: (a: K, b: K) => boolean = isDeepStrictEqual;
+  private _equals: (a: K, b: K) => boolean = deepEqual;
   private _size: number = 0;
 
   /**

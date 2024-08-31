@@ -1,10 +1,5 @@
-import {
-  CalendarDate,
-  DateTimeDuration,
-  fromDate,
-  toCalendarDate,
-  ZonedDateTime
-} from "@internationalized/date";
+import type { DateTimeDuration } from "@internationalized/date";
+import { CalendarDate, fromDate, toCalendarDate, ZonedDateTime } from "@internationalized/date";
 import { Frequency } from "rrule";
 import { toRecurrenceOptions } from "./options";
 import { DateOption, Recurrence } from "./recurrence";
@@ -147,7 +142,7 @@ export function offset(
 
   return new Recurrence({
     dtStart: sdt.add(by),
-    duration: this.duration,
+    duration: recurrence.duration,
     exceptions,
     rRuleOptions: options
   });
