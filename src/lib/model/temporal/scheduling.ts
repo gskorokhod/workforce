@@ -13,7 +13,7 @@ export enum RescheduleMode {
 
 /**
  * Reschedule the recurrence pattern such that the given occurrence is moved by a given duration.
- * (If the occurrence is not part of this recurrence pattern, this method will return null.)
+ * (If the occurrence is not part of this recurrence pattern, this method will return undefined.)
  *
  * @param occurrence ZonedDateTime of the occurrence to reschedule
  * @param by DateTimeDuration by which to move the occurrence
@@ -28,31 +28,29 @@ export enum RescheduleMode {
  * TODO: Discuss any potential edge cases and how to handle them.
  */
 export function reschedule(
-  recurrence: Recurrence,
-  occurrence: ZonedDateTime | TimeSlot | undefined | null,
+  event: Recurrence,
   by: DateTimeDuration,
-  mode: RescheduleMode = RescheduleMode.SINGLE
-): Recurrence | null {
-  if (occurrence === undefined || occurrence === null) return null;
-
-  let occurrenceZDT: ZonedDateTime;
-  if (occurrence instanceof TimeSlot) {
-    occurrenceZDT = occurrence.start;
-  } else {
-    occurrenceZDT = occurrence;
-  }
-
-  const thisEvent = recurrence.probe(occurrenceZDT);
-  if (!thisEvent.occurrence) return null;
-
+  mode: RescheduleMode = RescheduleMode.SINGLE,
+  occurrence?: ZonedDateTime | TimeSlot
+): Recurrence | undefined {
   switch (mode) {
-    case RescheduleMode.SINGLE:
-      return moveSingle(recurrence, occurrenceZDT, by);
     case RescheduleMode.ALL:
-      return offset(recurrence, by);
+      return offset(event, by);
+    case RescheduleMode.SINGLE: {
+      if (!occurrence) return undefined;
+
+      let occurrenceZDT: ZonedDateTime;
+      if (occurrence instanceof TimeSlot) {
+        occurrenceZDT = occurrence.start;
+      } else {
+        occurrenceZDT = occurrence;
+      }
+
+      return moveSingle(event, occurrenceZDT, by);
+    }
   }
 
-  return null;
+  return undefined;
 }
 
 /**
@@ -60,15 +58,15 @@ export function reschedule(
  * @param recurrence Recurrence pattern
  * @param occurrenceZDT ZonedDateTime of the occurrence to reschedule
  * @param by DateTimeDuration by which to move the occurrence
- * @returns new Recurrence object with the rescheduled occurrence, or null if an error occurred
+ * @returns new Recurrence object with the rescheduled occurrence, or undefined if an error occurred
  */
 function moveSingle(
   recurrence: Recurrence,
   occurrenceZDT: ZonedDateTime,
   by: DateTimeDuration
-): Recurrence | null {
+): Recurrence | undefined {
   const thisEvent = recurrence.probe(occurrenceZDT);
-  if (!thisEvent.occurrence) return null;
+  if (!thisEvent.occurrence) return undefined;
 
   const newEvent = recurrence.probe(thisEvent.date.add(by));
   const exceptions = recurrence.getExceptions();
@@ -83,10 +81,10 @@ function moveSingle(
   );
 
   return new Recurrence({
-    dtStart: recurrence.dtStart,
+    dtstart: recurrence.dtStart,
     duration: recurrence.duration,
     exceptions: exceptions,
-    rRuleOptions: recurrence.options
+    rrule: recurrence.options
   });
 }
 
@@ -97,9 +95,9 @@ function moveSingle(
  * @param recurrence Recurrence pattern to offset
  * @param occurrenceZDT Occurrence to offset
  * @param by Duration by which to offset the occurrence
- * @returns new Recurrence object with the occurrence offset, or null if an error occurred
+ * @returns new Recurrence object with the occurrence offset, or undefined if an error occurred
  */
-function offset(recurrence: Recurrence, by: DateTimeDuration): Recurrence | null {
+function offset(recurrence: Recurrence, by: DateTimeDuration): Recurrence | undefined {
   const startDT = recurrence.dtStart;
   const newStart = startDT.add(by);
   const daysOffset = calendarDaysBetween(startDT, newStart);
@@ -116,13 +114,13 @@ function offset(recurrence: Recurrence, by: DateTimeDuration): Recurrence | null
   options.bymonth = moveMonths(recurrence, by);
 
   const newOptions = toRecurrenceOptions(options);
-  if (newOptions === null) return null;
+  if (newOptions === undefined) return undefined;
 
   return new Recurrence({
-    dtStart: newStart,
+    dtstart: newStart,
     duration: recurrence.duration,
     exceptions: moveExceptions(recurrence.getExceptions(), by),
-    rRuleOptions: newOptions
+    rrule: newOptions
   });
 }
 

@@ -12,30 +12,44 @@ import {
   fromDate,
   getLocalTimeZone,
   now,
+  parseZonedDateTime,
   toCalendarDate,
   ZonedDateTime
 } from "@internationalized/date";
 import { RRule, RRuleSet } from "rrule";
+import type { JsonObject } from "type-fest";
 import { HashMap } from "../utils";
 import { toRecurrenceOptions } from "./options";
-import { hasDate, localToUTC, toUTCDate } from "./utils";
+import {
+  completeDuration,
+  hasDate,
+  localToUTC,
+  parseDates,
+  parseDateTimeDuration,
+  toUTCDate
+} from "./utils";
 
 /**
  * Properties for creating a Recurrence object.
  *
- * @property rRuleOptions RRule options. This field is required.
+ * @property rrule RRule options. This field is required. It is recommended to use the `RecurrenceOptions` type for this field, but you can pass an RRule object directly if you need to.
  * @property dtStart Start date of the recurrence pattern. Defaults to the current date & time in the local timezone.
- * @property duration Duration of the event. If null, the event is considered to last the entire day (i.e. from 00:00 to 23:59 on every date that matches the recurrence pattern).
+ * @property duration Duration of the event. If undefined, the event is considered to last the entire day (i.e. from 00:00 to 23:59 on every date that matches the recurrence pattern).
  * @property dateOptions A map of dates to their status in the recurrence pattern. This can be used to explicitly include or exclude dates from the recurrence pattern.
  *
  * @see RecurrenceOptions
  * @see Recurrence
  */
 interface RecurrenceProps {
-  dtStart?: ZonedDateTime;
-  duration?: TimeDuration | null;
-  exceptions?: Map<CalendarDate, DateOption>;
-  rRuleOptions: RecurrenceOptions;
+  dtstart?: ZonedDateTime;
+  duration?: TimeDuration | undefined;
+  exceptions?:
+    | Map<CalendarDate, DateOption>
+    | {
+        rdates?: Date[];
+        exdates?: Date[];
+      };
+  rrule: RecurrenceOptions | RRule;
 }
 
 /**
@@ -105,16 +119,16 @@ class TimeSlot {
   /**
    * Get the time period during which this time slot clashes with another time slot.
    * @param other time slot to check against
-   * @returns An time slot object representing the time period during which the time slots clash, or null if they do not clash
+   * @returns An time slot object representing the time period during which the time slots clash, or undefined if they do not clash
    */
-  getClash(other: TimeSlot): TimeSlot | null {
+  getClash(other: TimeSlot): TimeSlot | undefined {
     if (this.clashesWith(other)) {
       const start = this.start.compare(other.start) > 0 ? this.start : other.start;
       const end = this.end.compare(other.end) < 0 ? this.end : other.end;
       return new TimeSlot(start, end);
     }
 
-    return null;
+    return undefined;
   }
 
   /**
@@ -145,6 +159,43 @@ class TimeSlot {
   }
 
   /**
+   * Return a new TimeSlot object with the start and end times offset by a given duration.
+   * @param by Duration by which to offset the time slot
+   * @returns New TimeSlot object with the start and end times offset by the given duration
+   */
+  offset(by: TimeDuration): TimeSlot {
+    return new TimeSlot(this.start.add(by), this.end.add(by));
+  }
+
+  /**
+   * Serialize the time slot to a JSON object.
+   * @returns The JSON object representing the time slot
+   */
+  toJSON(): JsonObject {
+    return {
+      start: this.start.toString(),
+      end: this.end.toString()
+    };
+  }
+
+  /**
+   * Deserialize a JSON object to a TimeSlot object.
+   * @param json JSON object to deserialize
+   * @returns TimeSlot object, or undefined if the JSON object is invalid
+   */
+  static fromJSON(json: JsonObject): TimeSlot | undefined {
+    if (typeof json.start !== "string" || typeof json.end !== "string") return undefined;
+
+    try {
+      const start = parseZonedDateTime(json.start);
+      const end = parseZonedDateTime(json.end);
+      return new TimeSlot(start, end);
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
    * Get the duration of the time slot.
    * @returns Duration of the time slot.
    */
@@ -164,9 +215,9 @@ class TimeSlot {
 class Recurrence {
   /**
    * The duration of the event.
-   * If null, the event is considered to last the entire day (i.e. from 00:00 to 23:59 on every date that matches the recurrence pattern).
+   * If undefined, the event is considered to last the entire day (i.e. from 00:00 to 23:59 on every date that matches the recurrence pattern).
    */
-  private _duration: TimeDuration | null = null;
+  private _duration: TimeDuration | undefined = undefined;
   /**
    * Dates to exclude from the recurrence pattern.
    * These dates are always in UTC (i.e. there is no timezone offset).
@@ -189,28 +240,30 @@ class Recurrence {
    * @see RecurrenceProps
    */
   constructor(props: RecurrenceProps) {
-    // eslint-disable-next-line prefer-const
-    let { dtstart, ...rest } = props.rRuleOptions;
-
-    if (props.dtStart) {
-      dtstart = toUTCDate(props.dtStart);
+    if (props.rrule instanceof RRule) {
+      this._rrule = props.rrule;
     } else {
-      dtstart = props.rRuleOptions.dtstart
-        ? localToUTC(props.rRuleOptions.dtstart)
-        : toUTCDate(now(getLocalTimeZone()));
+      if (props.dtstart) {
+        props.rrule.dtstart = toUTCDate(props.dtstart);
+      }
+      
+      const dtNow = toUTCDate(now(getLocalTimeZone()));
+      this._rrule = new RRule({
+        ...props.rrule,
+        dtstart: props.rrule.dtstart || dtNow
+      })
     }
 
-    this._rrule = new RRule({ dtstart, ...rest });
-    this._duration = props.duration || null;
-
+    this._duration = props.duration || undefined;
     if (props.exceptions) {
-      props.exceptions.forEach((option, date) => {
-        if (option === DateOption.EXCLUDED) {
-          this._exdates.push(toUTCDate(date));
-        } else if (option === DateOption.INCLUDED) {
-          this._rdates.push(toUTCDate(date));
-        }
-      });
+      if (props.exceptions instanceof Map || props.exceptions instanceof HashMap) {
+        props.exceptions.forEach((status, date) => {
+          this.setException(date, status);
+        });
+      } else {
+        this._rdates = props.exceptions.rdates?.map((d) => localToUTC(d)) || [];
+        this._exdates = props.exceptions.exdates?.map((d) => localToUTC(d)) || [];
+      }
     }
   }
 
@@ -232,18 +285,60 @@ class Recurrence {
   }
 
   /**
+   * Parse a JSON object to a Recurrence object.
+   * @param json JSON object to parse
+   * @returns new Recurrence object, or undefined if the JSON object is invalid
+   */
+  static fromJSON(json: JsonObject): Recurrence | undefined {
+    if (typeof json.rrule !== "string") return undefined;
+
+    try {
+      const rrule: RRule = RRule.fromString(json.rrule);
+      const rdates: Date[] = parseDates(json.rdates);
+      const exdates: Date[] = parseDates(json.exdates);
+      const duration: TimeDuration | undefined = parseDateTimeDuration(json.duration);
+
+      return new Recurrence({
+        rrule,
+        duration,
+        exceptions: { rdates, exdates }
+      });
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Serialize the recurrence pattern to a JSON object.
+   * @returns JSON object representing the recurrence pattern
+   */
+  toJSON(): JsonObject {
+    const ans: JsonObject = {
+      rrule: this._rrule.toString(),
+      rdates: this._rdates.map((d) => d.toISOString()),
+      exdates: this._exdates.map((d) => d.toISOString())
+    };
+
+    if (this._duration) {
+      ans.duration = completeDuration(this._duration);
+    }
+
+    return ans;
+  }
+
+  /**
    * Check if this recurrence clashes with another recurrence (within a given date range).
    * @param other Recurrence to check against
-   * @param after Start date & time of the range to check, or null to start from the first occurrence. Defaults to null.
-   * @param before End date & time of the range to check, or null to get all occurrences. Defaults to null.
+   * @param after Start date & time of the range to check, or undefined to start from the first occurrence. Defaults to undefined.
+   * @param before End date & time of the range to check, or undefined to get all occurrences. Defaults to undefined.
    * @param limit Positive integer representing the number of occurrences to check. If `after` and `before` are both set, this defaults to infinity (i.e. all occurrences between the two dates will be checked). Otherwise, it defaults to 100.
    * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
    * @returns True if there are any clashes within the given period, false otherwise
    */
   clashesWith(
     other: Recurrence,
-    after: ZonedDateTime | null = null,
-    before: ZonedDateTime | null = null,
+    after: ZonedDateTime | undefined = undefined,
+    before: ZonedDateTime | undefined = undefined,
     limit: number = -1,
     applyExceptions: boolean = true
   ): boolean {
@@ -260,8 +355,8 @@ class Recurrence {
    */
   getClashes(
     other: Recurrence,
-    after: ZonedDateTime | null = null,
-    before: ZonedDateTime | null = null,
+    after: ZonedDateTime | undefined = undefined,
+    before: ZonedDateTime | undefined = undefined,
     limit: number = -1,
     applyExceptions: boolean = true
   ): TimeSlot[] {
@@ -282,21 +377,21 @@ class Recurrence {
 
   /**
    * Get the nth occurrence of the event in a given timezone.
-   * If the event has fewer than n occurrences, null is returned.
-   * By default, the first occurrence is returned `(n = 0)`. This can still be `null` if the event has no occurrences.
+   * If the event has fewer than n occurrences, undefined is returned.
+   * By default, the first occurrence is returned `(n = 0)`. This can still be `undefined` if the event has no occurrences.
    * @param tzid ISO 8601 timezone ID to use for the occurrence. Defaults to the local timezone.
    * @param n Index of the occurrence to get. Defaults to 0.
    * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
-   * @returns `TimeSlot` object representing the nth occurrence, or `null` if the event has fewer than n occurrences.
+   * @returns `TimeSlot` object representing the nth occurrence, or `undefined` if the event has fewer than n occurrences.
    * @see TimeSlot
    */
   getOccurrence(
     n: number = 0,
     tzid: string = getLocalTimeZone(),
     applyExceptions: boolean = true
-  ): TimeSlot | null {
+  ): TimeSlot | undefined {
     const start = this.getStartDT(n, tzid, applyExceptions);
-    if (start === null) return null;
+    if (start === undefined) return undefined;
 
     if (this._duration) {
       return new TimeSlot(start, start.add(this._duration));
@@ -310,8 +405,8 @@ class Recurrence {
 
   /**
    * Get all occurrences of the event between two dates, in a given timezone.
-   * @param after Start date & time of the range, or null to start from the first occurrence. Defaults to null.
-   * @param before End date & time of the range, or null to get all occurrences. Defaults to null.
+   * @param after Start date & time of the range, or undefined to start from the first occurrence. Defaults to undefined.
+   * @param before End date & time of the range, or undefined to get all occurrences. Defaults to undefined.
    * @param tzid ISO 8601 timezone ID to use for the occurrences. Defaults to the local timezone.
    * @param inclusive If this is true, and the event occurs at the start or end dates, these occurrences will be included in the result. Defaults to true.
    * @param limit Positive integer representing the number of occurrences to return. If `after` and `before` are both set, this defaults to infinity (i.e. all occurrences between the two dates will be returned). Otherwise, it defaults to 100.
@@ -320,8 +415,8 @@ class Recurrence {
    * @see TimeSlot
    */
   getOccurrences(
-    after: ZonedDateTime | null = null,
-    before: ZonedDateTime | null = null,
+    after: ZonedDateTime | undefined = undefined,
+    before: ZonedDateTime | undefined = undefined,
     tzid: string = getLocalTimeZone(),
     inclusive: boolean = true,
     limit: number = -1,
@@ -343,30 +438,30 @@ class Recurrence {
 
   /**
    * Get the start time of the nth occurrence of the event in a given timezone.
-   * If the event has fewer than n occurrences, null is returned.
-   * By default, the first occurrence is returned `(n = 0)`. This can still be `null` if the event has no occurrences.
+   * If the event has fewer than n occurrences, undefined is returned.
+   * By default, the first occurrence is returned `(n = 0)`. This can still be `undefined` if the event has no occurrences.
    * @param tzid ISO 8601 timezone ID to use for the start time. Defaults to the local timezone.
-   * @param n Index of the occurrence to get. Defaults to 0. Negative values get occurrences from the end of the list, but for infinite patterns, this will always return null.
+   * @param n Index of the occurrence to get. Defaults to 0. Negative values get occurrences from the end of the list, but for infinite patterns, this will always return undefined.
    * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
-   * @returns `LocalDateTime` object representing the start time of the nth occurrence, or `null` if the event has fewer than n occurrences.
+   * @returns `LocalDateTime` object representing the start time of the nth occurrence, or `undefined` if the event has fewer than n occurrences.
    */
   getStartDT(
     n: number = 0,
     tzid: string = getLocalTimeZone(),
     applyExceptions: boolean = true
-  ): ZonedDateTime | null {
+  ): ZonedDateTime | undefined {
     if (n < 0) {
-      if (!this.isFinite) return null;
+      if (!this.isFinite) return undefined;
       const dates = this.getRRuleSet(applyExceptions).all();
       const date = dates.at(n);
-      return date ? fromDate(date, tzid) : null;
+      return date ? fromDate(date, tzid) : undefined;
     }
 
     // Exceptionally included dates always come before the first occurrence.
     // Thank you for making my job harder, `rrule` authors :)
     const trueN = n + this._rdates.length;
     const dates = this.getRRuleSet(applyExceptions).all((_, i) => i <= trueN);
-    if (dates.length <= n) return null;
+    if (dates.length <= n) return undefined;
 
     // Sort the dates to ensure the order is correct
     dates.sort((a, b) => a.valueOf() - b.valueOf());
@@ -380,13 +475,13 @@ class Recurrence {
    * @param date ZonedDateTime to check
    * @param tzid ISO 8601 timezone ID to use for the occurrence. Defaults to the local timezone.
    * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
-   * @returns TimeSlot object representing the occurrence, or null if the event is not occurring at the given date & time.
+   * @returns TimeSlot object representing the occurrence, or undefined if the event is not occurring at the given date & time.
    */
   getOccurrenceOn(
     date: ZonedDateTime,
     tzid: string = getLocalTimeZone(),
     applyExceptions: boolean = true
-  ): TimeSlot | null {
+  ): TimeSlot | undefined {
     const occurrences = this.getOccurrences(
       date.subtract({ days: 1 }),
       date.add({ days: 1 }),
@@ -396,13 +491,13 @@ class Recurrence {
       applyExceptions
     );
 
-    return occurrences.find((occ) => occ.includes(date)) || null;
+    return occurrences.find((occ) => occ.includes(date)) || undefined;
   }
 
   /**
    * Get the start times of all occurrences of the event between two dates, in a given timezone.
-   * @param after Start date & time of the range, or null to start from the first occurrence. Defaults to null.
-   * @param before End date & time of the range, or null to get all occurrences. Defaults to null.
+   * @param after Start date & time of the range, or undefined to start from the first occurrence. Defaults to undefined.
+   * @param before End date & time of the range, or undefined to get all occurrences. Defaults to undefined.
    * @param tzid ISO 8601 timezone ID to use for the start times. Defaults to the local timezone.
    * @param inclusive If this is true, and the event occurs at the start or end dates, these occurrences will be included in the result. Defaults to true.
    * @param limit Positive integer representing the number of occurrences to return. If `after` and `before` are both set, this defaults to infinity (i.e. all occurrences between the two dates will be returned). Otherwise, it defaults to 100.
@@ -414,8 +509,8 @@ class Recurrence {
    * @returns Array of ZonedDateTime objects representing the start times of the occurrences.
    */
   getStartDTs(
-    after: ZonedDateTime | null = null,
-    before: ZonedDateTime | null = null,
+    after: ZonedDateTime | undefined = undefined,
+    before: ZonedDateTime | undefined = undefined,
     tzid: string = getLocalTimeZone(),
     inclusive: boolean = true,
     limit: number = -1,
@@ -426,19 +521,19 @@ class Recurrence {
 
     // Default limit to Infinity if both after and before are set, otherwise default to 100.
     // Note: the user can still set the limit explicitly to any positive integer.
-    if (limit <= 0) limit = before !== null && after !== null ? Infinity : 100;
+    if (limit <= 0) limit = before !== undefined && after !== undefined ? Infinity : 100;
 
-    if (after === null && before === null) {
+    if (after === undefined && before === undefined) {
       dates = rruleSet.all((_, i) => i < limit);
-    } else if (after === null) {
-      // Safe to cast because the case of both being null is handled above
+    } else if (after === undefined) {
+      // Safe to cast because the case of both being undefined is handled above
       const beforeUTC = toUTCDate(before as ZonedDateTime);
       // Get all dates before the end date (respecting the `inclusive` parameter)
       dates = rruleSet.all(
         (date, i) => (inclusive ? date <= beforeUTC : date < beforeUTC) && i < limit
       );
-    } else if (before === null) {
-      // Safe to cast because the case of both being null is handled above
+    } else if (before === undefined) {
+      // Safe to cast because the case of both being undefined is handled above
       const afterUTC = toUTCDate(after);
       // Get all dates after the start date (respecting the `inclusive` parameter)
       dates = rruleSet.all(
@@ -462,7 +557,7 @@ class Recurrence {
    */
   probe(zdt: ZonedDateTime): ProbeResult {
     const status = this.checkException(toCalendarDate(zdt));
-    const matchesPattern = this.getOccurrenceOn(zdt, "UTC", false) !== null;
+    const matchesPattern = this.getOccurrenceOn(zdt, "UTC", false) !== undefined;
     const occurrence = this.getOccurrenceOn(zdt) || undefined;
 
     return { date: zdt, matchesPattern, occurrence, status };
@@ -545,12 +640,12 @@ class Recurrence {
   /**
    * Set the duration of the event.
    *
-   * @param duration The duration of the event. If null, the event is considered to last the entire day.
+   * @param duration The duration of the event. If undefined, the event is considered to last the entire day.
    * @warning No maximum duration is enforced, but we are assuming it is less than 24 hours. This may be changed in the future.
    *
    * TODO: Discuss if things can last more than 24 hours.
    */
-  setDuration(duration: TimeDuration | null) {
+  setDuration(duration: TimeDuration | undefined) {
     this._duration = duration;
   }
 
@@ -565,7 +660,7 @@ class Recurrence {
   /**
    * Update the recurrence pattern options.
    * Fields that are not set in the new options will remain unchanged.
-   * Explicitly setting a field to null will reset it to its default value.
+   * Explicitly setting a field to undefined will reset it to its default value.
    * The `freq` field is required and existing options that are incompatible with the new frequency will be removed.
    * @param options A `RecurrenceOptions` object representing the new options. Only the `freq` field is required.
    * @see RecurrenceOptions
@@ -592,9 +687,9 @@ class Recurrence {
 
   /**
    * Get the duration of the event.
-   * @returns The duration of the event, or null if the event lasts the entire day.
+   * @returns The duration of the event, or undefined if the event lasts the entire day.
    */
-  get duration(): TimeDuration | null {
+  get duration(): TimeDuration | undefined {
     return this._duration;
   }
 

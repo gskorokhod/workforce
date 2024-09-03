@@ -20,9 +20,9 @@ describe("Rescheduling a DAILY recurrence", () => {
     startZDT = parseZonedDateTime("2023-01-01T00:00[UTC]");
 
     recurrence = new Recurrence({
-      dtStart: startZDT,
+      dtstart: startZDT,
       duration: { hours: 1 },
-      rRuleOptions: {
+      rrule: {
         freq: Frequency.DAILY,
         count: 5,
         interval: 2
@@ -83,7 +83,7 @@ describe("Rescheduling a DAILY recurrence", () => {
     expect(occurrence?.start).toEqual(startZDT.add({ days: 2 }));
 
     // Reschedule the 1st occurrence (day 3) by 1 day (to day 4)
-    const newRecurrence = reschedule(recurrence, occurrence, by, RescheduleMode.SINGLE);
+    const newRecurrence = reschedule(recurrence, by, RescheduleMode.SINGLE, occurrence);
     expect(newRecurrence).not.toBeNull();
     const newOccurrence = newRecurrence?.getOccurrence(1, "UTC");
     expect(newOccurrence?.start).toEqual(occurrence?.start.add(by));
@@ -102,12 +102,12 @@ describe("Rescheduling a DAILY recurrence", () => {
     // There would be an occurrence on the 4th day, but it's excluded
     const newRecurrence = reschedule(
       recurrence,
-      startZDT.add({ days: 4 }),
       by,
-      RescheduleMode.SINGLE
+      RescheduleMode.SINGLE,
+      startZDT.add({ days: 4 })
     );
-    // .. so it should return null
-    expect(newRecurrence).toBeNull();
+    // .. so it should return undefined
+    expect(newRecurrence).toBeUndefined();
   });
 
   it("should reschedule an exceptional occurrence", () => {
@@ -118,7 +118,7 @@ describe("Rescheduling a DAILY recurrence", () => {
     expect(occurrence?.start).toEqual(startZDT.add({ days: 5 }));
 
     // Reschedule the 2nd occurrence (day 6) by -1 day (to day 5)
-    const newRecurrence = reschedule(recurrence, occurrence, minusBy, RescheduleMode.SINGLE);
+    const newRecurrence = reschedule(recurrence, minusBy, RescheduleMode.SINGLE, occurrence);
     expect(newRecurrence).not.toBeNull();
 
     const newOccurrence = newRecurrence?.getOccurrence(2, "UTC");
@@ -138,10 +138,7 @@ describe("Rescheduling a DAILY recurrence", () => {
   });
 
   it("should reschedule the whole series", () => {
-    const occurrence = recurrence.getOccurrence(1, "UTC");
-    expect(occurrence).not.toBeNull();
-
-    const newRecurrence = reschedule(recurrence, occurrence, by, RescheduleMode.ALL);
+    const newRecurrence = reschedule(recurrence, by, RescheduleMode.ALL);
     expect(newRecurrence).not.toBeNull();
 
     // All occurrences, including the exceptional one, should be rescheduled by the specified duration
@@ -164,9 +161,9 @@ describe("Rescheduling a WEEKLY recurrence", () => {
     startZDT = parseZonedDateTime("2023-01-03T00:00[UTC]");
 
     recurrence = new Recurrence({
-      dtStart: startZDT,
+      dtstart: startZDT,
       duration: { hours: 1 },
-      rRuleOptions: {
+      rrule: {
         freq: Frequency.WEEKLY,
         count: 12,
         byweekday: [RRule.MO, RRule.WE, RRule.FR],
@@ -195,7 +192,7 @@ describe("Rescheduling a WEEKLY recurrence", () => {
     expect(occurrence).not.toBeNull();
     expect(occurrence?.start).toEqual(parseZonedDateTime("2023-01-06T00:00[UTC]"));
 
-    const newRecurrence = reschedule(recurrence, occurrence, by, RescheduleMode.SINGLE);
+    const newRecurrence = reschedule(recurrence, by, RescheduleMode.SINGLE, occurrence);
     expect(newRecurrence).not.toBeNull();
 
     // The occurrence should be rescheduled by the specified duration
@@ -218,7 +215,7 @@ describe("Rescheduling a WEEKLY recurrence", () => {
     const occurrenceDay = getDayOfWeek(occurrence?.start as ZonedDateTime, "en-GB");
     expect(occurrenceDay).toEqual(4); // Friday
 
-    const newRecurrence = reschedule(recurrence, occurrence, by, RescheduleMode.ALL);
+    const newRecurrence = reschedule(recurrence, by, RescheduleMode.ALL);
     expect(newRecurrence).not.toBeNull();
 
     const newOccurrence = newRecurrence?.getOccurrence(1, "UTC");
@@ -239,7 +236,7 @@ describe("Rescheduling a WEEKLY recurrence", () => {
     const by = { days: 7 };
     const occurrence = recurrence.getOccurrence(1, "UTC");
 
-    const newRecurrence = reschedule(recurrence, occurrence, by, RescheduleMode.ALL);
+    const newRecurrence = reschedule(recurrence, by, RescheduleMode.ALL);
     expect(newRecurrence).not.toBeNull();
 
     const newOccurrence = newRecurrence?.getOccurrence(1, "UTC");
@@ -267,9 +264,7 @@ describe("Rescheduling a WEEKLY recurrence", () => {
 
   it("should reschedule the series by a month", () => {
     const by = { days: 30 }; // Start: 03.01 -> 02.02
-    const occurrence = recurrence.getOccurrence(0, "UTC"); // First occurrence: 04.01 -> 03.02
-
-    const newRecurrence = reschedule(recurrence, occurrence, by, RescheduleMode.ALL);
+    const newRecurrence = reschedule(recurrence, by, RescheduleMode.ALL);
     expect(newRecurrence).not.toBeNull();
 
     // The `bymonth` values should be updated

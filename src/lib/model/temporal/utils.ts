@@ -8,10 +8,12 @@ import {
   toCalendar,
   toTimeZone,
   toZoned,
-  ZonedDateTime
+  ZonedDateTime,
+  type DateTimeDuration
 } from "@internationalized/date";
 
 import { datetime } from "rrule";
+import type { JsonObject, JsonValue } from "type-fest";
 
 /**
  * Converts a ZonedDateTime or CalendarDate to a Date object in UTC.
@@ -210,4 +212,87 @@ export function dtMin(
   b: ZonedDateTime | CalendarDateTime | CalendarDate
 ): ZonedDateTime | CalendarDateTime | CalendarDate {
   return a.compare(b) <= 0 ? a : b;
+}
+
+/**
+ * Fill missing fields in a DateTimeDuration object with default values.
+ * @param dur Partial DateTimeDuration object
+ * @returns DateTimeDuration object with all fields filled
+ */
+export function completeDuration(dur: Partial<DateTimeDuration>): Required<DateTimeDuration> {
+  return {
+    years: dur.years ?? 0,
+    months: dur.months ?? 0,
+    days: dur.days ?? 0,
+    weeks: dur.weeks ?? 0,
+    hours: dur.hours ?? 0,
+    minutes: dur.minutes ?? 0,
+    seconds: dur.seconds ?? 0,
+    milliseconds: dur.milliseconds ?? 0
+  };
+}
+
+/**
+ * Parse a DateTimeDuration object from a JSON object.
+ * @param json JSON object to parse
+ * @returns DateTimeDuration object, or undefined if the JSON object is invalid
+ */
+export function parseDateTimeDuration(json: JsonValue): Required<DateTimeDuration> | undefined {
+  if (typeof json !== "object" || !json) {
+    return undefined;
+  }
+
+  const jsn = json as JsonObject;
+  return {
+    years: tryParseInt(jsn.years) ?? 0,
+    months: tryParseInt(jsn.months) ?? 0,
+    days: tryParseInt(jsn.days) ?? 0,
+    weeks: tryParseInt(jsn.weeks) ?? 0,
+    hours: tryParseInt(jsn.hours) ?? 0,
+    minutes: tryParseInt(jsn.minutes) ?? 0,
+    seconds: tryParseInt(jsn.seconds) ?? 0,
+    milliseconds: tryParseInt(jsn.milliseconds) ?? 0
+  };
+}
+
+/**
+ * Try to parse an array of dates from a JSON value.
+ * @param json JSON value to parse
+ * @returns Array of dates
+ */
+export function parseDates(json: JsonValue): Date[] {
+  if (!Array.isArray(json)) {
+    return [];
+  }
+
+  const dates: Date[] = [];
+  for (const item of json) {
+    if (typeof item === "string") {
+      const dt = new Date(item);
+      if (!isNaN(dt.valueOf())) {
+        dates.push(dt);
+      }
+    }
+  }
+  return dates;
+}
+
+/**
+ * Parse an integer from a JSON value, if possible.
+ * @param value JSON value to parse
+ * @returns number, or undefined if the value is not a number or a string that can be parsed as a number
+ */
+function tryParseInt(value: unknown): number | undefined {
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const num = parseInt(value, 10);
+    if (!isNaN(num)) {
+      return num;
+    }
+  }
+
+  return undefined;
 }

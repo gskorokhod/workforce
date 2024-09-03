@@ -15,15 +15,15 @@ import { type ByWeekday, Frequency, Weekday } from "rrule";
 type RecurrenceEnd =
   | {
       count: number;
-      until?: null;
+      until?: never;
     }
   | {
-      count?: null;
+      count?: never;
       until: Date;
     }
   | {
-      count?: null;
-      until?: null;
+      count?: never;
+      until?: never;
     };
 
 type CoreOptions = {
@@ -148,11 +148,11 @@ export type SupportedFrequency = Frequency.DAILY | Frequency.WEEKLY | Frequency.
 
 /**
  * Converts an RRule native `ParsedOptions` object to a `RecurrenceOptions` object, which is a subset of the RRule options that are supported in this application.
- * If any of the options are not supported, this function returns `null`.
+ * If any of the options are not supported, this function returns `undefined`.
  * @param po `ParsedOptions` object to convert
- * @returns `RecurrenceOptions` object or `null`
+ * @returns `RecurrenceOptions` object or `undefined`
  */
-export function toRecurrenceOptions(po: ParsedOptions): RecurrenceOptions | null {
+export function toRecurrenceOptions(po: ParsedOptions): RecurrenceOptions | undefined {
   switch (po.freq) {
     case Frequency.DAILY: {
       const rest = {
@@ -214,5 +214,5 @@ export function toRecurrenceOptions(po: ParsedOptions): RecurrenceOptions | null
     }
   }
 
-  return null;
+  return undefined;
 }

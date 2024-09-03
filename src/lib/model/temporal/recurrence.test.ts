@@ -8,6 +8,7 @@ import {
 } from "@internationalized/date";
 import { datetime, RRule } from "rrule";
 import { expect, test } from "vitest";
+import type { MonthlyOptions } from "./options";
 import { DateOption, Recurrence, type RecurrenceOptions } from "./recurrence";
 import { toUTCDate } from "./utils";
 
@@ -19,7 +20,7 @@ test("Construct a Recurrence", () => {
   };
 
   const recurrence = new Recurrence({
-    rRuleOptions: opts
+    rrule: opts
   });
 
   expect(recurrence).toBeDefined();
@@ -34,7 +35,7 @@ test("Get the start date", () => {
   };
 
   const recurrence = new Recurrence({
-    rRuleOptions: opts
+    rrule: opts
   });
 
   const sdt = recurrence.getStartDT();
@@ -47,11 +48,11 @@ test("Get the start date", () => {
 test("Get the start date with a time zone", () => {
   const zdtStart = parseZonedDateTime("2012-02-01T10:30[America/New_York]");
   const recurrence = new Recurrence({
-    rRuleOptions: {
+    rrule: {
       count: 5,
       freq: RRule.MONTHLY
     },
-    dtStart: zdtStart
+    dtstart: zdtStart
   });
 
   const sdt = recurrence.getStartDT(0, "America/New_York");
@@ -74,7 +75,7 @@ test("Occurrence count", () => {
   };
 
   const recurrence = new Recurrence({
-    rRuleOptions: opts
+    rrule: opts
   });
 
   const occurrences = recurrence.getOccurrences();
@@ -96,11 +97,11 @@ test("Check for clashes", () => {
   };
 
   const recurrence1 = new Recurrence({
-    rRuleOptions: opts1
+    rrule: opts1
   });
 
   const recurrence2 = new Recurrence({
-    rRuleOptions: opts2
+    rrule: opts2
   });
 
   const clashes = recurrence1.clashesWith(recurrence2);
@@ -121,11 +122,11 @@ test("Get clashes", () => {
   };
 
   const recurrence1 = new Recurrence({
-    rRuleOptions: opts1
+    rrule: opts1
   });
 
   const recurrence2 = new Recurrence({
-    rRuleOptions: opts2
+    rrule: opts2
   });
 
   const clashes = recurrence1.getClashes(recurrence2);
@@ -142,7 +143,7 @@ test("Set and get date status", () => {
   };
 
   const recurrence = new Recurrence({
-    rRuleOptions: opts
+    rrule: opts
   });
 
   const date = toCalendarDate(fromDate(dtstart, "UTC"));
@@ -160,8 +161,8 @@ test("Get exceptions", () => {
   };
 
   const recurrence = new Recurrence({
-    rRuleOptions: opts,
-    dtStart: zdtStart
+    rrule: opts,
+    dtstart: zdtStart
   });
 
   const date = toCalendarDate(zdtStart);
@@ -188,7 +189,7 @@ test("Set and get duration", () => {
   };
 
   const recurrence = new Recurrence({
-    rRuleOptions: opts
+    rrule: opts
   });
 
   const duration = { hours: 2 };
@@ -206,8 +207,8 @@ test("Get last occurrence", () => {
   };
 
   const recurrence = new Recurrence({
-    rRuleOptions: opts,
-    dtStart: zdt,
+    rrule: opts,
+    dtstart: zdt,
     duration: { hours: 2 }
   });
 
@@ -233,8 +234,12 @@ test("Update options", () => {
   };
 
   const recurrence = new Recurrence({
-    rRuleOptions: opts
+    rrule: opts
   });
+
+  expect(recurrence.options.freq).toEqual(RRule.MONTHLY);
+  expect(recurrence.options.count).toEqual(5);
+  expect(recurrence.options.dtstart).toEqual(dtstart);
 
   const newOpts: RecurrenceOptions = {
     freq: RRule.WEEKLY
@@ -258,11 +263,11 @@ test("Update options", () => {
 test("Probe method", () => {
   const zdtStart = parseZonedDateTime("2012-02-01T10:30[UTC]");
   const recurrence = new Recurrence({
-    rRuleOptions: {
+    rrule: {
       count: 5,
       freq: RRule.MONTHLY
     },
-    dtStart: zdtStart
+    dtstart: zdtStart
   });
 
   const probeResult = recurrence.probe(zdtStart);
@@ -276,11 +281,11 @@ test("Set start date", () => {
   const zdtStart = parseZonedDateTime("2012-02-01T10:30[UTC]");
   const newStart = parseZonedDateTime("2013-03-01T10:30[UTC]");
   const recurrence = new Recurrence({
-    rRuleOptions: {
+    rrule: {
       count: 5,
       freq: RRule.MONTHLY
     },
-    dtStart: zdtStart
+    dtstart: zdtStart
   });
 
   recurrence.setStartDT(newStart);
@@ -292,11 +297,11 @@ test("Set start date", () => {
 test("Get occurrences within date range", () => {
   const zdtStart = parseZonedDateTime("2012-02-01T10:30[UTC]");
   const recurrence = new Recurrence({
-    rRuleOptions: {
+    rrule: {
       count: 5,
       freq: RRule.MONTHLY
     },
-    dtStart: zdtStart
+    dtstart: zdtStart
   });
 
   let after = parseZonedDateTime("2012-02-01T10:30[UTC]");
@@ -317,10 +322,10 @@ test("Get occurrences within date range", () => {
 test("Infinite recurrence", () => {
   const zdtStart = parseZonedDateTime("2012-02-01T10:30[UTC]");
   const recurrence = new Recurrence({
-    rRuleOptions: {
+    rrule: {
       freq: RRule.MONTHLY
     },
-    dtStart: zdtStart
+    dtstart: zdtStart
   });
 
   expect(recurrence.isFinite).toBe(false);
@@ -330,11 +335,61 @@ test("Infinite recurrence", () => {
   expect(occurrences).toHaveLength(100); // Default limit
 
   const last = recurrence.getOccurrence(-1);
-  expect(last).toBeNull(); // No end date
+  expect(last).toBeUndefined(); // No end date
 
   const after = parseZonedDateTime("2012-02-01T10:30[UTC]");
   const before = parseZonedDateTime("2112-02-01T00:00[UTC]");
   occurrences = recurrence.getOccurrences(after, before, "UTC");
   expect(occurrences).toBeDefined();
   expect(occurrences).toHaveLength(1200); // All occurrences within the range. 100 years * 12 months = 1200.
+});
+
+test("Serialize and deserialize", () => {
+  const zdtStart = parseZonedDateTime("2012-02-01T10:30[UTC]");
+  const recurrence = new Recurrence({
+    rrule: {
+      freq: RRule.MONTHLY,
+      count: 5,
+      bymonth: [2, 4],
+      byweekday: [RRule.MO, RRule.TU],
+      bymonthday: [1, 15]
+    },
+    exceptions: {
+      rdates: [datetime(2012, 2, 15, 10, 30)]
+    },
+    dtstart: zdtStart,
+    duration: { hours: 2 }
+  });
+
+  const jsonified = recurrence.toJSON();
+  expect(jsonified).toBeDefined();
+  expect(jsonified).toHaveProperty("rrule");
+  expect(jsonified).toHaveProperty("duration");
+  expect(jsonified).toHaveProperty("rdates");
+
+  const str = JSON.stringify(jsonified);
+  const parsed = JSON.parse(str);
+
+  let deserialized = Recurrence.fromJSON(parsed);
+  expect(deserialized).toBeDefined();
+  expect(deserialized).toBeInstanceOf(Recurrence);
+  deserialized = deserialized as Recurrence;
+
+  let options = deserialized?.options;
+  expect(options).toBeDefined();
+  expect(options?.freq).toEqual(RRule.MONTHLY);
+
+  options = options as MonthlyOptions;
+  expect(options.bymonth).toEqual([2, 4]);
+  expect(options.byweekday).toEqual([0, 1]); // MO, TU
+  expect(options.bymonthday).toEqual([1, 15]);
+
+  const calDate = toCalendarDate(fromDate(datetime(2012, 2, 15, 10, 30), "UTC"));
+  const exceptions = deserialized.getExceptions();
+  expect(exceptions).toBeDefined();
+  expect(exceptions.size).toBe(1);
+  expect(exceptions.get(calDate)).toBe(DateOption.INCLUDED);
+
+  expect(deserialized.duration?.hours).toBe(2);
+  expect(deserialized.getOccurrences()).toEqual(recurrence.getOccurrences());
 });
