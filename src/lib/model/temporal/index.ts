@@ -1,4 +1,4 @@
 import { Recurrence } from "./recurrence";
-import { offset, reschedule } from "./scheduling";
+import { reschedule } from "./scheduling";
 
-export { Recurrence, offset, reschedule };
+export { Recurrence, reschedule };

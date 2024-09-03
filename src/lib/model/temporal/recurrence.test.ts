@@ -146,9 +146,9 @@ test("Set and get date status", () => {
   });
 
   const date = toCalendarDate(fromDate(dtstart, "UTC"));
-  recurrence.setDateStatus(date, DateOption.EXCLUDED);
+  recurrence.setException(date, DateOption.EXCLUDED);
 
-  const status = recurrence.getDateStatus(date);
+  const status = recurrence.checkException(date);
   expect(status).toEqual(DateOption.EXCLUDED);
 });
 
@@ -165,7 +165,7 @@ test("Get exceptions", () => {
   });
 
   const date = toCalendarDate(zdtStart);
-  recurrence.setDateStatus(date, DateOption.EXCLUDED);
+  recurrence.setException(date, DateOption.EXCLUDED);
 
   const exceptions = recurrence.getExceptions();
   expect(exceptions).toBeDefined();
@@ -175,7 +175,7 @@ test("Get exceptions", () => {
   expect(keys).toHaveLength(1);
   expect(keys[0]).toEqual(date);
 
-  expect(recurrence.getDateStatus(date)).toEqual(DateOption.EXCLUDED);
+  expect(recurrence.checkException(date)).toEqual(DateOption.EXCLUDED);
   expect(exceptions.get(date)).toEqual(DateOption.EXCLUDED);
 });
 

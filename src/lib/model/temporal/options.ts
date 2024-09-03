@@ -1,6 +1,6 @@
 import type { ParsedOptions } from "rrule/dist/esm/types";
 
-import { ALL_WEEKDAYS, type ByWeekday, Frequency, type Weekday, type WeekdayStr } from "rrule";
+import { type ByWeekday, Frequency, Weekday } from "rrule";
 
 /**
  * A subset of RRule options that define the end of a recurrence pattern.
@@ -60,9 +60,9 @@ export type DailyOptions = {
    * The days of the week when the event occurs. If null, the event occurs on every day that matches the other options.
    *
    * Note: numeric `BYDAY` values are not allowed for `DAILY` recurrence patterns, as per the RFC 5545 standard.
-   * We don't allow the `Weekday` type from the rrule library here, since it has an (optional) numeric component.
+   * We still use the `Weekday` type for consistency, but the second argument shouldn't be used.
    */
-  byweekday?: WeekdayStr[] | null;
+  byweekday?: ByWeekday[] | null;
   /**
    * The frequency of the recurrence pattern.
    */
@@ -91,9 +91,9 @@ export type WeeklyOptions = {
    * The days of the week when the event occurs. If null, the event occurs on every day that matches the other options.
    *
    * Note: numeric `BYDAY` values are not allowed for `WEEKLY` recurrence patterns, as per the RFC 5545 standard.
-   * We don't allow the `Weekday` type from the rrule library here, since it has an (optional) numeric component.
+   * We still use the `Weekday` type for consistency, but the second argument shouldn't be used.
    */
-  byweekday?: WeekdayStr[] | null;
+  byweekday?: ByWeekday[] | null;
   /**
    * The frequency of the recurrence pattern.
    */
@@ -158,7 +158,7 @@ export function toRecurrenceOptions(po: ParsedOptions): RecurrenceOptions | null
       const rest = {
         bymonth: po.bymonth,
         bymonthday: po.bymonthday,
-        byweekday: po.byweekday ? po.byweekday.map((wd) => ALL_WEEKDAYS[wd]) : null,
+        byweekday: po.byweekday ? po.byweekday.map((wd) => new Weekday(wd)) : null,
         dtstart: po.dtstart,
         freq: po.freq,
         interval: po.interval,
@@ -177,7 +177,7 @@ export function toRecurrenceOptions(po: ParsedOptions): RecurrenceOptions | null
       const rest = {
         bymonth: po.bymonth,
         bysetpos: po.bysetpos,
-        byweekday: po.byweekday ? po.byweekday.map((wd) => ALL_WEEKDAYS[wd]) : null,
+        byweekday: po.byweekday ? po.byweekday.map((wd) => new Weekday(wd)) : null,
         dtstart: po.dtstart,
         freq: po.freq,
         interval: po.interval,

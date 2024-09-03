@@ -362,9 +362,41 @@ class Recurrence {
       return date ? fromDate(date, tzid) : null;
     }
 
-    const dates = this.getRRuleSet(applyExceptions).all((_, i) => i <= n);
+    // Exceptionally included dates always come before the first occurrence.
+    // Thank you for making my job harder, `rrule` authors :)
+    const trueN = n + this._rdates.length;
+    const dates = this.getRRuleSet(applyExceptions).all((_, i) => i <= trueN);
     if (dates.length <= n) return null;
+
+    // Sort the dates to ensure the order is correct
+    dates.sort((a, b) => a.valueOf() - b.valueOf());
+
+    // Get the actual nth occurrence
     return fromDate(dates[n], tzid);
+  }
+
+  /**
+   * Get the start and end of an occurrence of the event that would be happening at a given date & time.
+   * @param date ZonedDateTime to check
+   * @param tzid ISO 8601 timezone ID to use for the occurrence. Defaults to the local timezone.
+   * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
+   * @returns TimeSlot object representing the occurrence, or null if the event is not occurring at the given date & time.
+   */
+  getOccurrenceOn(
+    date: ZonedDateTime,
+    tzid: string = getLocalTimeZone(),
+    applyExceptions: boolean = true
+  ): TimeSlot | null {
+    const occurrences = this.getOccurrences(
+      date.subtract({ days: 1 }),
+      date.add({ days: 1 }),
+      tzid,
+      true,
+      Infinity,
+      applyExceptions
+    );
+
+    return occurrences.find((occ) => occ.includes(date)) || null;
   }
 
   /**
@@ -417,6 +449,8 @@ class Recurrence {
       dates = rruleSet.between(toUTCDate(after), toUTCDate(before), inclusive, (_, i) => i < limit);
     }
 
+    // The sort is necessary because the order of dates is not guaranteed when using exclusion / inclusion dates
+    dates.sort((a, b) => a.valueOf() - b.valueOf());
     return dates.map((d) => fromDate(d, tzid));
   }
 
@@ -427,19 +461,9 @@ class Recurrence {
    * @see ProbeResult
    */
   probe(zdt: ZonedDateTime): ProbeResult {
-    const occurrences = this.getOccurrences(
-      zdt.subtract({ days: 1 }),
-      zdt.add({ days: 1 }),
-      zdt.timeZone,
-      true,
-      Infinity,
-      false
-    );
-    const occ = occurrences.find((o) => o.includes(zdt));
-
-    const status = this.getDateStatus(toCalendarDate(zdt));
-    const matchesPattern = occ !== undefined;
-    const occurrence = status === DateOption.EXCLUDED ? undefined : occ;
+    const status = this.checkException(toCalendarDate(zdt));
+    const matchesPattern = this.getOccurrenceOn(zdt, "UTC", false) !== null;
+    const occurrence = this.getOccurrenceOn(zdt) || undefined;
 
     return { date: zdt, matchesPattern, occurrence, status };
   }
@@ -450,7 +474,7 @@ class Recurrence {
    * @returns `DateOption` representing the status of the date
    * @see DateOption
    */
-  getDateStatus(cd: CalendarDate): DateOption {
+  checkException(cd: CalendarDate): DateOption {
     const date = toUTCDate(cd);
 
     if (hasDate(date, this._rdates)) {
@@ -463,12 +487,20 @@ class Recurrence {
   }
 
   /**
+   * Remove a date from the list of exceptions.
+   * @param cd CalendarDate to remove
+   */
+  removeException(cd: CalendarDate) {
+    this.setException(cd, DateOption.ALLOWED);
+  }
+
+  /**
    * Set a date to be explicitly excluded from the recurrence pattern or included in it.
    * @param cd CalendarDate to set the status of
    * @param status Status to set
    * @see DateOption
    */
-  setDateStatus(cd: CalendarDate, status: DateOption) {
+  setException(cd: CalendarDate, status: DateOption) {
     const date = toUTCDate(cd);
 
     switch (status) {
@@ -496,7 +528,8 @@ class Recurrence {
    * @returns A map of CalendarDate objects (in UTC) to their status in the recurrence pattern.
    */
   getExceptions(): Map<CalendarDate, DateOption> {
-    const exceptions = new HashMap<CalendarDate, DateOption>();
+    const equals = (a: CalendarDate, b: CalendarDate) => a.compare(b) === 0;
+    const exceptions = new HashMap<CalendarDate, DateOption>(undefined, undefined, equals);
 
     this._rdates.forEach((d) => {
       exceptions.set(toCalendarDate(fromDate(d, "UTC")), DateOption.INCLUDED);
@@ -593,6 +626,14 @@ class Recurrence {
    */
   get isFinite(): boolean {
     return this._rrule.options.count !== null || this._rrule.options.until !== null;
+  }
+
+  /**
+   * Get the start date of the recurrence pattern in UTC.
+   */
+  get dtStart(): ZonedDateTime {
+    const dtstart = this._rrule.options.dtstart;
+    return fromDate(dtstart, "UTC");
   }
 }
 
