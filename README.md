@@ -1,5 +1,7 @@
 # Workforce Planning demo
 
+[![codecov](https://codecov.io/gh/gskorokhod/workforce/branch/main/graph/badge.svg?token=4WGQAVRVI9)](https://codecov.io/gh/gskorokhod/workforce)
+
 Frontend for a workforce planning tool using the Conjure constraints modelling tool under the hood
 
 Written as part of a STARIS project led by Ozgur Akgun
