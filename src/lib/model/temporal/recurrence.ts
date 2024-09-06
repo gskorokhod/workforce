@@ -246,12 +246,12 @@ class Recurrence {
       if (props.dtstart) {
         props.rrule.dtstart = toUTCDate(props.dtstart);
       }
-      
+
       const dtNow = toUTCDate(now(getLocalTimeZone()));
       this._rrule = new RRule({
         ...props.rrule,
         dtstart: props.rrule.dtstart || dtNow
-      })
+      });
     }
 
     this._duration = props.duration || undefined;
