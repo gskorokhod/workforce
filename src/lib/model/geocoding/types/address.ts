@@ -5,11 +5,6 @@ import type { JsonObject } from "type-fest";
  */
 interface AddressJSON extends JsonObject {
   /**
-   * An optional additional name for the location.
-   * @example "John's Office"
-   */
-  name: string;
-  /**
    * The identifier of a space within a building.
    * (E.g.: apartment, office, unit, floor, etc.)
    * @example "Apartment B, Floor 2", "Intensive Care Unit", "Dock 3"
@@ -61,11 +56,6 @@ type AddressField = keyof Address;
  *       It is not intended to be comprehensive or 100% accurate to real-world administrative divisions / hierarchy.
  */
 export class Address {
-  /**
-   * An optional additional name for the location.
-   * @example "John's Office"
-   */
-  name: string = "";
   /**
    * The identifier of a space within a building.
    * (E.g.: apartment, office, unit, floor, etc.)
@@ -127,14 +117,17 @@ export class Address {
       "street",
       "settlement",
       "municipality",
-      "country",
-      "postcode"
-    ]
+      "state",
+      "postcode",
+      "country"
+    ],
+    separator: string = ", "
   ): string {
     return fields
       .map((f) => this[f])
+      .filter((f) => typeof f === "string")
       .filter((s) => s && s.length > 0)
-      .join(", ");
+      .join(separator);
   }
 
   /**
@@ -145,7 +138,6 @@ export class Address {
    */
   toJSON(): AddressJSON {
     return {
-      name: this.name,
       space: this.space,
       building: this.building,
       street: this.street,
@@ -163,7 +155,7 @@ export class Address {
    * @returns an Address instance.
    * @see AddressJSON
    */
-  static fromJSON(json: AddressJSON): Address {
+  static fromJSON(json: JsonObject): Address {
     return new Address(json);
   }
 
@@ -179,7 +171,7 @@ export class Address {
    * @returns an Address instance.
    */
   static fromOSM(osmJson: Record<string, string>) {
-    return new Address({
+    const props = {
       postcode: osmJson["postcode"] ?? "",
       country: osmJson["country"] ?? "",
       state: osmJson["state"] ?? osmJson["province"] ?? osmJson["region"] ?? "",
@@ -193,7 +185,44 @@ export class Address {
         osmJson["isolated_dwelling"] ??
         "",
       street: osmJson["road"] ?? "",
-      building: osmJson["house_number"] ?? osmJson["house_name"] ?? ""
-    });
+      building:
+        osmJson["house_number"] ??
+        osmJson["house_name"] ??
+        osmJson["building"] ??
+        osmJson["amenity"] ??
+        osmJson["shop"] ??
+        osmJson["residential"] ??
+        osmJson["industrial"] ??
+        osmJson["commercial"] ??
+        osmJson["religious"] ??
+        osmJson["railway"] ??
+        osmJson["public_building"] ??
+        osmJson["park"] ??
+        ""
+    };
+    return new Address(props);
+  }
+
+  /**
+   * Check if the address is empty.
+   */
+  get empty(): boolean {
+    return Object.values(this).every((v) => !v);
+  }
+
+  /**
+   * Check if the address is complete
+   * (i.e., all fields have a value).
+   */
+  get complete(): boolean {
+    return Object.values(this).every((v) => v && v.length > 0);
+  }
+
+  /**
+   * Get the street address.
+   * (i.e., building number and street name)
+   */
+  get streetAddress(): string {
+    return this.format(["building", "street"]);
   }
 }
