@@ -5,7 +5,6 @@ import { Address } from "./types/address";
 import type { OSMSearchParams } from "./types/osm";
 
 export class Geopoint {
-  name: string = "";
   private _address: Address;
   private _coords: LngLat;
 
@@ -67,7 +66,9 @@ export class Geopoint {
    * @param json JSON object to parse.
    * @returns Geopoint if the JSON object could be parsed, otherwise undefined.
    */
-  static fromJSON(json: JsonObject): Geopoint | undefined {
+  static fromJSON(json: JsonValue): Geopoint | undefined {
+    json = json as JsonObject;
+
     const coords = tryParseCoords(json.coords);
     if (!coords) return undefined;
 
@@ -85,7 +86,6 @@ export class Geopoint {
    */
   toJSON(): JsonObject {
     return {
-      name: this.name,
       coords: this._coords,
       address: this._address ? this._address.toJSON() : ""
     };

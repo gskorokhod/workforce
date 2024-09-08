@@ -56,7 +56,6 @@ export async function search(search: string, params?: OSMSearchParams): Promise<
   if (countryCodes.length > 0) query += `&countrycodes=${countryCodes.join(",")}`;
   query += `&addressdetails=${addressDetails ? 1 : 0}`;
 
-  console.log("Searching for: ", query);
   const response = await fetch(query);
   let data: OSMSearchResponse = await response.json();
 

@@ -188,6 +188,40 @@ export function getDaysInMonth(dt: ZonedDateTime | CalendarDateTime | CalendarDa
 }
 
 /**
+ * Get the number of full years between two ZonedDateTime objects, in the calendar system of the start date.
+ * @param start Start date
+ * @param end End date
+ * @returns Number of full years between the two dates. If the start date is after the end date, the result will be negative.
+ * @example `fullYearsBetween('2024-01-01', '2023-12-31')` -> `0`
+ * @example `fullYearsBetween('2024-01-01', '2024-12-31')` -> `0`
+ * @example `fullYearsBetween('2024-01-01', '2025-01-01')` -> `1`
+ */
+export function fullYearsBetween(
+  start: ZonedDateTime | CalendarDateTime | CalendarDate,
+  end: ZonedDateTime | CalendarDateTime | CalendarDate
+): number {
+  start = start.copy();
+  end = toCalendar(end, start.calendar);
+
+  if (isSameYear(start, end)) {
+    return 0;
+  }
+
+  if (start.compare(end) > 0) {
+    return -fullYearsBetween(end, start);
+  }
+
+  const years = end.year - start.year;
+  const startNext = start.add({ years: years });
+
+  if (end.compare(startNext) < 0) {
+    return years - 1;
+  } else {
+    return years;
+  }
+}
+
+/**
  * Add `d` to `value`, wrapping around the range `[min, max]`.
  * @param value Value to add to
  * @param d Amount to add (can be negative)

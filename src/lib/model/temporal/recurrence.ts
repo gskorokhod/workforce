@@ -11,14 +11,13 @@ import {
   CalendarDate,
   fromDate,
   getLocalTimeZone,
-  now,
   parseZonedDateTime,
   toCalendarDate,
   ZonedDateTime
 } from "@internationalized/date";
 import { RRule, RRuleSet } from "rrule";
 import type { JsonObject } from "type-fest";
-import { HashMap } from "../utils";
+import { HashMap, type Copy } from "../utils";
 import { toRecurrenceOptions } from "./options";
 import {
   completeDuration,
@@ -28,6 +27,8 @@ import {
   parseDateTimeDuration,
   toUTCDate
 } from "./utils";
+
+type Exceptions = Map<CalendarDate, DateOption> | { rdates?: Date[]; exdates?: Date[] };
 
 /**
  * Properties for creating a Recurrence object.
@@ -43,12 +44,7 @@ import {
 interface RecurrenceProps {
   dtstart?: ZonedDateTime;
   duration?: TimeDuration | undefined;
-  exceptions?:
-    | Map<CalendarDate, DateOption>
-    | {
-        rdates?: Date[];
-        exdates?: Date[];
-      };
+  exceptions?: Exceptions;
   rrule: RecurrenceOptions | RRule;
 }
 
@@ -87,7 +83,7 @@ interface ProbeResult {
 /**
  * Represents a time period during which an event occurs.
  */
-class TimeSlot {
+class TimeSlot implements Copy<TimeSlot> {
   /**
    * End date & time of the time slot.
    */
@@ -105,6 +101,13 @@ class TimeSlot {
   constructor(start: ZonedDateTime, end: ZonedDateTime) {
     this.start = start;
     this.end = end;
+  }
+
+  /**
+   * Create a deep copy of the time slot object.
+   */
+  copy(): TimeSlot {
+    return new TimeSlot(this.start, this.end);
   }
 
   /**
@@ -212,7 +215,7 @@ class TimeSlot {
  * Represents something that occurs at regular intervals and lasts for a certain duration.
  * (e.g. a shift that occurs every Monday from 9am to 5pm)
  */
-class Recurrence {
+class Recurrence implements Copy<Recurrence> {
   /**
    * The duration of the event.
    * If undefined, the event is considered to last the entire day (i.e. from 00:00 to 23:59 on every date that matches the recurrence pattern).
@@ -236,35 +239,64 @@ class Recurrence {
 
   /**
    * Create a new Recurrence object.
-   * @param opts RRule options.
+   * @param props RRule options.
    * @see RecurrenceProps
    */
   constructor(props: RecurrenceProps) {
+    this._rrule = this.initializeRRule(props);
+    this._duration = props.duration;
+    this.initializeExceptions(props.exceptions);
+  }
+
+  /**
+   * Initialize the RRule object.
+   * @param props Recurrence properties
+   * @returns RRule object
+   */
+  private initializeRRule(props: RecurrenceProps): RRule {
     if (props.rrule instanceof RRule) {
-      this._rrule = props.rrule;
+      return props.rrule;
     } else {
       if (props.dtstart) {
         props.rrule.dtstart = toUTCDate(props.dtstart);
       }
 
-      const dtNow = toUTCDate(now(getLocalTimeZone()));
-      this._rrule = new RRule({
+      return new RRule({
         ...props.rrule,
-        dtstart: props.rrule.dtstart || dtNow
+        dtstart: props.rrule.dtstart || new Date()
       });
     }
+  }
 
-    this._duration = props.duration || undefined;
-    if (props.exceptions) {
-      if (props.exceptions instanceof Map || props.exceptions instanceof HashMap) {
-        props.exceptions.forEach((status, date) => {
-          this.setException(date, status);
-        });
-      } else {
-        this._rdates = props.exceptions.rdates?.map((d) => localToUTC(d)) || [];
-        this._exdates = props.exceptions.exdates?.map((d) => localToUTC(d)) || [];
-      }
+  /**
+   * Initialize the exception dates.
+   * @param exceptions Map of dates to their status in the recurrence pattern, or an object with `rdates` and `exdates` fields.
+   * @returns void. This method modifies the object's `_rdates` and `_exdates` fields in place.
+   */
+  private initializeExceptions(exceptions?: Exceptions): void {
+    if (!exceptions) return;
+
+    if (exceptions instanceof Map || exceptions instanceof HashMap) {
+      exceptions.forEach((status, date) => {
+        this.setException(date, status);
+      });
+    } else {
+      this._rdates = exceptions.rdates?.map(localToUTC) || [];
+      this._exdates = exceptions.exdates?.map(localToUTC) || [];
     }
+  }
+  /**
+   * Create a deep copy of the Recurrence object.
+   */
+  copy(): Recurrence {
+    const rdates = this._rdates.map((d) => new Date(d.valueOf()));
+    const exdates = this._exdates.map((d) => new Date(d.valueOf()));
+
+    return new Recurrence({
+      rrule: new RRule(this._rrule.options),
+      duration: this._duration,
+      exceptions: { rdates, exdates }
+    });
   }
 
   /**
