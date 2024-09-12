@@ -10,8 +10,8 @@ This is a [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/c
 
 ## Resources
 
-- [FigJam board](https://www.figma.com/board/yIjbMS3WQcrM8b9vHYLCl3/Whiteboard?node-id=0-1&t=c8V2wENENyR81JPP-1)
-- [Figma UI wireframe](https://www.figma.com/design/irzfj48pXn8jfiYQ7XBCVP/UI-Wireframe?node-id=183-23584&t=t7OhI3Lw7eZROIcT-1)
+- [Code coverage](https://app.codecov.io/gh/gskorokhod/workforce)
+- [Code health analysis](https://codescene.io/projects/58240/jobs/2794851/results?scope=month#code-health)
 
 ## Development tools
 
