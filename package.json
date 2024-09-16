@@ -63,6 +63,7 @@
     "deep-equal": "^2.2.3",
     "devalue": "^5.0.0",
     "eslint-plugin-sonarjs": "^1.0.4",
+    "geolib": "^3.3.4",
     "lucide-svelte": "^0.424.0",
     "minisearch": "^7.1.0",
     "object-hash": "^3.0.0",

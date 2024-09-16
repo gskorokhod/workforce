@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import type { JsonObject, JsonValue, PartialDeep } from "type-fest";
-import { copied, has, without } from "../utils";
+import { copyArr, has, without } from "../utils";
 import type { Assignment } from "./assignment";
 import { Base } from "./base";
 import { revivedArr } from "./misc";
@@ -85,9 +85,9 @@ export class Task extends Base implements ITask {
       {
         name: this._name,
         description: this._description,
-        skills: copied(this._skills)
+        skills: copyArr(this._skills)
       },
-      this.state,
+      this._state,
       this.uuid
     );
   }
@@ -118,12 +118,12 @@ export class Task extends Base implements ITask {
   }
 
   getAssignments(): Assignment[] {
-    if (!this.state) {
+    if (!this._state) {
       return [];
     }
 
     const assignments = [];
-    for (const assignment of get(this.state.assignments).values()) {
+    for (const assignment of get(this._state.assignments).values()) {
       if (assignment.task?.eq(this)) {
         assignments.push(assignment.copy());
       }
@@ -167,7 +167,7 @@ export class Task extends Base implements ITask {
   }
 
   set skills(skills: Skill[]) {
-    this._skills = copied(skills);
+    this._skills = copyArr(skills);
     this.touch();
   }
 

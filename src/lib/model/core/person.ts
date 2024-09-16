@@ -2,12 +2,12 @@ import { CalendarDate, getLocalTimeZone, now, parseDate } from "@internationaliz
 import { get } from "svelte/store";
 import type { JsonObject, JsonValue } from "type-fest";
 import { fullYearsBetween } from "../temporal/utils";
-import { copied, has, misc, without } from "../utils";
+import { copyArr, has, misc, without } from "../utils";
 import type { Assignment } from "./assignment";
 import { Base } from "./base";
 import { revivedArr } from "./misc";
 import { Skill } from "./skill";
-import type { State } from "./state";
+import { State } from "./state";
 
 interface IPerson {
   name: string;
@@ -24,6 +24,12 @@ export class Person extends Base implements IPerson {
   private _avatar?: URL;
   private _birthday?: CalendarDate;
 
+  /**
+   * A person (employee / volunteer) who can be assigned to tasks.
+   * @param props
+   * @param state
+   * @param uuid
+   */
   constructor(props: Partial<IPerson>, state?: State, uuid?: string) {
     super(state, uuid);
     this._name = props.name || "";
@@ -33,6 +39,59 @@ export class Person extends Base implements IPerson {
     this._birthday = props.birthday;
   }
 
+  /**
+   * Get a person by UUID from a state or array of people
+   * @param from State or array of people to search.
+   * @param uuid UUID of the person to get.
+   * @returns Person with the specified UUID, or undefined if not found.
+   */
+  static get(from: State | Person[], uuid: string): Person | undefined {
+    if (from instanceof State) {
+      return get(from.people).get(uuid)?.copy();
+    }
+    return from.find((person) => person.uuid === uuid);
+  }
+
+  /**
+   * Get all people from a state
+   * @param from State to get all people from.
+   * @returns Array of people.
+   */
+  static getAll(from: State | Person[]): Person[] {
+    if (from instanceof State) {
+      return copyArr(Array.from(get(from.people).values()));
+    }
+    return copyArr(from);
+  }
+
+  /**
+   * Get all people with a specific set of skills from a state
+   * @param from State or array of people to search.
+   * @param skill Skill or array of skills to search for.
+   * @returns Array of people with the specified skills.
+   */
+  static getWith(from: State | Person[], skill: Skill | Skill[]): Person[] {
+    const all = this.getAll(from);
+    const skills = Array.isArray(skill) ? skill : [skill];
+    return all.filter((person) => skills.every((skill) => has(person.skills, skill)));
+  }
+
+  /**
+   * Get all people that satisfy a filter function from a state
+   * @param from State or array of people to search.
+   * @param filter Predicate function to filter people.
+   * @returns Array of people that satisfy the filter.
+   */
+  static getBy(from: State | Person[], filter: (person: Person) => boolean): Person[] {
+    return this.getAll(from).filter(filter);
+  }
+
+  /**
+   * Create a new person from a JSON value
+   * @param json JSON value to create the person from.
+   * @param state State to revive references and bind the person to.
+   * @returns new Person, bound to the state if provided.
+   */
   static fromJSON(json: JsonValue, state?: State): Person {
     const { name, skills, job, avatar, birthday, uuid } = json as JsonObject;
 
@@ -49,6 +108,10 @@ export class Person extends Base implements IPerson {
     );
   }
 
+  /**
+   * Serialize the person to a JSON value
+   * @returns JSON value representing the person.
+   */
   toJSON(): JsonValue {
     const ans: JsonObject = {
       uuid: this.uuid,
@@ -68,30 +131,46 @@ export class Person extends Base implements IPerson {
     return ans;
   }
 
+  /**
+   * Get all objects in the state that the person depends on.
+   * @returns Array of dependencies for the person.
+   */
   dependencies(): Base[] {
     return this._skills;
   }
 
+  /**
+   * Handle a dependency being removed from the state
+   */
   removeDependency(dep: Base): void {
     if (dep instanceof Skill) {
       this.removeSkill(dep);
     }
   }
 
+  /**
+   * Create a new person with the same properties as the original.
+   * @returns new Person with the same properties as the original.
+   */
   copy(): Person {
     return new Person(
       {
         name: this._name,
-        skills: copied(this._skills),
+        skills: copyArr(this._skills),
         job: this._job,
         avatar: this._avatar,
         birthday: this._birthday
       },
-      this.state,
+      this._state,
       this.uuid
     );
   }
 
+  /**
+   * Update the person from the state.
+   * @param force If true, local data is overwritten even if it is newer than the state. Default is false.
+   * @returns True if the local state has been updated, false otherwise.
+   */
   update(force?: boolean): boolean {
     if (super.update(force)) {
       const person = this.get() as Person;
@@ -105,6 +184,10 @@ export class Person extends Base implements IPerson {
     return false;
   }
 
+  /**
+   * Add a skill to the person
+   * @param skill Skill to add to the person.
+   */
   addSkill(skill: Skill): void {
     if (!has(this._skills, skill)) {
       this._skills.push(skill);
@@ -112,6 +195,10 @@ export class Person extends Base implements IPerson {
     }
   }
 
+  /**
+   * Remove a skill from the person, if they have it
+   * @param skill Skill to remove from the person.
+   */
   removeSkill(skill: Skill): void {
     if (has(this._skills, skill)) {
       this._skills = without(this._skills, skill);
@@ -119,12 +206,17 @@ export class Person extends Base implements IPerson {
     }
   }
 
+  /**
+   * Get all assignments for the person from the state
+   * @returns Array of assignments for the person.
+   * Note: This looks up assignments from the Person's bound state. If the Person is not bound to a state, this will return an empty array.
+   */
   getAssignments(): Assignment[] {
-    if (!this.state) {
+    if (!this._state) {
       return [];
     }
     const assignments = [];
-    for (const assignment of get(this.state.assignments).values()) {
+    for (const assignment of get(this._state.assignments).values()) {
       if (has(assignment.people, this)) {
         assignments.push(assignment.copy());
       }
@@ -132,36 +224,58 @@ export class Person extends Base implements IPerson {
     return assignments;
   }
 
+  /**
+   * Get the person's name
+   */
   get name(): string {
     this.update();
     return this._name;
   }
 
+  /**
+   * Get the person's skills
+   */
   get skills(): Skill[] {
     this.update();
     return this._skills;
   }
 
+  /**
+   * Get the person's job title
+   */
   get job(): string {
     this.update();
     return this._job;
   }
 
+  /**
+   * Get the person's avatar URL
+   */
   get avatar(): URL | undefined {
     this.update();
     return this._avatar;
   }
 
+  /**
+   * Get the person's birthday
+   */
   get birthday(): CalendarDate | undefined {
     this.update();
     return this._birthday;
   }
 
+  /**
+   * Get the initials of the person's name
+   */
   get initials(): string {
     this.update();
     return misc.getInitials(this._name);
   }
 
+  /**
+   * Get the person's age
+   * @returns The person's age in years, or undefined if the birthday is not set.
+   */
   get age(): number | undefined {
     this.update();
 
@@ -172,26 +286,44 @@ export class Person extends Base implements IPerson {
     return fullYearsBetween(this._birthday, now(getLocalTimeZone()));
   }
 
+  /**
+   * Set the person's name
+   */
   set name(name: string) {
     this._name = name;
     this.touch();
   }
 
+  /**
+   * Set the person's skills
+   */
   set skills(skills: Skill[]) {
-    this._skills = copied(skills);
+    this._skills = copyArr(skills);
     this.touch();
   }
 
+  /**
+   * Set the person's job title
+   */
   set job(job: string) {
     this._job = job;
     this.touch();
   }
 
-  set avatar(avatar: URL | undefined) {
+  /**
+   * Set the person's avatar URL
+   */
+  set avatar(avatar: URL | string | undefined) {
+    if (typeof avatar === "string") {
+      avatar = new URL(avatar);
+    }
     this._avatar = avatar;
     this.touch();
   }
 
+  /**
+   * Set the person's birthday
+   */
   set birthday(birthday: CalendarDate | undefined) {
     this._birthday = birthday;
     this.touch();

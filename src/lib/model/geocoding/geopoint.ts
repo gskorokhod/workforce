@@ -1,3 +1,4 @@
+import { getDistance } from "geolib";
 import type { JsonObject, JsonValue } from "type-fest";
 import type { LngLat } from ".";
 import { geocode, reverseGeocode, search } from "./osm";
@@ -78,6 +79,22 @@ export class Geopoint {
     }
 
     return new Geopoint(coords);
+  }
+
+  /**
+   * Get the distance in meters between this geopoint and another geopoint or coordinates.
+   * @param other Geopoint or raw coordinates to calculate the distance to.
+   * @param accuracy Accuracy of the distance calculation in meters. Default is 1.
+   * @returns Distance between the two geopoints in meters, or undefined if the distance could not be calculated.
+   */
+  distanceTo(other: Geopoint | LngLat, accuracy: number = 1): number | undefined {
+    const otherCoords = other instanceof Geopoint ? other.coords : other;
+    if (!this.coords || !otherCoords) return undefined;
+    return getDistance(
+      { latitude: this.coords[1], longitude: this.coords[0] },
+      { latitude: otherCoords[1], longitude: otherCoords[0] },
+      accuracy
+    );
   }
 
   /**

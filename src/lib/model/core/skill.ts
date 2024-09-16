@@ -3,9 +3,9 @@ import type { JsonObject, JsonValue } from "type-fest";
 import { Icon } from "../ui";
 import { has } from "../utils";
 import { Base } from "./base";
+import type { Person } from "./person";
 import type { State } from "./state";
 import type { Task } from "./task";
-import type { Person } from "./person";
 
 const DEF_ICON = new Icon({
   pack: "lucide",
@@ -66,7 +66,7 @@ export class Skill extends Base implements ISkill {
         description: this._description,
         icon: this._icon.copy()
       },
-      this.state,
+      this._state,
       this.uuid
     );
   }
@@ -83,12 +83,12 @@ export class Skill extends Base implements ISkill {
   }
 
   getTasks(): Task[] {
-    if (!this.state) {
+    if (!this._state) {
       return [];
     }
 
     const tasks = [];
-    for (const task of get(this.state.tasks).values()) {
+    for (const task of get(this._state.tasks).values()) {
       if (has(task.skills, this)) {
         tasks.push(task.copy());
       }
@@ -97,12 +97,12 @@ export class Skill extends Base implements ISkill {
   }
 
   getPeople(): Person[] {
-    if (!this.state) {
+    if (!this._state) {
       return [];
     }
 
     const people = [];
-    for (const person of get(this.state.people).values()) {
+    for (const person of get(this._state.people).values()) {
       if (has(person.skills, this)) {
         people.push(person.copy());
       }

@@ -1,4 +1,4 @@
-import type { TimeDuration } from "@internationalized/date";
+import type { CalendarDateTime, TimeDuration } from "@internationalized/date";
 import type {
   DailyOptions,
   MonthlyOptions,
@@ -13,6 +13,7 @@ import {
   getLocalTimeZone,
   parseZonedDateTime,
   toCalendarDate,
+  toZoned,
   ZonedDateTime
 } from "@internationalized/date";
 import { RRule, RRuleSet } from "rrule";
@@ -21,6 +22,8 @@ import { HashMap, type Copy } from "../utils";
 import { toRecurrenceOptions } from "./options";
 import {
   completeDuration,
+  dtMax,
+  dtMin,
   hasDate,
   localToUTC,
   parseDates,
@@ -104,6 +107,21 @@ class TimeSlot implements Copy<TimeSlot> {
   }
 
   /**
+   * Get a time slot that spans the entire day of a given date.
+   * @param date Date to get the time slot for. Can be an instance of `CalendarDate`, `CalendarDateTime`, or `ZonedDateTime`.
+   * @param tzid For `CalendarDate` objects, the timezone ID to use. Defaults to the local timezone.
+   * @returns TimeSlot object representing the entire day of the given date.
+   */
+  static allDay(date: CalendarDate | CalendarDateTime | ZonedDateTime, tzid?: string): TimeSlot {
+    if (date instanceof ZonedDateTime) {
+      return new TimeSlot(date.set({ hour: 0, minute: 0, second: 0 }), date.set({ hour: 23, minute: 59, second: 59 }));
+    }
+    const start = toZoned(date, tzid || getLocalTimeZone()).set({ hour: 0, minute: 0, second: 0 });
+    const end = start.set({ hour: 23, minute: 59, second: 59 });
+    return new TimeSlot(start, end);
+  }
+
+  /**
    * Create a deep copy of the time slot object.
    */
   copy(): TimeSlot {
@@ -115,7 +133,7 @@ class TimeSlot implements Copy<TimeSlot> {
    * @param other time slot to check against
    * @returns True if the time slots clash, false otherwise
    */
-  clashesWith(other: TimeSlot) {
+  intersects(other: TimeSlot): boolean {
     return this.start.compare(other.end) < 0 && this.end.compare(other.start) > 0;
   }
 
@@ -124,14 +142,33 @@ class TimeSlot implements Copy<TimeSlot> {
    * @param other time slot to check against
    * @returns An time slot object representing the time period during which the time slots clash, or undefined if they do not clash
    */
-  getClash(other: TimeSlot): TimeSlot | undefined {
-    if (this.clashesWith(other)) {
-      const start = this.start.compare(other.start) > 0 ? this.start : other.start;
-      const end = this.end.compare(other.end) < 0 ? this.end : other.end;
+  intersect(other: TimeSlot): TimeSlot | undefined {
+    if (this.intersects(other)) {
+      const start = dtMax(this.start, other.start);
+      const end = dtMin(this.end, other.end);
       return new TimeSlot(start, end);
     }
 
     return undefined;
+  }
+
+  /**
+   * Get the parts of this time slot that are not covered by another time slot.
+   * @param other Time slot to compare against
+   * @returns Array of TimeSlot objects
+   */
+  except(other: TimeSlot): TimeSlot[] {
+    const clash = this.intersect(other);
+    if (!clash) return [this.copy()];
+
+    const ans: TimeSlot[] = [];
+    if (this.start.compare(clash.start) < 0) {
+      ans.push(new TimeSlot(this.start, clash.start));
+    }
+    if (this.end.compare(clash.end) > 0) {
+      ans.push(new TimeSlot(clash.end, this.end));
+    }
+    return ans;
   }
 
   /**
@@ -377,7 +414,7 @@ class Recurrence implements Copy<Recurrence> {
     const occ = this.getOccurrences(after, before, "UTC", true, limit, applyExceptions);
     const otherOcc = other.getOccurrences(after, before, "UTC", true, limit, applyExceptions);
 
-    return occ.some((thisOcc) => otherOcc.some((otherOcc) => thisOcc.clashesWith(otherOcc)));
+    return occ.some((thisOcc) => otherOcc.some((otherOcc) => thisOcc.intersects(otherOcc)));
   }
 
   /**
@@ -399,7 +436,7 @@ class Recurrence implements Copy<Recurrence> {
 
     occ.forEach((thisOcc) => {
       otherOcc.forEach((otherOcc) => {
-        const clash = thisOcc.getClash(otherOcc);
+        const clash = thisOcc.intersect(otherOcc);
         if (clash) clashes.push(clash);
       });
     });
@@ -697,7 +734,7 @@ class Recurrence implements Copy<Recurrence> {
    * @param options A `RecurrenceOptions` object representing the new options. Only the `freq` field is required.
    * @see RecurrenceOptions
    */
-  updateOptions(options: RecurrenceOptions) {
+  setOptions(options: RecurrenceOptions) {
     let opts: RecurrenceOptions;
 
     switch (options.freq) {
@@ -715,6 +752,20 @@ class Recurrence implements Copy<Recurrence> {
     }
 
     this._rrule = new RRule({ ...opts, ...options });
+  }
+
+  /**
+   * Create a new Recurrence object with updated properties.
+   * @param props Partial properties to update
+   * @returns New Recurrence object with the updated properties
+   */
+  update(props: Partial<RecurrenceProps>): Recurrence {
+    return new Recurrence({
+      dtstart: props.dtstart || this.dtStart,
+      duration: props.duration || this._duration,
+      exceptions: props.exceptions || { rdates: this._rdates, exdates: this._exdates },
+      rrule: props.rrule || this._rrule
+    });
   }
 
   /**
@@ -743,9 +794,21 @@ class Recurrence implements Copy<Recurrence> {
   /**
    * Get the options of the recurrence pattern.
    */
-  get options(): RecurrenceOptions {
+  get recurrenceOptions(): RecurrenceOptions {
     // Safe to cast because the constructor takes a `RecurrenceOptions` object, so there can be no unsupported options
     return toRecurrenceOptions(this._rrule.options) as RecurrenceOptions;
+  }
+
+  /**
+   * Get the properties of the Recurrence object.
+   */
+  get props(): RecurrenceProps {
+    return {
+      dtstart: this.dtStart,
+      duration: this._duration,
+      exceptions: this.getExceptions(),
+      rrule: this.recurrenceOptions
+    };
   }
 
   /**

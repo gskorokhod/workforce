@@ -9,7 +9,8 @@ import {
   toTimeZone,
   toZoned,
   ZonedDateTime,
-  type DateTimeDuration
+  type DateTimeDuration,
+  type TimeDuration
 } from "@internationalized/date";
 
 import { datetime } from "rrule";
@@ -236,16 +237,85 @@ export function cycle(value: number, d: number, min: number, max: number): numbe
 }
 
 /**
- * Get the earliest of two ZonedDateTime, CalendarDateTime, or CalendarDate objects.
- * @param a - First object
- * @param b - Second object
- * @returns - The earlier of the two datetimes
+ * Get the latest of two ZonedDateTime, CalendarDateTime, or CalendarDate objects.
+ * @param a First object
+ * @param b Second object
+ * @returns The later of the two datetimes
  */
-export function dtMin(
-  a: ZonedDateTime | CalendarDateTime | CalendarDate,
-  b: ZonedDateTime | CalendarDateTime | CalendarDate
-): ZonedDateTime | CalendarDateTime | CalendarDate {
+export function dtMax<T extends ZonedDateTime | CalendarDateTime | CalendarDate>(a: T, b: T): T {
+  return a.compare(b) >= 0 ? a : b;
+}
+
+/**
+ * Get the earliest of two ZonedDateTime, CalendarDateTime, or CalendarDate objects.
+ * @param a First object
+ * @param b Second object
+ * @returns The earlier of the two datetimes
+ */
+export function dtMin<T extends ZonedDateTime | CalendarDateTime | CalendarDate>(a: T, b: T): T {
   return a.compare(b) <= 0 ? a : b;
+}
+
+/**
+ * Convert a TimeDuration object to milliseconds.
+ * @param dur TimeDuration object
+ * @returns number of milliseconds
+ */
+export function toMillis(dur: TimeDuration): number {
+  const d = completeDuration(dur);
+  return (
+    d.milliseconds +
+    d.seconds * 1000 +
+    d.minutes * 60 * 1000 +
+    d.hours * 60 * 60 * 1000
+  );
+}
+
+/**
+ * Convert milliseconds to a TimeDuration object.
+ * @param ms Milliseconds
+ * @returns TimeDuration object
+ */
+export function fromMillis(ms: number): TimeDuration {
+  const [secondsCarry, milliseconds] = divMod(ms, 1000);
+  const [minutesCarry, seconds] = divMod(secondsCarry, 60);
+  const [hours, minutes] = divMod(minutesCarry, 60);
+  return {
+    hours,
+    minutes,
+    seconds,
+    milliseconds
+  };
+}
+
+/**
+ * Compare two TimeDuration objects.
+ * @param a TimeDuration object
+ * @param b TimeDuration object
+ * @returns Negative if `a` is less than `b`, positive if `a` is greater than `b`, and 0 if they are equal
+ */
+export function cmpTimeDurations(a: TimeDuration, b: TimeDuration): number {
+  return toMillis(a) - toMillis(b);
+}
+
+/**
+ * Add two TimeDuration objects together.
+ * @param a TimeDuration object
+ * @param b TimeDuration object
+ * @returns TimeDuration object representing the sum of `a` and `b`
+ */
+export function addTimeDurations(a: TimeDuration, b: TimeDuration): TimeDuration {
+  return fromMillis(toMillis(a) + toMillis(b));
+}
+
+/**
+ * Get the absolute difference between two TimeDuration objects.
+ * @param a TimeDuration object
+ * @param b TimeDuration object
+ * @returns TimeDuration object representing the absolute difference between `a` and `b`
+ */
+export function diffTimeDurations(a: TimeDuration, b: TimeDuration): TimeDuration {
+  return fromMillis(Math.abs(toMillis(a) - toMillis(b)));
 }
 
 /**

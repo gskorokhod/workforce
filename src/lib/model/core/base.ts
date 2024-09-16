@@ -13,13 +13,13 @@ import type { State } from "./state";
  */
 export abstract class Base implements Copy<Base>, Eq<Base> {
   readonly uuid: string;
-  protected state?: State;
-  protected timestamp: number;
+  protected _state?: State;
+  protected _timestamp: number;
 
   constructor(state?: State, uuid?: string) {
     this.uuid = uuid || uuidv4();
-    this.state = state;
-    this.timestamp = Date.now();
+    this._state = state;
+    this._timestamp = Date.now();
   }
 
   /**
@@ -49,7 +49,7 @@ export abstract class Base implements Copy<Base>, Eq<Base> {
    * @returns True if local state has been updated, false otherwise. If the object is not bound to a state or doesn't exist there, always returns false.
    */
   update(force: boolean = false): boolean {
-    if (!this.state) {
+    if (!this._state) {
       return false;
     }
 
@@ -60,7 +60,7 @@ export abstract class Base implements Copy<Base>, Eq<Base> {
     }
 
     if (force || this.stale) {
-      this.timestamp = obj.timestamp;
+      this._timestamp = obj._timestamp;
       return true;
     }
 
@@ -73,19 +73,19 @@ export abstract class Base implements Copy<Base>, Eq<Base> {
    * @return True if bound state has been updated
    */
   commit(force: boolean = false): boolean {
-    if (!this.state) {
+    if (!this._state) {
       console.warn(`Trying to commit object ${this.uuid}, but it is not bound to a State!`);
       return false;
     }
 
     let updated = false;
     if (force || this.fresh) {
-      this.state.put(this);
+      this._state.put(this);
       updated = true;
     }
 
     this.dependencies().forEach((dep) => {
-      dep.state = this.state;
+      dep._state = this._state;
       updated = dep.commit() || updated;
     });
 
@@ -97,9 +97,9 @@ export abstract class Base implements Copy<Base>, Eq<Base> {
    * @return True on success, false if the object was not bound to a state
    */
   delete(): boolean {
-    if (this.state) {
-      this.state.delete(this);
-      this.state = undefined;
+    if (this._state) {
+      this._state.delete(this);
+      this._state = undefined;
       return true;
     }
     return false;
@@ -118,7 +118,7 @@ export abstract class Base implements Copy<Base>, Eq<Base> {
    * Update the object's timestamp to the current time
    */
   touch(): void {
-    this.timestamp = Date.now();
+    this._timestamp = Date.now();
   }
 
   /**
@@ -126,7 +126,21 @@ export abstract class Base implements Copy<Base>, Eq<Base> {
    * @returns That object, or undefined if it doesn't exist
    */
   protected get(): Base | undefined {
-    return this.state?.get(this.uuid);
+    return this._state?.get(this.uuid);
+  }
+
+  /**
+   * Get the timestamp of this object
+   */
+  get timestamp(): number {
+    return this._timestamp;
+  }
+
+  /**
+   * Get the state this object is bound to
+   */
+  get state(): State | undefined {
+    return this._state;
   }
 
   /**
@@ -134,7 +148,7 @@ export abstract class Base implements Copy<Base>, Eq<Base> {
    */
   get fresh(): boolean {
     const obj = this.get();
-    return obj === undefined || obj.timestamp <= this.timestamp;
+    return obj === undefined || obj._timestamp <= this._timestamp;
   }
 
   /**
@@ -142,6 +156,13 @@ export abstract class Base implements Copy<Base>, Eq<Base> {
    */
   get stale(): boolean {
     const obj = this.get();
-    return obj !== undefined && obj.timestamp > this.timestamp;
+    return obj !== undefined && obj._timestamp > this._timestamp;
+  }
+
+  /**
+   * Set the state this object is bound to
+   */
+  set state(state: State | undefined) {
+    this._state = state;
   }
 }
