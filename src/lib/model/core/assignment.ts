@@ -8,7 +8,7 @@ import {
 import { get as _get } from "svelte/store";
 import type { JsonObject, JsonValue } from "type-fest";
 import { TimeSlot } from "../temporal";
-import { copyArr, has, hasAll, without } from "../utils";
+import { copyArr, has, without } from "../utils";
 import { Base } from "./base";
 import { Location } from "./location";
 import { revivedArr } from "./misc";
@@ -72,7 +72,7 @@ export class Assignment extends Base implements IAssignment {
     if (from instanceof State) {
       return _get(from.assignments).get(uuid)?.copy();
     }
-    return from.find((assignment) => assignment.uuid === uuid);
+    return from.find((assignment) => assignment.uuid === uuid)?.copy();
   }
 
   /**
@@ -314,16 +314,7 @@ export class Assignment extends Base implements IAssignment {
     if (!this._state || !this.task) {
       return [];
     }
-
-    const skills = this.task.skills;
-    const people = _get(this._state.people).values();
-    const ans = [];
-    for (const person of people) {
-      if (hasAll(person.skills, skills)) {
-        ans.push(person.copy());
-      }
-    }
-    return ans;
+    return Person.getWith(this._state, this.task.skills);
   }
 
   /**

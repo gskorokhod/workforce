@@ -1,11 +1,14 @@
 import { get } from "svelte/store";
 import type { JsonObject, JsonValue, PartialDeep } from "type-fest";
-import { copyArr, has, without } from "../utils";
-import type { Assignment } from "./assignment";
+import { copyArr, has, hasAll, without } from "../utils";
+import { Assignment } from "./assignment";
 import { Base } from "./base";
 import { revivedArr } from "./misc";
+import { Person } from "./person";
 import { Skill } from "./skill";
-import type { State } from "./state";
+import { State } from "./state";
+
+type WithArg = Skill | Skill[];
 
 interface TaskMinMax {
   people: number;
@@ -33,6 +36,57 @@ export class Task extends Base implements ITask {
     this.skills = props.skills || [];
     this._min = { people: props.min?.people || 0 };
     this._max = { people: props.max?.people || Infinity };
+  }
+
+  /**
+   * Get a task by UUID from a state or array of tasks.
+   * @param from State or array of tasks to search.
+   * @param uuid UUID of the task to get.
+   * @returns Task with the given UUID or undefined if not found.
+   */
+  static get(from: State | Task[], uuid: string): Task | undefined {
+    if (from instanceof State) {
+      return get(from.tasks).get(uuid)?.copy();
+    }
+    return from.find((task) => task.uuid === uuid)?.copy();
+  }
+
+  static getAll(from: State | Task[]): Task[] {
+    if (from instanceof State) {
+      return copyArr(Array.from(get(from.tasks).values()));
+    }
+    return copyArr(from);
+  }
+
+  static getRequiring(from: State | Task[], ...args: WithArg[]): Task[] {
+    let tasks = Task.getAll(from);
+    for (const arg of args) {
+      if (arg instanceof Skill) {
+        tasks = tasks.filter((task) => has(task.skills, arg));
+      } else {
+        tasks = tasks.filter((task) => hasAll(task.skills, arg));
+      }
+    }
+    return tasks;
+  }
+
+  static getSuitable(from: State | Task[], target: Skill | Skill[] | Person) {
+    const skills =
+      target instanceof Person ? target.skills : target instanceof Skill ? [target] : target;
+    const tasks = Task.getAll(from);
+    return tasks.filter((task) => hasAll(skills, task.skills));
+  }
+
+  static getByCapacity(from: State | Task[], min?: number, max?: number): Task[] {
+    const tasks = Task.getAll(from);
+    return tasks.filter((task) => {
+      const { people } = task.min;
+      return (min === undefined || people >= min) && (max === undefined || people <= max);
+    });
+  }
+
+  static getBy(from: State | Task[], filter: (task: Task) => boolean): Task[] {
+    return Task.getAll(from).filter(filter);
   }
 
   static fromJSON(json: JsonValue, state?: State): Task {
@@ -121,14 +175,7 @@ export class Task extends Base implements ITask {
     if (!this._state) {
       return [];
     }
-
-    const assignments = [];
-    for (const assignment of get(this._state.assignments).values()) {
-      if (assignment.task?.eq(this)) {
-        assignments.push(assignment.copy());
-      }
-    }
-    return assignments;
+    return Assignment.getWith(this._state, this);
   }
 
   get name(): string {

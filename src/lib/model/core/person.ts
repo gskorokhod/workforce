@@ -9,6 +9,18 @@ import { revivedArr } from "./misc";
 import { Skill } from "./skill";
 import { State } from "./state";
 
+/**
+ * Represents a member of an organisation who can be assigned to tasks.
+ * @interface
+ * @property {string} name - The name of the person.
+ * @property {Skill[]} skills - The skills that the person has.
+ * @property {string} job - The job title of the person.
+ * @property {URL} [avatar] - The URL of the person's avatar.
+ * @property {CalendarDate} [birthday] - The person's birthday.
+ * @see Skill
+ * @see CalendarDate
+ * @see URL
+ */
 interface IPerson {
   name: string;
   skills: Skill[];
@@ -17,6 +29,9 @@ interface IPerson {
   birthday?: CalendarDate;
 }
 
+/**
+ * Represents a member of an organisation who can be assigned to tasks.
+ */
 export class Person extends Base implements IPerson {
   private _name: string;
   private _skills: Skill[];
@@ -25,10 +40,11 @@ export class Person extends Base implements IPerson {
   private _birthday?: CalendarDate;
 
   /**
-   * A person (employee / volunteer) who can be assigned to tasks.
-   * @param props
-   * @param state
-   * @param uuid
+   * A member of an organisation who can be assigned to tasks.
+   * @param props Properties of the person.
+   * @param state State to bind the person to.
+   * @param uuid UUID of the person. If not provided, a new UUID is generated.
+   * @see IPerson
    */
   constructor(props: Partial<IPerson>, state?: State, uuid?: string) {
     super(state, uuid);
@@ -49,7 +65,7 @@ export class Person extends Base implements IPerson {
     if (from instanceof State) {
       return get(from.people).get(uuid)?.copy();
     }
-    return from.find((person) => person.uuid === uuid);
+    return from.find((person) => person.uuid === uuid)?.copy();
   }
 
   /**

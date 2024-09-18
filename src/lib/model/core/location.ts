@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
 import type { JsonObject, JsonValue, PartialDeep } from "type-fest";
 import { Geopoint, type LngLat } from "../geocoding";
-import type { Assignment } from "./assignment";
+import { Assignment } from "./assignment";
 import { Base } from "./base";
 import { State } from "./state";
 import { copyArr } from "../utils";
@@ -64,7 +64,7 @@ export class Location extends Base implements ILocation {
     if (from instanceof State) {
       return get(from.locations).get(uuid)?.copy();
     }
-    return from.find((location) => location.uuid === uuid);
+    return from.find((location) => location.uuid === uuid)?.copy();
   }
 
   /**
@@ -235,14 +235,7 @@ export class Location extends Base implements ILocation {
     if (!this._state) {
       return [];
     }
-
-    const assignments = [];
-    for (const assignment of get(this._state.assignments).values()) {
-      if (assignment.location?.eq(this)) {
-        assignments.push(assignment.copy());
-      }
-    }
-    return assignments;
+    return Assignment.getWith(this._state, this);
   }
 
   /**
