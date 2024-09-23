@@ -114,7 +114,10 @@ class TimeSlot implements Copy<TimeSlot> {
    */
   static allDay(date: CalendarDate | CalendarDateTime | ZonedDateTime, tzid?: string): TimeSlot {
     if (date instanceof ZonedDateTime) {
-      return new TimeSlot(date.set({ hour: 0, minute: 0, second: 0 }), date.set({ hour: 23, minute: 59, second: 59 }));
+      return new TimeSlot(
+        date.set({ hour: 0, minute: 0, second: 0 }),
+        date.set({ hour: 23, minute: 59, second: 59 })
+      );
     }
     const start = toZoned(date, tzid || getLocalTimeZone()).set({ hour: 0, minute: 0, second: 0 });
     const end = start.set({ hour: 23, minute: 59, second: 59 });

@@ -263,12 +263,7 @@ export function dtMin<T extends ZonedDateTime | CalendarDateTime | CalendarDate>
  */
 export function toMillis(dur: TimeDuration): number {
   const d = completeDuration(dur);
-  return (
-    d.milliseconds +
-    d.seconds * 1000 +
-    d.minutes * 60 * 1000 +
-    d.hours * 60 * 60 * 1000
-  );
+  return d.milliseconds + d.seconds * 1000 + d.minutes * 60 * 1000 + d.hours * 60 * 60 * 1000;
 }
 
 /**

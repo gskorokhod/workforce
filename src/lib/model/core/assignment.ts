@@ -104,7 +104,11 @@ export class Assignment extends Base implements IAssignment {
    * @param end End time. If not provided, all assignments that start after the start time are returned.
    * @returns Array of assignments that start after the start time and end before the end time.
    */
-  static getBetween(from: State | Assignment[], start?: ZonedDateTime, end?: ZonedDateTime): Assignment[] {
+  static getBetween(
+    from: State | Assignment[],
+    start?: ZonedDateTime,
+    end?: ZonedDateTime
+  ): Assignment[] {
     return Assignment.getAll(from).filter((assignment) => {
       let ans = true;
       ans = ans && (!start || assignment.time.start.compare(start) >= 0);
@@ -120,7 +124,11 @@ export class Assignment extends Base implements IAssignment {
    * @param strict If true, get assignments that start and end on the given day. If false, get assignments that occur at any point during the day. Default is false.
    * @returns Array of assignments that occur on the given day.
    */
-  static getOn(from: State | Assignment[], day: CalendarDate, strict: boolean = false): Assignment[] {
+  static getOn(
+    from: State | Assignment[],
+    day: CalendarDate,
+    strict: boolean = false
+  ): Assignment[] {
     if (strict) {
       const zdt = toZoned(day, getLocalTimeZone());
       return Assignment.getBetween(
@@ -136,7 +144,7 @@ export class Assignment extends Base implements IAssignment {
    * Get all assignments by people, location, task, or any combination thereof.
    * @param from State or array of `Assignment`s to get assignments from.
    * @param args Filter arguments. Can be a `Task`, `Location`, `Person`, or an array of `Person`s.
-   * @returns 
+   * @returns
    */
   static getWith(from: State | Assignment[], ...args: WithArg[]): Assignment[] {
     let ans = Assignment.getAll(from);
@@ -160,7 +168,10 @@ export class Assignment extends Base implements IAssignment {
    * @param predicate Predicate function to filter assignments.
    * @returns Array of assignments that satisfy the predicate.
    */
-  static getBy(from: State | Assignment[], predicate: (assignment: Assignment) => boolean): Assignment[] {
+  static getBy(
+    from: State | Assignment[],
+    predicate: (assignment: Assignment) => boolean
+  ): Assignment[] {
     return Assignment.getAll(from).filter(predicate);
   }
 
