@@ -188,31 +188,49 @@ export class Skill extends Base implements ISkill {
     return Person.getWith(this._state, this);
   }
 
+  /**
+   * Get the name of the skill.
+   */
   get name(): string {
     this.update();
     return this._name;
   }
 
+  /**
+   * Get the description of the skill.
+   */
   get description(): string {
     this.update();
     return this._description;
   }
 
+  /**
+   * Get the icon representing the skill.
+   */
   get icon(): Icon {
     this.update();
     return this._icon;
   }
 
+  /**
+   * Set the name of the skill.
+   */
   set name(name: string) {
     this._name = name;
     this.touch();
   }
 
+  /**
+   * Set the description of the skill.
+   */
   set description(description: string) {
     this._description = description;
     this.touch();
   }
 
+  /**
+   * Set the icon representing the skill.
+   */
   set icon(icon: Icon) {
     this._icon = icon.copy();
     this.touch();

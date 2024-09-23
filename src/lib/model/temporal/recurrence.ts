@@ -473,6 +473,30 @@ class Recurrence implements Copy<Recurrence> {
   }
 
   /**
+   * Get the start and end of an occurrence of the event that would be happening at a given date & time.
+   * @param date ZonedDateTime to check
+   * @param tzid ISO 8601 timezone ID to use for the occurrence. Defaults to the local timezone.
+   * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
+   * @returns TimeSlot object representing the occurrence, or undefined if the event is not occurring at the given date & time.
+   */
+  getOccurrenceOn(
+    date: ZonedDateTime,
+    tzid: string = getLocalTimeZone(),
+    applyExceptions: boolean = true
+  ): TimeSlot | undefined {
+    const occurrences = this.getOccurrences(
+      date.subtract({ days: 1 }),
+      date.add({ days: 1 }),
+      tzid,
+      true,
+      Infinity,
+      applyExceptions
+    );
+
+    return occurrences.find((occ) => occ.includes(date)) || undefined;
+  }
+
+  /**
    * Get all occurrences of the event between two dates, in a given timezone.
    * @param after Start date & time of the range, or undefined to start from the first occurrence. Defaults to undefined.
    * @param before End date & time of the range, or undefined to get all occurrences. Defaults to undefined.
@@ -537,30 +561,6 @@ class Recurrence implements Copy<Recurrence> {
 
     // Get the actual nth occurrence
     return fromDate(dates[n], tzid);
-  }
-
-  /**
-   * Get the start and end of an occurrence of the event that would be happening at a given date & time.
-   * @param date ZonedDateTime to check
-   * @param tzid ISO 8601 timezone ID to use for the occurrence. Defaults to the local timezone.
-   * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
-   * @returns TimeSlot object representing the occurrence, or undefined if the event is not occurring at the given date & time.
-   */
-  getOccurrenceOn(
-    date: ZonedDateTime,
-    tzid: string = getLocalTimeZone(),
-    applyExceptions: boolean = true
-  ): TimeSlot | undefined {
-    const occurrences = this.getOccurrences(
-      date.subtract({ days: 1 }),
-      date.add({ days: 1 }),
-      tzid,
-      true,
-      Infinity,
-      applyExceptions
-    );
-
-    return occurrences.find((occ) => occ.includes(date)) || undefined;
   }
 
   /**

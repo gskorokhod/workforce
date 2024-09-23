@@ -5,6 +5,9 @@ import { get } from "svelte/store";
 import type { Assignment } from "../assignment";
 import type { Shift } from "./shift";
 
+/**
+ * A timeslot representing an individual occurrence of a shift.
+ */
 export class ShiftOccurrence extends TimeSlot {
   readonly shift: Shift;
 
