@@ -1,46 +1,56 @@
 import { persisted, type Serializer } from "svelte-persisted-store";
-import { get as _get, type Writable } from "svelte/store";
+import { get as _get, derived, type Writable } from "svelte/store";
 import type { JsonValue } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
 import { Assignment } from "../assignment";
 import { Base } from "../base";
 import { Location } from "../location";
 import { Person } from "../person";
+import { Shift } from "../shift";
 import { Skill } from "../skill";
 import { Task } from "../task";
 
+// A map of UUIDs to objects of type T
 type Stored<T extends Base> = Map<string, T>;
+// A writable store of type Stored<T>
 type Storage<T extends Base> = Writable<Stored<T>>;
 
 export class State {
   private readonly stateID: string;
-  readonly skills: Storage<Skill>;
-  readonly tasks: Storage<Task>;
-  readonly people: Storage<Person>;
-  readonly locations: Storage<Location>;
-  readonly assignments: Storage<Assignment>;
+  readonly _skills: Storage<Skill>;
+  readonly _tasks: Storage<Task>;
+  readonly _people: Storage<Person>;
+  readonly _locations: Storage<Location>;
+  readonly _assignments: Storage<Assignment>;
+  readonly _shifts: Storage<Shift>;
 
-  constructor() {
-    this.stateID = uuidv4();
-    this.skills = persisted("skills_" + this.stateID, new Map(), {
+  constructor(stateID?: string) {
+    this.stateID = stateID || uuidv4();
+    this._skills = persisted("skills_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Skill.fromJSON)
     });
-    this.tasks = persisted("tasks_" + this.stateID, new Map(), {
+    this._tasks = persisted("tasks_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Task.fromJSON)
     });
-    this.people = persisted("people_" + this.stateID, new Map(), {
+    this._people = persisted("people_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Person.fromJSON)
     });
-    this.locations = persisted("locations_" + this.stateID, new Map(), {
+    this._locations = persisted("locations_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Location.fromJSON)
     });
-    this.assignments = persisted("assignments_" + this.stateID, new Map(), {
+    this._assignments = persisted("assignments_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Assignment.fromJSON)
+    });
+    this._shifts = persisted("shifts_" + this.stateID, new Map(), {
+      serializer: this.mkSerializer(Shift.fromJSON)
     });
   }
 
+  /**
+   * Clear all objects from the state.
+   */
   clear(): void {
-    for (const storage of this.stores) {
+    for (const storage of this._stores) {
       storage.update((map) => {
         map.clear();
         return map;
@@ -48,9 +58,14 @@ export class State {
     }
   }
 
+  /**
+   * Get an object by UUID.
+   * @param obj Object or UUID
+   * @returns Copy of the object, or undefined if not found
+   */
   get(obj: Base | string): Base | undefined {
     const uuid = typeof obj === "string" ? obj : obj.uuid;
-    for (const storage of this.stores) {
+    for (const storage of this._stores) {
       const val = _get(storage).get(uuid);
       if (val !== undefined) {
         return val.copy();
@@ -59,17 +74,27 @@ export class State {
     return undefined;
   }
 
+  /**
+   * Check if an object exists in the state.
+   * @param obj Object or UUID
+   * @returns True if the object exists
+   */
   has(obj: Base | string): boolean {
     return this.get(obj) !== undefined;
   }
 
-  delete(obj: Base | string): void {
+  /**
+   * Delete an object from the state, and let its dependencies know that it has been removed.
+   * @param obj Object or UUID to delete
+   * @returns True if the object was deleted, false if it was not found
+   */
+  delete(obj: Base | string): boolean {
     const target = this.get(obj);
     if (target === undefined) {
-      return;
+      return false;
     }
 
-    for (const storage of this.stores) {
+    for (const storage of this._stores) {
       storage.update((map) => {
         map.delete(target.uuid);
         for (const val of map.values()) {
@@ -78,37 +103,75 @@ export class State {
         return map;
       });
     }
+    return true;
   }
 
-  put(obj: Base): void {
+  /**
+   * Add an object to the state.
+   * @param obj Object to add
+   * @returns UUID of the object
+   * @throws Error if the object type is unknown
+   */
+  put<T extends Base>(obj: T): string {
     if (obj instanceof Skill) {
-      this.skills.update((map) => {
-        map.set(obj.uuid, obj.copy());
+      this._skills.update((map) => {
+        map.set(obj.uuid, (obj as Skill).copy());
         return map;
       });
     } else if (obj instanceof Task) {
-      this.tasks.update((map) => {
-        map.set(obj.uuid, obj.copy());
+      this._tasks.update((map) => {
+        map.set(obj.uuid, (obj as Task).copy());
         return map;
       });
     } else if (obj instanceof Person) {
-      this.people.update((map) => {
-        map.set(obj.uuid, obj.copy());
+      this._people.update((map) => {
+        map.set(obj.uuid, (obj as Person).copy());
         return map;
       });
     } else if (obj instanceof Location) {
-      this.locations.update((map) => {
-        map.set(obj.uuid, obj.copy());
+      this._locations.update((map) => {
+        map.set(obj.uuid, (obj as Location).copy());
         return map;
       });
     } else if (obj instanceof Assignment) {
-      this.assignments.update((map) => {
-        map.set(obj.uuid, obj.copy());
+      this._assignments.update((map) => {
+        map.set(obj.uuid, (obj as Assignment).copy());
         return map;
       });
+    } else if (obj instanceof Shift) {
+      this._shifts.update((map) => {
+        map.set(obj.uuid, (obj as Shift).copy());
+        return map;
+      });
+    } else {
+      throw new Error("Unknown object type");
     }
+    return obj.uuid;
   }
 
+  /**
+   * Put multiple objects into the state.
+   * @param objs Objects to add
+   * @throws Error if any object type is unknown
+   */
+  putAll(objs: Base[]): void {
+    for (const obj of objs) {
+      this.put(obj);
+    }
+    // console.log("putAll");
+    // console.log("Skills: ", _get(this.skills));
+    // console.log("Tasks: ", _get(this.tasks));
+    // console.log("People: ", _get(this.people));
+    // console.log("Locations: ", _get(this.locations));
+    // console.log("Assignments: ", _get(this.assignments));
+    // console.log("Shifts: ", _get(this.shifts));
+  }
+
+  /**
+   * Helper function to create a serializer for a given object type.
+   * @param fromJSON Object's deserialization function
+   * @returns Serializer for the object type
+   */
   private mkSerializer<T extends Base>(
     fromJSON: (json: JsonValue, state?: State) => T
   ): Serializer<Stored<T>> {
@@ -132,7 +195,56 @@ export class State {
     };
   }
 
-  get stores(): Storage<Base>[] {
-    return [this.skills, this.tasks, this.people, this.locations, this.assignments];
+  /**
+   * Get all the stores in the state.
+   */
+  get _stores(): Storage<Base>[] {
+    return [
+      this._skills,
+      this._tasks,
+      this._people,
+      this._locations,
+      this._assignments,
+      this._shifts
+    ];
+  }
+
+  get skills(): Writable<Skill[]> {
+    return this.createWritable(this._skills);
+  }
+
+  get tasks(): Writable<Task[]> {
+    return this.createWritable(this._tasks);
+  }
+
+  get people(): Writable<Person[]> {
+    return this.createWritable(this._people);
+  }
+
+  get locations(): Writable<Location[]> {
+    return this.createWritable(this._locations);
+  }
+
+  get assignments(): Writable<Assignment[]> {
+    return this.createWritable(this._assignments);
+  }
+
+  get shifts(): Writable<Shift[]> {
+    return this.createWritable(this._shifts);
+  }
+
+  private createWritable<T extends Base>(storage: Storage<T>): Writable<T[]> {
+    const readable = derived(storage, (map) => Array.from(map.values()));
+    const set = (items: T[]) => {
+      const uuids = Array.from(_get(storage).keys());
+      const removed = uuids.filter((uuid) => !items.some((item) => item.uuid === uuid));
+      removed.forEach((uuid) => this.delete(uuid));
+      items.forEach((item) => this.put(item));
+    };
+    const update = (fn: (items: T[]) => T[]) => {
+      const current = Array.from(_get(storage).values());
+      set(fn(current));
+    };
+    return { subscribe: readable.subscribe, set, update };
   }
 }

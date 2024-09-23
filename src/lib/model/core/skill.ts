@@ -1,19 +1,11 @@
 import { get } from "svelte/store";
 import type { JsonObject, JsonValue } from "type-fest";
-import { Icon } from "../ui";
+import { Icon, type Display } from "../ui";
 import { copyArr } from "../utils";
 import { Base } from "./base";
 import { Person } from "./person";
 import { State } from "./state";
 import { Task } from "./task";
-
-/**
- * Default icon for a skill.
- */
-const DEF_ICON = new Icon({
-  pack: "lucide",
-  name: "briefcase-business"
-});
 
 /**
  * Represents a skill that a person can have.
@@ -23,19 +15,15 @@ const DEF_ICON = new Icon({
  * @property {Icon} icon - The icon representing the skill.
  * @see Icon
  */
-interface ISkill {
-  name: string;
-  description: string;
-  icon: Icon;
-}
+type ISkill = Display;
 
 /**
  * Represents a skill (qualification) that a person can have.
  */
 export class Skill extends Base implements ISkill {
   private _name: string;
-  private _description: string;
-  private _icon: Icon;
+  private _description?: string;
+  private _icon?: Icon;
 
   /**
    * Creates a new skill.
@@ -48,27 +36,7 @@ export class Skill extends Base implements ISkill {
     super(state, uuid);
     this._name = props.name || "";
     this._description = props.description || "";
-    this._icon = props.icon || DEF_ICON.copy();
-  }
-
-  /**
-   * Creates a skill from a JSON object.
-   * @param json JSON object to create the skill from.
-   * @param state State to bind the skill to.
-   * @returns new Skill
-   */
-  static fromJSON(json: JsonValue, state?: State): Skill {
-    const { name, description, icon, uuid } = json as JsonObject;
-
-    return new Skill(
-      {
-        name: typeof name === "string" ? name : "",
-        description: typeof description === "string" ? description : "",
-        icon: Icon.fromJSON(icon as JsonObject) || DEF_ICON.copy()
-      },
-      state,
-      typeof uuid === "string" ? uuid : undefined
-    );
+    this._icon = props.icon;
   }
 
   /**
@@ -79,7 +47,7 @@ export class Skill extends Base implements ISkill {
    */
   static get(from: State | Skill[], uuid: string): Skill | undefined {
     if (from instanceof State) {
-      return get(from.skills).get(uuid)?.copy();
+      return get(from._skills).get(uuid)?.copy();
     }
     return from.find((skill) => skill.uuid === uuid)?.copy();
   }
@@ -91,7 +59,7 @@ export class Skill extends Base implements ISkill {
    */
   static getAll(from: State | Skill[]): Skill[] {
     if (from instanceof State) {
-      return copyArr(Array.from(get(from.skills).values()));
+      return copyArr(Array.from(get(from._skills).values()));
     }
     return copyArr(from);
   }
@@ -107,53 +75,57 @@ export class Skill extends Base implements ISkill {
   }
 
   /**
-   * Serialises the skill to a JSON object.
-   * @returns JSON representation of the skill.
+   * Deserialize a JSON object into a Skill.
+   * @param json JSON object to deserialize.
+   * @param state State to bind the skill to.
+   * @returns new Skill
    */
-  toJSON(): JsonObject {
+  static fromJSON(json: JsonValue, state?: State): Skill {
+    const { name, description, icon, uuid } = json as JsonObject;
+    return new Skill(
+      {
+        name: name as string,
+        description: description as string,
+        icon: icon ? Icon.fromJSON(icon as JsonObject) : undefined
+      },
+      state,
+      typeof uuid === "string" ? uuid : undefined
+    );
+  }
+
+  /**
+   * Serialize the skill to a JSON object.
+   * @returns JSON object
+   */
+  toJSON(): JsonValue {
     return {
-      uuid: this.uuid,
       name: this._name,
-      description: this._description,
-      icon: this._icon.toJSON()
+      description: this._description || "",
+      icon: this._icon?.toJSON() || null,
+      uuid: this.uuid
     };
   }
 
   /**
-   * Objecs in the state that this skill depends on.
-   * @returns Array of objects that this skill depends on. Currently empty because skills do not depend on other objects.
+   * Get the dependencies of the skill.
+   * @returns Array of dependencies
    */
   dependencies(): Base[] {
     return [];
   }
 
   /**
-   * Handle a dependency being removed from the state. Currently does nothing because skills do not depend on other objects.
+   * Add a dependency to the skill.
+   * @param dep Dependency to add
    */
-  removeDependency(): void {}
-
-  /**
-   * Create a copy of the skill.
-   * @returns a new Skill with the same properties as the original.
-   */
-  copy(): Skill {
-    return new Skill(
-      {
-        name: this._name,
-        description: this._description,
-        icon: this._icon.copy()
-      },
-      this._state,
-      this.uuid
-    );
-  }
+  removeDependency() {}
 
   /**
    * Update the skill from the state.
-   * @param force If true, local data is overwritten even if it is newer than the state. Default is false.
-   * @returns True if the local state has been updated, false otherwise.
+   * @param force If true, force an update even if the skill is already up to date.
+   * @returns True if the skill was updated.
    */
-  update(force: boolean = false): boolean {
+  update(force?: boolean): boolean {
     if (super.update(force)) {
       const skill = this.get() as Skill;
       this._name = skill._name;
@@ -162,6 +134,22 @@ export class Skill extends Base implements ISkill {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Copy the skill.
+   * @returns new Skill
+   */
+  copy(): Skill {
+    return new Skill(
+      {
+        name: this._name,
+        description: this._description,
+        icon: this._icon?.copy()
+      },
+      this._state,
+      this.uuid
+    );
   }
 
   /**
@@ -201,13 +189,13 @@ export class Skill extends Base implements ISkill {
    */
   get description(): string {
     this.update();
-    return this._description;
+    return this._description || "";
   }
 
   /**
-   * Get the icon representing the skill.
+   * Get the icon of the skill.
    */
-  get icon(): Icon {
+  get icon(): Icon | undefined {
     this.update();
     return this._icon;
   }
@@ -229,10 +217,10 @@ export class Skill extends Base implements ISkill {
   }
 
   /**
-   * Set the icon representing the skill.
+   * Set the icon of the skill.
    */
-  set icon(icon: Icon) {
-    this._icon = icon.copy();
+  set icon(icon: Icon | undefined) {
+    this._icon = icon;
     this.touch();
   }
 }

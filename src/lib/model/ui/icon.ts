@@ -2,6 +2,8 @@ import Color from "color";
 import type { JsonObject } from "type-fest";
 import type { Copy } from "../utils";
 
+const DEFAULT_PACK = "lucide";
+
 interface IconName extends JsonObject {
   pack: string;
   name: string;
@@ -16,6 +18,21 @@ export class Icon implements Copy<Icon> {
     this.color = color;
   }
 
+  static fromString(str: string, color?: Color): Icon {
+    if (!str.includes(":")) {
+      return new Icon({ pack: DEFAULT_PACK, name: str }, color);
+    }
+    const [pack, name] = str.split(":");
+    return new Icon({ pack, name }, color);
+  }
+
+  static fromJSON(json: JsonObject): Icon | undefined {
+    const color = typeof json.color === "string" ? Color(json.color) : undefined;
+    const name = typeof json.name === "object" ? (json.name as IconName) : undefined;
+    if (!name) return undefined;
+    return new Icon(name, color);
+  }
+
   toJSON(): JsonObject {
     const ans: JsonObject = {
       name: this.icon
@@ -28,11 +45,8 @@ export class Icon implements Copy<Icon> {
     return ans;
   }
 
-  static fromJSON(json: JsonObject): Icon | undefined {
-    const color = typeof json.color === "string" ? Color(json.color) : undefined;
-    const name = typeof json.name === "object" ? (json.name as IconName) : undefined;
-    if (!name) return undefined;
-    return new Icon(name, color);
+  with(props: { color?: Color; icon?: IconName }): Icon {
+    return new Icon(props.icon || this.icon, props.color || this.color);
   }
 
   copy(): Icon {

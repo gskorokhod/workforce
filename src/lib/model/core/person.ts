@@ -2,6 +2,7 @@ import { CalendarDate, getLocalTimeZone, now, parseDate } from "@internationaliz
 import { get } from "svelte/store";
 import type { JsonObject, JsonValue } from "type-fest";
 import { fullYearsBetween } from "../temporal/utils";
+import type { Display } from "../ui";
 import { copyArr, has, misc, without } from "../utils";
 import type { Assignment } from "./assignment";
 import { Base } from "./base";
@@ -21,11 +22,9 @@ import { State } from "./state";
  * @see CalendarDate
  * @see URL
  */
-interface IPerson {
-  name: string;
+interface IPerson extends Display {
   skills: Skill[];
   job: string;
-  avatar?: URL;
   birthday?: CalendarDate;
 }
 
@@ -34,9 +33,10 @@ interface IPerson {
  */
 export class Person extends Base implements IPerson {
   private _name: string;
+  private _description?: string;
+  private _avatar?: URL;
   private _skills: Skill[];
   private _job: string;
-  private _avatar?: URL;
   private _birthday?: CalendarDate;
 
   /**
@@ -49,9 +49,10 @@ export class Person extends Base implements IPerson {
   constructor(props: Partial<IPerson>, state?: State, uuid?: string) {
     super(state, uuid);
     this._name = props.name || "";
+    this._description = props.description || "";
+    this._avatar = props.avatar;
     this._skills = props.skills || [];
     this._job = props.job || "";
-    this._avatar = props.avatar;
     this._birthday = props.birthday;
   }
 
@@ -63,7 +64,7 @@ export class Person extends Base implements IPerson {
    */
   static get(from: State | Person[], uuid: string): Person | undefined {
     if (from instanceof State) {
-      return get(from.people).get(uuid)?.copy();
+      return get(from._people).get(uuid)?.copy();
     }
     return from.find((person) => person.uuid === uuid)?.copy();
   }
@@ -75,7 +76,7 @@ export class Person extends Base implements IPerson {
    */
   static getAll(from: State | Person[]): Person[] {
     if (from instanceof State) {
-      return copyArr(Array.from(get(from.people).values()));
+      return copyArr(Array.from(get(from._people).values()));
     }
     return copyArr(from);
   }
@@ -109,14 +110,14 @@ export class Person extends Base implements IPerson {
    * @returns new Person, bound to the state if provided.
    */
   static fromJSON(json: JsonValue, state?: State): Person {
-    const { name, skills, job, avatar, birthday, uuid } = json as JsonObject;
-
+    const { uuid, name, description, avatar, skills, job, birthday } = json as JsonObject;
     return new Person(
       {
-        name: typeof name === "string" ? name : "",
-        skills: revivedArr(Skill, skills, state),
-        job: typeof job === "string" ? job : "",
+        name: name as string,
+        description: description as string,
         avatar: avatar ? new URL(avatar as string) : undefined,
+        skills: revivedArr(Skill, skills, state),
+        job: job as string,
         birthday: birthday ? parseDate(birthday as string) : undefined
       },
       state,
@@ -130,19 +131,18 @@ export class Person extends Base implements IPerson {
    */
   toJSON(): JsonValue {
     const ans: JsonObject = {
-      uuid: this.uuid,
       name: this._name,
+      description: this._description || "",
+      avatar: this._avatar?.href || null,
       skills: this._skills.map((skill) => skill.toJSON()),
       job: this._job
     };
 
-    if (this._avatar) {
-      ans.avatar = this._avatar.href;
-    }
-
     if (this._birthday) {
       ans.birthday = this._birthday.toString();
     }
+
+    console.log("Serialized Person: ", ans);
 
     return ans;
   }
@@ -172,6 +172,7 @@ export class Person extends Base implements IPerson {
     return new Person(
       {
         name: this._name,
+        description: this._description,
         skills: copyArr(this._skills),
         job: this._job,
         avatar: this._avatar,
@@ -188,12 +189,14 @@ export class Person extends Base implements IPerson {
    * @returns True if the local state has been updated, false otherwise.
    */
   update(force?: boolean): boolean {
+    console.log("Updating Person: ", this);
     if (super.update(force)) {
       const person = this.get() as Person;
       this._name = person._name;
+      this._description = person._description;
+      this._avatar = person._avatar;
       this._skills = person._skills;
       this._job = person._job;
-      this._avatar = person._avatar;
       this._birthday = person._birthday;
       return true;
     }
@@ -232,7 +235,7 @@ export class Person extends Base implements IPerson {
       return [];
     }
     const assignments = [];
-    for (const assignment of get(this._state.assignments).values()) {
+    for (const assignment of get(this._state._assignments).values()) {
       if (has(assignment.people, this)) {
         assignments.push(assignment.copy());
       }
@@ -249,6 +252,22 @@ export class Person extends Base implements IPerson {
   }
 
   /**
+   * Get the person's description
+   */
+  get description(): string {
+    this.update();
+    return this._description || "";
+  }
+
+  /**
+   * Get the person's avatar
+   */
+  get avatar(): URL | undefined {
+    this.update();
+    return this._avatar;
+  }
+
+  /**
    * Get the person's skills
    */
   get skills(): Skill[] {
@@ -262,14 +281,6 @@ export class Person extends Base implements IPerson {
   get job(): string {
     this.update();
     return this._job;
-  }
-
-  /**
-   * Get the person's avatar URL
-   */
-  get avatar(): URL | undefined {
-    this.update();
-    return this._avatar;
   }
 
   /**
@@ -303,14 +314,6 @@ export class Person extends Base implements IPerson {
   }
 
   /**
-   * Set the person's name
-   */
-  set name(name: string) {
-    this._name = name;
-    this.touch();
-  }
-
-  /**
    * Set the person's skills
    */
   set skills(skills: Skill[]) {
@@ -327,21 +330,34 @@ export class Person extends Base implements IPerson {
   }
 
   /**
-   * Set the person's avatar URL
-   */
-  set avatar(avatar: URL | string | undefined) {
-    if (typeof avatar === "string") {
-      avatar = new URL(avatar);
-    }
-    this._avatar = avatar;
-    this.touch();
-  }
-
-  /**
    * Set the person's birthday
    */
   set birthday(birthday: CalendarDate | undefined) {
     this._birthday = birthday;
+    this.touch();
+  }
+
+  /**
+   * Set the person's name
+   */
+  set name(name: string) {
+    this._name = name;
+    this.touch();
+  }
+
+  /**
+   * Set the person's description
+   */
+  set description(description: string) {
+    this._description = description;
+    this.touch();
+  }
+
+  /**
+   * Set the person's avatar
+   */
+  set avatar(avatar: URL | undefined) {
+    this._avatar = avatar;
     this.touch();
   }
 }

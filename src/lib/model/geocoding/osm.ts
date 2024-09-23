@@ -1,4 +1,4 @@
-import type { LngLat } from "$lib/types/location";
+import type { LngLat } from ".";
 import { Address } from "./types/address";
 import type { OSMPlace, OSMReverseResponse, OSMSearchParams, OSMSearchResponse } from "./types/osm";
 

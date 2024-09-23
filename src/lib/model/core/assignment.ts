@@ -70,7 +70,7 @@ export class Assignment extends Base implements IAssignment {
    */
   static get(from: State | Assignment[], uuid: string): Assignment | undefined {
     if (from instanceof State) {
-      return _get(from.assignments).get(uuid)?.copy();
+      return _get(from._assignments).get(uuid)?.copy();
     }
     return from.find((assignment) => assignment.uuid === uuid)?.copy();
   }
@@ -82,7 +82,7 @@ export class Assignment extends Base implements IAssignment {
    */
   static getAll(from: State | Assignment[]): Assignment[] {
     if (from instanceof State) {
-      return copyArr(Array.from(_get(from.assignments).values()));
+      return copyArr(Array.from(_get(from._assignments).values()));
     }
     return copyArr(from);
   }
@@ -313,7 +313,7 @@ export class Assignment extends Base implements IAssignment {
     }
 
     // ToDo: Update this when location availability is implemented.
-    const locations = _get(this._state.locations).values();
+    const locations = _get(this._state._locations).values();
     return Array.from(locations);
   }
 

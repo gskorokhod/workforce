@@ -2,47 +2,63 @@
 <script lang="ts">
   import { Button } from "$lib/components/ui/button";
   import * as Tooltip from "$lib/components/ui/tooltip";
+  import Color from "color";
   import { PipetteIcon } from "lucide-svelte";
-  import { getTextColour } from "$lib/utils/utils.ts";
 
-  const DEFAULT_COLOURS: string[] = [
-    "#ef4444",
-    "#f97316",
-    "#eab308",
-    "#22c55e",
-    "#14b8a6",
-    "#3b82f6",
-    "#8b5cf6",
-    "#52525b"
+  const DEFAULT_COLOURS: [Color, string][] = [
+    [new Color("#ef4444"), "Red"],
+    [new Color("#f97316"), "Orange"],
+    [new Color("#eab308"), "Yellow"],
+    [new Color("#22c55e"), "Green"],
+    [new Color("#14b8a6"), "Teal"],
+    [new Color("#3b82f6"), "Blue"],
+    [new Color("#8b5cf6"), "Indigo"],
+    [new Color("#52525b"), "Gray"]
   ];
 
-  let options: string[] = DEFAULT_COLOURS;
-  let color: string | undefined = undefined;
+  let options: [Color, string][] = DEFAULT_COLOURS;
+  let color: Color | undefined = undefined;
   let inputValue: string;
   let className: string = "";
-  let onSelect: (c: string) => void = () => {};
+  let onSelect: (c: Color) => void = () => {};
+
+  let inputStyle: string;
+  let pipetteColor: string;
+  $: {
+    if (color && !options.some(([col, _]) => col.hex() === color!.hex())) {
+      inputStyle = `background-color: ${color}; outline: 2px solid ${color}; outline-offset: 2px`;
+      pipetteColor = color.isDark() ? "white" : "black";
+    } else {
+      inputStyle = "";
+      pipetteColor = "currentColor";
+    }
+  }
 
   export { options, color, onSelect, className as class };
 </script>
 
 <div class="flex flex-row flex-wrap gap-2 {className}">
-  {#each options as option}
-    <Button
-      class="h-6 w-6 rounded-full p-0 outline-offset-2 transition-all hover:drop-shadow-lg focus:drop-shadow-lg"
-      style={`background-color: ${option}; color: ${option}; outline: 2px solid ${color === option ? option : "transparent"};`}
-      on:click={() => {
-        color = option;
-        onSelect(color);
-      }}
-    />
+  {#each options as [option, name]}
+    <Tooltip.Root openDelay={50}>
+      <Tooltip.Trigger asChild let:builder>
+        <Button
+          class="h-6 w-6 rounded-full p-0 outline-offset-2 transition-all hover:drop-shadow-lg focus:drop-shadow-lg"
+          style={`background-color: ${option}; color: ${option}; outline: 2px solid ${color === option ? option : "transparent"};`}
+          builders={[builder]}
+          on:click={() => {
+            color = option;
+            onSelect(color);
+          }}
+        />
+      </Tooltip.Trigger>
+      <Tooltip.Content>{name}</Tooltip.Content>
+    </Tooltip.Root>
   {/each}
   <Tooltip.Root>
     <Tooltip.Trigger>
       <div
         class="relative h-6 w-6 rounded-full bg-muted text-accent-foreground transition-all hover:drop-shadow-lg"
-        style={color && !options.includes(color)
-          ? `background-color: ${color}; outline: 2px solid ${color}; outline-offset: 2px`
-          : ""}
+        style={inputStyle}
       >
         <input
           class="absolute left-0 top-0 z-10 h-6 w-6 rounded-full"
@@ -50,13 +66,13 @@
           style="opacity: 0.5%"
           bind:value={inputValue}
           on:input={() => {
-            color = inputValue;
+            color = new Color(inputValue);
             onSelect(color);
           }}
         />
         <PipetteIcon
           class="absolute left-0 top-0 h-6 w-6 p-1 text-accent-foreground"
-          style={color && !options.includes(color) ? `color: ${getTextColour(color)}` : ""}
+          color={pipetteColor}
         />
       </div>
     </Tooltip.Trigger>

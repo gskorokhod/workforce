@@ -9,12 +9,12 @@
   import { tick } from "svelte";
   import type { ComboboxItem } from "$lib/components/ui/combobox/index.ts";
   import Icon from "$lib/components/ui/icon/icon.svelte";
-  import type { IconType } from "$lib/types/ui.ts";
+  import type { Icon as TIcon } from "$lib/model/ui";
 
   let options: ComboboxItem[] = [];
   let open = false;
   let value = "";
-  let icon: IconType;
+  let icon: TIcon | undefined = undefined;
   let placeholder = "Select a value";
 
   $: selectedValue = options.find((f) => f.value === value)?.label ?? placeholder;

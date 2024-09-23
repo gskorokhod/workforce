@@ -1,5 +1,3 @@
-import type { LngLat } from "$lib/types/location";
-
 type BoundingBox = [string, string, string, string];
 
 type OSMAddress = Record<string, string>;
@@ -36,7 +34,7 @@ export interface OSMPlace {
 export interface OSMSearchParams {
   limit?: number;
   min_rank?: number;
-  focusPoint?: LngLat | null;
+  focusPoint?: [number, number] | null;
   countryCodes?: string[];
   boxSize?: number;
   bounded?: boolean;

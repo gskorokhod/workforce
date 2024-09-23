@@ -1,11 +1,11 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import { type Writable, writable } from "svelte/store";
   import { Button } from "$lib/components/ui/button";
-  import { SearchIcon } from "lucide-svelte";
   import { Input } from "$lib/components/ui/input";
   import * as Popover from "$lib/components/ui/popover";
   import { debounce } from "$lib/utils/utils.ts";
+  import { SearchIcon } from "lucide-svelte";
+  import { type Writable, writable } from "svelte/store";
 
   let suggestions: Writable<string[]> = writable([]);
   let searchInput: Writable<string> = writable("");
@@ -17,6 +17,7 @@
   let selectedSuggestion: number = 0;
   let formElement: HTMLFormElement;
   let open: boolean = false;
+  let id: string | undefined = undefined;
   let onInput: (value: string) => void = () => {};
   let onSubmit: (value: string) => void = () => {};
   let getSuggestions: (value: string) => Promise<string[]> = () => Promise.resolve([]);
@@ -63,6 +64,7 @@
   }
 
   export {
+    id,
     searchInput,
     placeholder,
     submitOnSelect,
@@ -80,6 +82,7 @@
   bind:this={formElement}
 >
   <Input
+    {id}
     type="text"
     {placeholder}
     bind:value={$searchInput}

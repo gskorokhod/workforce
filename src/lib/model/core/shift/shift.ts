@@ -1,26 +1,14 @@
 import { Recurrence } from "$lib/model/temporal";
 import { completeDuration } from "$lib/model/temporal/utils";
-import { Icon } from "$lib/model/ui";
+import { Icon, type Display } from "$lib/model/ui";
 import { eq, HashMap } from "$lib/model/utils";
 import { getLocalTimeZone, now, ZonedDateTime, type TimeDuration } from "@internationalized/date";
-import Color from "color";
 import { RRule } from "rrule";
 import type { JsonObject, JsonValue } from "type-fest";
 import { Base } from "../base";
 import { State } from "../state";
 import { Task } from "../task";
 import { ShiftOccurrence } from "./occurrence";
-
-/**
- * Default icon for a shift.
- */
-const DEF_ICON = new Icon(
-  {
-    pack: "lucide",
-    name: "calendar-range"
-  },
-  new Color("#4ade80")
-);
 
 /**
  * Represents a shift that a person can work.
@@ -30,21 +18,20 @@ const DEF_ICON = new Icon(
  * @property {string} name - The name of the shift.
  * @property {Icon} icon - The icon representing the shift. Icon color will be used as the color of the shift.
  */
-interface IShift {
+interface IShift extends Display {
   pattern: Recurrence;
   tasks: Task[] | Map<Task, TimeDuration | undefined>;
-  name: string;
-  icon?: Icon;
 }
 
 /**
  * Represents a shift that a person can work.
  */
 export class Shift extends Base implements IShift {
+  private _name: string;
+  private _description?: string;
+  private _icon?: Icon;
   private _pattern: Recurrence;
   private _tasks: HashMap<Task, TimeDuration | undefined>;
-  private _name: string;
-  private _icon: Icon;
 
   /**
    * Creates a new shift.
@@ -55,6 +42,10 @@ export class Shift extends Base implements IShift {
   constructor(props: Partial<IShift>, state?: State, uuid?: string) {
     super(state, uuid);
 
+    this._name = props.name || "";
+    this._description = props.description || "";
+    this._icon = props.icon;
+
     this._pattern =
       props.pattern ||
       new Recurrence({
@@ -64,10 +55,8 @@ export class Shift extends Base implements IShift {
           interval: 1
         }
       });
-    this._name = props.name || "";
-    this._tasks = new HashMap(undefined, undefined, eq);
-    this._icon = props.icon || DEF_ICON.copy();
 
+    this._tasks = new HashMap(undefined, undefined, eq);
     if (props.tasks) {
       this.initialiseTasks(props.tasks);
     }
@@ -79,14 +68,20 @@ export class Shift extends Base implements IShift {
    */
   private initialiseTasks(tasks: Task[] | Map<Task, TimeDuration | undefined>): void {
     this._tasks = new HashMap(undefined, undefined, eq);
-    if (tasks instanceof Map) {
-      tasks.forEach((duration, task) => {
-        this._tasks.set(task.copy(), copyDuration(duration || this._pattern.duration));
-      });
-    } else {
+    if (Array.isArray(tasks)) {
       tasks.forEach((task) => {
         this._tasks.set(task.copy(), copyDuration(this._pattern.duration));
       });
+      // tasks.forEach((duration, task) => {
+      //   this._tasks.set(task.copy(), copyDuration(duration || this._pattern.duration));
+      // });
+    } else {
+      tasks.forEach((duration, task) => {
+        this._tasks.set(task.copy(), copyDuration(duration));
+      });
+      // tasks.forEach((task) => {
+      //   this._tasks.set(task.copy(), copyDuration(this._pattern.duration));
+      // });
     }
   }
 
@@ -97,16 +92,17 @@ export class Shift extends Base implements IShift {
    * @returns new Shift
    */
   static fromJSON(json: JsonValue, state?: State): Shift {
-    const { uuid, pattern, tasks, name, icon } = json as JsonObject;
+    const { name, description, icon, pattern, tasks, uuid } = json as JsonObject;
     return new Shift(
       {
+        name: name as string,
+        description: description as string,
+        icon: icon ? Icon.fromJSON(icon as JsonObject) : undefined,
         pattern: Recurrence.fromJSON(pattern as JsonObject),
-        tasks: tasksParse(tasks, state),
-        icon: Icon.fromJSON(icon as JsonObject) || DEF_ICON.copy(),
-        name: name as string
+        tasks: tasksParse(tasks, state)
       },
       state,
-      uuid as string
+      typeof uuid === "string" ? uuid : undefined
     );
   }
 
@@ -116,11 +112,11 @@ export class Shift extends Base implements IShift {
    */
   toJSON(): JsonValue {
     return {
-      uuid: this.uuid,
+      name: this._name,
+      description: this._description || "",
+      icon: this._icon?.toJSON() || null,
       pattern: this._pattern.toJSON(),
-      tasks: tasksJSON(this._tasks),
-      icon: this._icon.toJSON(),
-      name: this._name
+      tasks: tasksJSON(this._tasks)
     };
   }
 
@@ -151,7 +147,9 @@ export class Shift extends Base implements IShift {
       {
         pattern: this._pattern.copy(),
         tasks: tasksCopy(this._tasks),
-        name: this._name
+        name: this._name,
+        description: this._description,
+        icon: this._icon?.copy()
       },
       this._state,
       this.uuid
@@ -166,9 +164,11 @@ export class Shift extends Base implements IShift {
   update(force?: boolean): boolean {
     if (super.update(force)) {
       const shift = this.get() as Shift;
+      this._name = shift._name;
+      this._description = shift._description;
+      this._icon = shift._icon;
       this._pattern = shift._pattern;
       this._tasks = shift._tasks;
-      this._name = shift._name;
       return true;
     }
     return false;
@@ -252,6 +252,30 @@ export class Shift extends Base implements IShift {
   }
 
   /**
+   * Get the name of the shift.
+   */
+  get name(): string {
+    this.update();
+    return this._name;
+  }
+
+  /**
+   * Get the description of the shift.
+   */
+  get description(): string {
+    this.update();
+    return this._description || "";
+  }
+
+  /**
+   * Get the icon representing the shift.
+   */
+  get icon(): Icon | undefined {
+    this.update();
+    return this._icon?.copy();
+  }
+
+  /**
    * Get the recurrence pattern of the shift.
    */
   get pattern(): Recurrence {
@@ -268,34 +292,26 @@ export class Shift extends Base implements IShift {
   }
 
   /**
-   * Get the name of the shift.
+   * Set the name of the shift.
    */
-  get name(): string {
-    this.update();
-    return this._name;
+  set name(name: string) {
+    this._name = name;
+    this.touch();
   }
 
   /**
-   * Get the icon representing the shift.
+   * Set the description of the shift.
    */
-  get icon(): Icon {
-    this.update();
-    return this._icon.copy();
+  set description(description: string) {
+    this._description = description;
+    this.touch();
   }
 
   /**
    * Set the icon representing the shift.
    */
-  set icon(icon: Icon) {
-    this._icon = icon.copy();
-    this.touch();
-  }
-
-  /**
-   * Set the name of the shift.
-   */
-  set name(name: string) {
-    this._name = name;
+  set icon(icon: Icon | undefined) {
+    this._icon = icon;
     this.touch();
   }
 

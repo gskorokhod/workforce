@@ -1,5 +1,6 @@
 import { get } from "svelte/store";
-import type { JsonObject, JsonValue, PartialDeep } from "type-fest";
+import type { JsonObject, JsonValue } from "type-fest";
+import { Icon, type Display } from "../ui";
 import { copyArr, has, hasAll, without } from "../utils";
 import { Assignment } from "./assignment";
 import { Base } from "./base";
@@ -14,9 +15,7 @@ interface TaskMinMax {
   people: number;
 }
 
-interface ITask {
-  name: string;
-  description: string;
+interface ITask extends Display {
   skills: Skill[];
   min: TaskMinMax;
   max: TaskMinMax;
@@ -24,15 +23,17 @@ interface ITask {
 
 export class Task extends Base implements ITask {
   private _name: string;
-  private _description: string;
+  private _description?: string;
+  private _icon?: Icon;
   private _skills: Skill[] = [];
   private _min: TaskMinMax;
   private _max: TaskMinMax;
 
-  constructor(props: PartialDeep<ITask>, state?: State, uuid?: string) {
+  constructor(props: Partial<ITask>, state?: State, uuid?: string) {
     super(state, uuid);
     this._name = props.name || "";
     this._description = props.description || "";
+    this._icon = props.icon;
     this.skills = props.skills || [];
     this._min = { people: props.min?.people || 0 };
     this._max = { people: props.max?.people || Infinity };
@@ -46,7 +47,7 @@ export class Task extends Base implements ITask {
    */
   static get(from: State | Task[], uuid: string): Task | undefined {
     if (from instanceof State) {
-      return get(from.tasks).get(uuid)?.copy();
+      return get(from._tasks).get(uuid)?.copy();
     }
     return from.find((task) => task.uuid === uuid)?.copy();
   }
@@ -58,7 +59,7 @@ export class Task extends Base implements ITask {
    */
   static getAll(from: State | Task[]): Task[] {
     if (from instanceof State) {
-      return copyArr(Array.from(get(from.tasks).values()));
+      return copyArr(Array.from(get(from._tasks).values()));
     }
     return copyArr(from);
   }
@@ -140,17 +141,18 @@ export class Task extends Base implements ITask {
    * @returns new Task
    */
   static fromJSON(json: JsonValue, state?: State): Task {
-    const { name, description, skills, uuid, min: _min, max: _max } = json as JsonObject;
-    const min = _min as { people?: number };
-    const max = _max as { people?: number };
+    const { name, description, icon, skills, _min, _max, uuid } = json as JsonObject;
+    const min = _min ? (_min as JsonObject) : { people: 0 };
+    const max = _max ? (_max as JsonObject) : { people: Infinity };
 
     return new Task(
       {
-        name: typeof name === "string" ? name : undefined,
-        description: typeof description === "string" ? description : undefined,
+        name: name as string,
+        description: description as string,
+        icon: icon ? Icon.fromJSON(icon as JsonObject) : undefined,
         skills: revivedArr(Skill, skills, state),
-        min,
-        max
+        min: { people: (min?.people as number) || 0 },
+        max: { people: (max?.people as number) || Infinity }
       },
       state,
       typeof uuid === "string" ? uuid : undefined
@@ -163,9 +165,9 @@ export class Task extends Base implements ITask {
    */
   toJSON(): JsonValue {
     const ans: JsonObject = {
-      uuid: this.uuid,
       name: this._name,
-      description: this._description,
+      description: this._description || "",
+      icon: this._icon?.toJSON() || null,
       skills: this._skills.map((skill) => skill.toJSON()),
       min: {
         people: this._min.people
@@ -205,6 +207,7 @@ export class Task extends Base implements ITask {
       {
         name: this._name,
         description: this._description,
+        icon: this._icon?.copy(),
         skills: copyArr(this._skills)
       },
       this._state,
@@ -222,7 +225,10 @@ export class Task extends Base implements ITask {
       const task = this.get() as Task;
       this._name = task._name;
       this._description = task._description;
+      this._icon = task._icon;
       this._skills = task._skills;
+      this._min = task._min;
+      this._max = task._max;
       return true;
     }
     return false;
@@ -274,7 +280,15 @@ export class Task extends Base implements ITask {
    */
   get description(): string {
     this.update();
-    return this._description;
+    return this._description || "";
+  }
+
+  /**
+   * Get the icon of the task.
+   */
+  get icon(): Icon | undefined {
+    this.update();
+    return this._icon;
   }
 
   /**
@@ -302,22 +316,6 @@ export class Task extends Base implements ITask {
   }
 
   /**
-   * Set the name of the task.
-   */
-  set name(name: string) {
-    this._name = name;
-    this.touch();
-  }
-
-  /**
-   * Set the description of the task.
-   */
-  set description(description: string) {
-    this._description = description;
-    this.touch();
-  }
-
-  /**
    * Set the skills required for the task.
    */
   set skills(skills: Skill[]) {
@@ -338,6 +336,30 @@ export class Task extends Base implements ITask {
    */
   set max(max: Partial<TaskMinMax>) {
     this._max.people = max.people || Infinity;
+    this.touch();
+  }
+
+  /**
+   * Set the name of the task.
+   */
+  set name(name: string) {
+    this._name = name;
+    this.touch();
+  }
+
+  /**
+   * Set the description of the task.
+   */
+  set description(description: string) {
+    this._description = description;
+    this.touch();
+  }
+
+  /**
+   * Set the icon of the task.
+   */
+  set icon(icon: Icon | undefined) {
+    this._icon = icon;
     this.touch();
   }
 }

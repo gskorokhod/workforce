@@ -27,7 +27,7 @@ export class ShiftOccurrence extends TimeSlot {
       return ans;
     }
 
-    const assignments = get(this.shift.state.assignments).values();
+    const assignments = get(this.shift.state._assignments).values();
     for (const assignment of assignments) {
       const clash = this.intersect(assignment.time);
       if (clash) {

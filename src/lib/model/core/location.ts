@@ -1,10 +1,11 @@
 import { get } from "svelte/store";
-import type { JsonObject, JsonValue, PartialDeep } from "type-fest";
+import type { JsonObject, JsonValue } from "type-fest";
 import { Geopoint, type LngLat } from "../geocoding";
+import { type Display } from "../ui";
+import { copyArr } from "../utils";
 import { Assignment } from "./assignment";
 import { Base } from "./base";
 import { State } from "./state";
-import { copyArr } from "../utils";
 
 /**
  * Represents the minimum and maximum number of people and tasks that can be assigned to a location.
@@ -24,10 +25,12 @@ interface LocationMinMax {
  * @see LocationMinMax
  * @see Geopoint
  */
-interface ILocation {
+interface ILocation extends Display {
   name: string;
-  min: LocationMinMax;
-  max: LocationMinMax;
+  description?: string;
+  min: Partial<LocationMinMax>;
+  max: Partial<LocationMinMax>;
+  avatar?: URL;
   point?: Geopoint;
 }
 
@@ -36,9 +39,11 @@ interface ILocation {
  */
 export class Location extends Base implements ILocation {
   private _name: string;
+  private _description?: string;
   private _min: LocationMinMax;
   private _max: LocationMinMax;
   private _point?: Geopoint;
+  private _avatar?: URL;
 
   /**
    * Creates a new location.
@@ -46,9 +51,11 @@ export class Location extends Base implements ILocation {
    * @param state State to bind the location to.
    * @param uuid UUID of the location. If not provided, a new UUID is generated.
    */
-  constructor(props: PartialDeep<ILocation>, state?: State, uuid?: string) {
+  constructor(props: Partial<ILocation>, state?: State, uuid?: string) {
     super(state, uuid);
     this._name = props.name || "";
+    this._description = props.description || "";
+    this._avatar = props.avatar;
     this._point = props.point instanceof Geopoint ? props.point : undefined;
     this._min = mkMin(props.min || {});
     this._max = mkMax(props.max || {});
@@ -62,7 +69,7 @@ export class Location extends Base implements ILocation {
    */
   static get(from: State | Location[], uuid: string): Location | undefined {
     if (from instanceof State) {
-      return get(from.locations).get(uuid)?.copy();
+      return get(from._locations).get(uuid)?.copy();
     }
     return from.find((location) => location.uuid === uuid)?.copy();
   }
@@ -74,7 +81,7 @@ export class Location extends Base implements ILocation {
    */
   static getAll(from: State | Location[]): Location[] {
     if (from instanceof State) {
-      return copyArr(Array.from(get(from.locations).values()));
+      return copyArr(Array.from(get(from._locations).values()));
     }
     return copyArr(from);
   }
@@ -147,11 +154,13 @@ export class Location extends Base implements ILocation {
    * @returns new Location
    */
   static fromJSON(json: JsonValue, state?: State): Location {
-    const { name, min, max, point, uuid } = json as JsonObject;
+    const { name, description, avatar, min, max, point, uuid } = json as JsonObject;
 
     return new Location(
       {
-        name: typeof name === "string" ? name : undefined,
+        name: name as string,
+        description: description as string,
+        avatar: avatar ? new URL(avatar as string) : undefined,
         point: point ? Geopoint.fromJSON(point as JsonObject) : undefined,
         min: mkMin(min as Partial<LocationMinMax>),
         max: mkMax(max as Partial<LocationMinMax>)
@@ -169,6 +178,8 @@ export class Location extends Base implements ILocation {
     const ans: JsonObject = {
       uuid: this.uuid,
       name: this._name,
+      description: this._description || "",
+      avatar: this._avatar?.href || null,
       min: this._min as unknown as JsonObject,
       max: this._max as unknown as JsonObject
     };
@@ -188,6 +199,8 @@ export class Location extends Base implements ILocation {
     return new Location(
       {
         name: this._name,
+        description: this._description,
+        avatar: this._avatar,
         point: this._point,
         min: this._min,
         max: this._max
@@ -206,6 +219,8 @@ export class Location extends Base implements ILocation {
     if (super.update(force)) {
       const location = this.get() as Location;
       this._name = location._name;
+      this._description = location._description;
+      this._avatar = location._avatar;
       this._point = location._point;
       this._min = location._min;
       this._max = location._max;
@@ -247,6 +262,14 @@ export class Location extends Base implements ILocation {
   }
 
   /**
+   * Get the description of the location.
+   */
+  get description(): string | undefined {
+    this.update();
+    return this._description;
+  }
+
+  /**
    * Get the address and coordinates of the location.
    * @see Geopoint
    */
@@ -274,10 +297,26 @@ export class Location extends Base implements ILocation {
   }
 
   /**
+   * Get the URL of the avatar image for the location.
+   */
+  get avatar(): URL | undefined {
+    this.update();
+    return this._avatar;
+  }
+
+  /**
    * Set the name of the location.
    */
   set name(name: string) {
     this._name = name;
+    this.touch();
+  }
+
+  /**
+   * Set the description of the location.
+   */
+  set description(description: string | undefined) {
+    this._description = description;
     this.touch();
   }
 
@@ -302,6 +341,14 @@ export class Location extends Base implements ILocation {
    */
   set max(max: Partial<LocationMinMax>) {
     this._max = mkMax(max);
+    this.touch();
+  }
+
+  /**
+   * Set the URL of the avatar image for the location.
+   */
+  set avatar(avatar: URL | undefined) {
+    this._avatar = avatar;
     this.touch();
   }
 }

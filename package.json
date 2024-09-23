@@ -56,7 +56,7 @@
     "@iconify/json": "^2.2.234",
     "@internationalized/date": "^3.5.5",
     "@types/color": "^3.0.6",
-    "bits-ui": "^0.21.13",
+    "bits-ui": "^0.21.15",
     "clsx": "^2.1.1",
     "cmdk-sv": "^0.0.18",
     "color": "^4.2.3",

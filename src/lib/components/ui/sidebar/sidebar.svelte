@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { SidebarPosition } from "$lib/components/ui/sidebar/index.ts";
   import { Button } from "$lib/components/ui/button";
+  import { SidebarPosition } from "$lib/components/ui/sidebar/index.ts";
   import { PanelLeftCloseIcon, PanelLeftOpenIcon, PanelRightCloseIcon } from "lucide-svelte";
 
   let isExpanded: boolean = false;
@@ -8,6 +8,7 @@
   let expandedWidth: string = "250px";
   let collapsedWidth: string = "72px";
   let variant: "top" | "center" | "bottom" = "center";
+  let className: string = "";
 
   let variantClasses: string = {
     top: "justify-start h-full",
@@ -15,11 +16,11 @@
     bottom: "justify-end h-full"
   }[variant];
 
-  export { isExpanded, position, expandedWidth, collapsedWidth, variant };
+  export { isExpanded, position, expandedWidth, collapsedWidth, variant, className as class };
 </script>
 
 <nav
-  class="z-20 flex h-full shrink-0 grow-0 flex-col justify-between overflow-hidden bg-gray-300 transition-all duration-200 ease-out"
+  class="z-20 flex h-full shrink-0 grow-0 flex-col justify-between overflow-hidden bg-gray-300 transition-all duration-200 ease-out {className}"
   style={isExpanded ? `width: ${expandedWidth}` : `width: ${collapsedWidth}`}
 >
   <div
@@ -32,7 +33,7 @@
         isExpanded = !isExpanded;
       }}
       variant="ghost"
-      size="icon_xl"
+      size="icon-xl"
     >
       {#if position === SidebarPosition.left}
         {#if isExpanded}

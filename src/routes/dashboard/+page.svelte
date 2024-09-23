@@ -1,39 +1,21 @@
 <script lang="ts">
   import type { ComboboxItem } from "$lib/components/ui/combobox";
 
-  import IconPicker from "$lib/components/elements/icon-picker/icon-picker.svelte";
-  import LocationEditDialog from "$lib/components/elements/location/location-edit-dialog.svelte";
-  import PeopleList from "$lib/components/elements/person/people-list.svelte";
-  import PeopleSelectorList from "$lib/components/elements/person/people-selector-list.svelte";
-  import PersonEditDialog from "$lib/components/elements/person/person-edit-dialog.svelte";
-  import SkillEditDialog from "$lib/components/elements/skill/skill-edit-dialog.svelte";
-  import SkillsList from "$lib/components/elements/skill/skills-list.svelte";
-  import SkillsSelectorList from "$lib/components/elements/skill/skills-selector-list.svelte";
-  import TaskEditDialog from "$lib/components/elements/task/task-edit-dialog.svelte";
-  import TasksList from "$lib/components/elements/task/tasks-list.svelte";
   import { Button } from "$lib/components/ui/button";
-  import { ChipSize, ChipVariant } from "$lib/components/ui/chip";
   import Chip from "$lib/components/ui/chip/chip.svelte";
-  import ColourPicker from "$lib/components/ui/color-picker/color-picker.svelte";
   import Combobox from "$lib/components/ui/combobox/combobox.svelte";
+  import EditDialog from "$lib/components/ui/edit-dialog/edit-dialog.svelte";
+  import IconPicker from "$lib/components/ui/image-picker/icon-picker.svelte";
+  import ImagePicker from "$lib/components/ui/image-picker/image-picker.svelte";
+  import { Profile } from "$lib/components/ui/profile-picture";
   import Search from "$lib/components/ui/search/search.svelte";
-  import { employees, locations, skills, tasks } from "$lib/stores.ts";
-  import {
-    defaultLocationProps,
-    defaultPersonProps,
-    defaultSkillProps,
-    defaultTaskProps,
-    type IconType,
-    type LocationProps,
-    type PersonProps,
-    type SkillProps,
-    type TaskProps
-  } from "$lib/types";
-  import { generateIcon } from "$lib/utils/dummy_data.ts";
-  import { sampleOne } from "$lib/utils/utils.ts";
+  import { Selector } from "$lib/components/ui/selector";
+  import SelectorMany from "$lib/components/ui/selector/selector-many.svelte";
+  import { populateState } from "$lib/dummy-data";
+  import { State } from "$lib/model";
+  import { Icon, type Display } from "$lib/model/ui";
   import { faker } from "@faker-js/faker";
-  import { GraduationCapIcon, PaletteIcon, XIcon } from "lucide-svelte";
-  import { type Writable, writable } from "svelte/store";
+  import { GraduationCapIcon, XIcon } from "lucide-svelte";
 
   const schedules: ComboboxItem[] = [
     { label: "Schedule 1", value: "schedule1" },
@@ -54,50 +36,25 @@
     return Promise.resolve(ans);
   }
 
-  let personProps: Writable<PersonProps> = writable(defaultPersonProps());
-  let skillProps: Writable<SkillProps> = writable(defaultSkillProps());
-  let taskProps: Writable<TaskProps> = writable(defaultTaskProps());
-  let locationProps: Writable<LocationProps> = writable(defaultLocationProps());
-
-  let input: Writable<string> = writable("");
-  let submitted: Writable<string> = writable("");
-  let color: string = faker.color.rgb();
-  let icon: IconType = generateIcon();
-
-  employees.subscribe((value) => {
-    personProps.set(sampleOne(value) as PersonProps);
-  });
-
-  tasks.subscribe((value) => {
-    taskProps.set(sampleOne(value) as TaskProps);
-  });
-
-  locations.subscribe((value) => {
-    locationProps.set(sampleOne(value) as LocationProps);
-  });
-
-  skills.subscribe((value) => {
-    skillProps.set(sampleOne(value) as SkillProps);
-  });
+  let icon: Icon = Icon.fromString("lucide:calendar");
+  let dummyDisplay: Display = {
+    name: "John Doe",
+    icon: Icon.fromString("lucide:user"),
+    avatar: new URL(faker.image.avatar())
+  };
+  let dummyState: State = new State("dummy_state");
+  let people = dummyState.people;
+  let skills = dummyState.skills;
+  let tasks = dummyState.tasks;
 </script>
 
 <div class="h-dvh w-full overflow-y-scroll bg-gray-50">
+  <Button on:click={() => populateState(dummyState)}>Populate</Button>
   <main class="flex w-full flex-col gap-6 pl-6 pt-4">
     <h1 class="text-2xl font-semibold">Components playground</h1>
     <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Search</h2>
-      <p>
-        Last input: "{$input}"
-      </p>
-      <p>
-        Last submitted: "{$submitted}"
-      </p>
-      <Search
-        class="w-[250px]"
-        {getSuggestions}
-        onInput={(s) => input.set(s)}
-        onSubmit={(s) => submitted.set(s)}
-      />
+      <Search class="w-[250px]" {getSuggestions} />
     </section>
     <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Chip</h2>
@@ -108,59 +65,19 @@
         <GraduationCapIcon slot="icon" />
         <XIcon slot="hover_icon" />
       </Chip>
-      <Chip variant={ChipVariant.outline}>
+      <Chip variant="outline">
         <GraduationCapIcon slot="icon" />
         <XIcon slot="hover_icon" />
       </Chip>
       <Chip>
         <GraduationCapIcon slot="icon" />
-        Chip content
-      </Chip>
-      <Chip>
-        <GraduationCapIcon slot="icon" />
-        <XIcon slot="hover_icon" />
-        Hover over me
-        <svelte:fragment slot="hover">Hello world!</svelte:fragment>
-      </Chip>
-      <Chip {color} variant={ChipVariant.color}>
-        <PaletteIcon slot="icon" />
-        <XIcon slot="hover_icon" />
-        Colour (default)
-      </Chip>
-      <Chip {color} variant={ChipVariant.colorOutline}>
-        <PaletteIcon slot="icon" />
-        <XIcon slot="hover_icon" />
-        Colour (outline)
-      </Chip>
-      <Chip {color} variant={ChipVariant.colorSolid}>
-        <PaletteIcon slot="icon" />
-        <XIcon slot="hover_icon" />
-        Colour (solid)
-      </Chip>
-      <Chip {color} variant={ChipVariant.color}>
-        <PaletteIcon slot="icon" />
-      </Chip>
-      <Chip {color} variant={ChipVariant.colorOutline}>
-        <PaletteIcon slot="icon" />
-      </Chip>
-      <Chip {color} variant={ChipVariant.colorSolid}>
-        <PaletteIcon slot="icon" />
-      </Chip>
-      <Chip size={ChipSize.lg} variant={ChipVariant.destructive}>
-        <GraduationCapIcon class="h-7 w-7" slot="icon" />
-        <XIcon class="h-7 w-7" slot="hover_icon" />
-        Chip content
-      </Chip>
-      <Chip size={ChipSize.sm} variant={ChipVariant.outline}>
-        <GraduationCapIcon class="h-5 w-5" slot="icon" />
-        <XIcon class="h-5 w-5" slot="hover_icon" />
         Chip content
       </Chip>
     </section>
     <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Combobox</h2>
       <Combobox
-        icon={{ icon: "mdi:calendar" }}
+        icon={Icon.fromString("lucide:calendar")}
         options={schedules}
         placeholder="Select schedule..."
       />
@@ -171,64 +88,45 @@
       <IconPicker bind:icon />
     </section>
     <section class="flex w-full flex-col gap-3">
-      <h2 class="text-xl">Colour Picker</h2>
-      <ColourPicker />
-    </section>
-    <section class="flex w-full flex-col items-start gap-3">
-      <h2 class="text-xl">Edit dialogs</h2>
-      <PersonEditDialog bind:personProps>
-        <Button>Edit employee</Button>
-      </PersonEditDialog>
-      <SkillEditDialog bind:skillProps>
-        <Button>Edit skill</Button>
-      </SkillEditDialog>
-      <TaskEditDialog bind:taskProps>
-        <Button>Edit task</Button>
-      </TaskEditDialog>
-      {#if locationProps}
-        <LocationEditDialog bind:locationProps>
-          <Button>Edit location</Button>
-        </LocationEditDialog>
-      {/if}
+      <h2 class="text-xl">Image Picker</h2>
+      <ImagePicker item={dummyDisplay} />
     </section>
     <section class="flex w-full flex-col gap-3">
-      <h2 class="text-xl">People list</h2>
-      <PeopleList compact={true} people={$employees} />
-      <PeopleList compact={true} max={3} people={$employees} />
-      <PeopleList compact={false} people={$employees} />
-      <PeopleList compact={false} max={3} people={$employees} />
+      <h2 class="text-xl">Profile</h2>
+      <Profile item={$people[0]} placeholder="Select person..." />
+      <Profile variant="full" item={$people[0]} placeholder="Select person..." />
+      <Profile variant="text" item={$people[0]} placeholder="Select person..." />
+      <Profile item={$skills[0]} placeholder="Select skill..." />
     </section>
     <section class="flex w-full flex-col gap-3">
-      <h2 class="text-xl">People selector list</h2>
-      <p>People selector list (compact)</p>
-      <PeopleSelectorList
-        compact={true}
-        max_people={$taskProps.max_people}
-        min_people={$taskProps.min_people}
-        options={$employees}
-        people_uuids={$taskProps.people_uuids}
-      />
-      <p>People selector list (full)</p>
-      <PeopleSelectorList
-        max_people={$taskProps.max_people}
-        min_people={$taskProps.min_people}
-        options={$employees}
-        people_uuids={$taskProps.people_uuids}
-      />
+      <h2 class="text-xl">Selector (One)</h2>
+      <h3 class="text-lg">Default</h3>
+      <Selector value={$people[0]} options={$people} />
+      <Selector value={$skills[0]} options={$skills} />
+      <h3 class="text-lg">Full</h3>
+      <Selector value={$people[0]} options={$people} variant="full" />
+      <Selector value={$skills[0]} options={$skills} variant="full" />
+      <h3 class="text-lg">Compact</h3>
+      <Selector value={$people[0]} options={$people} variant="compact" />
+      <Selector value={$skills[0]} options={$skills} variant="compact" />
     </section>
     <section class="flex w-full flex-col gap-3">
-      <h2 class="text-xl">Skills</h2>
-      <SkillsList skills={$skills} />
-      <SkillsList compact={false} skills={$skills} />
-      <SkillsSelectorList />
-      <SkillsSelectorList n_skills={3} />
-      <SkillsSelectorList compact={false} />
-      <SkillsSelectorList compact={false} n_skills={3} />
+      <h2 class="text-xl">Selector (Many)</h2>
+      <h3 class="text-lg">Default</h3>
+      <SelectorMany value={$people.slice(0, 2)} options={$people} />
+      <SelectorMany value={$skills.slice(0, 2)} options={$skills} />
+      <h3 class="text-lg">Full</h3>
+      <SelectorMany value={$people.slice(0, 2)} options={$people} variant="full" />
+      <SelectorMany value={$skills.slice(0, 2)} options={$skills} variant="full" />
+      <h3 class="text-lg">Compact</h3>
+      <SelectorMany value={$people.slice(0, 2)} options={$people} variant="compact" />
+      <SelectorMany value={$skills.slice(0, 2)} options={$skills} variant="compact" />
     </section>
-    <section class="flex w-full flex-col gap-3">
-      <h2 class="text-xl">Task lists</h2>
-      <TasksList tasks={$tasks} />
-      <TasksList compact={false} tasks={$tasks} />
+    <section>
+      <h2 class="mb-1.5 text-xl">Edit Dialog</h2>
+      <EditDialog item={$people[0]} title="Edit Person" />
+      <EditDialog item={$skills[0]} title="Edit Skill" />
+      <EditDialog item={$tasks[0]} title="Edit Task" />
     </section>
   </main>
 </div>

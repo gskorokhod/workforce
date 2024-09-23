@@ -9,3 +9,11 @@ export function getInitials(name: string): string {
     .map((n) => n[0].toUpperCase())
     .join("");
 }
+
+export function lstrip(s: string, substr: string): string {
+  if (substr.length === 0 || s.length === 0) return s;
+  while (s.startsWith(substr)) {
+    s = s.slice(substr.length);
+  }
+  return s;
+}
