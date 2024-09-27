@@ -59,7 +59,7 @@
       {id}
       aria-expanded={open}
       builders={[builder]}
-      class="group/selector !h-max w-max px-2 py-0.5 {BTN_SIZE[
+      class="group/selector !h-max w-max px-2 py-2 {BTN_SIZE[
         size
       ]} overflow-visible rounded-full outline-none hover:outline-accent-foreground"
       role="combobox"

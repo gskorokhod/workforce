@@ -4,6 +4,7 @@
   import { Button } from "$lib/components/ui/button";
   import Chip from "$lib/components/ui/chip/chip.svelte";
   import Combobox from "$lib/components/ui/combobox/combobox.svelte";
+  import PersonDataTable from "$lib/components/ui/data-table/person-data-table.svelte";
   import EditDialog from "$lib/components/ui/edit-dialog/edit-dialog.svelte";
   import IconPicker from "$lib/components/ui/image-picker/icon-picker.svelte";
   import ImagePicker from "$lib/components/ui/image-picker/image-picker.svelte";
@@ -127,6 +128,10 @@
       <EditDialog item={$people[0]} title="Edit Person" />
       <EditDialog item={$skills[0]} title="Edit Skill" />
       <EditDialog item={$tasks[0]} title="Edit Task" />
+    </section>
+    <section>
+      <h2>Data Table</h2>
+      <PersonDataTable data={people} />
     </section>
   </main>
 </div>
