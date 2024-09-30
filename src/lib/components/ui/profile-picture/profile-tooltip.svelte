@@ -40,7 +40,7 @@
       </div>
     </div>
     {#if item.description}
-      <p>{item.description}</p>
+      <p class="max-w-[30ch] text-gray-500">{item.description}</p>
     {/if}
   {/if}
 {:else}

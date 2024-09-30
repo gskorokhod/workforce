@@ -27,10 +27,10 @@ interface IShift extends Display {
  * Represents a shift that a person can work.
  */
 export class Shift extends Base implements IShift {
-  private _name: string;
-  private _description?: string;
-  private _icon?: Icon;
-  private _pattern: Recurrence;
+  name: string;
+  description?: string;
+  icon?: Icon;
+  pattern: Recurrence;
   private _tasks: HashMap<Task, TimeDuration | undefined>;
 
   /**
@@ -42,11 +42,11 @@ export class Shift extends Base implements IShift {
   constructor(props: Partial<IShift>, state?: State, uuid?: string) {
     super(state, uuid);
 
-    this._name = props.name || "";
-    this._description = props.description || "";
-    this._icon = props.icon;
+    this.name = props.name || "";
+    this.description = props.description || "";
+    this.icon = props.icon;
 
-    this._pattern =
+    this.pattern =
       props.pattern ||
       new Recurrence({
         dtstart: now(getLocalTimeZone()),
@@ -70,18 +70,12 @@ export class Shift extends Base implements IShift {
     this._tasks = new HashMap(undefined, undefined, eq);
     if (Array.isArray(tasks)) {
       tasks.forEach((task) => {
-        this._tasks.set(task.copy(), copyDuration(this._pattern.duration));
+        this._tasks.set(task.copy(), copyDuration(this.pattern.duration));
       });
-      // tasks.forEach((duration, task) => {
-      //   this._tasks.set(task.copy(), copyDuration(duration || this._pattern.duration));
-      // });
     } else {
       tasks.forEach((duration, task) => {
         this._tasks.set(task.copy(), copyDuration(duration));
       });
-      // tasks.forEach((task) => {
-      //   this._tasks.set(task.copy(), copyDuration(this._pattern.duration));
-      // });
     }
   }
 
@@ -110,32 +104,15 @@ export class Shift extends Base implements IShift {
    * Serialize the shift to a JSON object.
    * @returns JSON object representing the shift.
    */
-  toJSON(): JsonValue {
+  toJSON(): JsonObject {
     return {
-      name: this._name,
-      description: this._description || "",
-      icon: this._icon?.toJSON() || null,
-      pattern: this._pattern.toJSON(),
-      tasks: tasksJSON(this._tasks)
+      uuid: this.uuid,
+      name: this.name,
+      description: this.description || "",
+      icon: this.icon?.toJSON() || null,
+      pattern: this.pattern.toJSON(),
+      tasks: tasksJSON(this.tasks)
     };
-  }
-
-  /**
-   * Get objects in the state that the shift depends on.
-   * @returns Array of dependencies.
-   */
-  dependencies(): Base[] {
-    return Array.from(this._tasks.keys());
-  }
-
-  /**
-   * Handle a dependency being removed from the state.
-   * @param dep Dependency to remove.
-   */
-  removeDependency(dep: Base): void {
-    if (dep instanceof Task) {
-      this.removeTask(dep);
-    }
   }
 
   /**
@@ -145,33 +122,15 @@ export class Shift extends Base implements IShift {
   copy(): Shift {
     return new Shift(
       {
-        pattern: this._pattern.copy(),
+        pattern: this.pattern.copy(),
         tasks: tasksCopy(this._tasks),
-        name: this._name,
-        description: this._description,
-        icon: this._icon?.copy()
+        name: this.name,
+        description: this.description,
+        icon: this.icon?.copy()
       },
-      this._state,
+      this.state,
       this.uuid
     );
-  }
-
-  /**
-   * Update the shift with the current value from the state.
-   * @param force If true, local data is overwritten even if it is newer than the state. Default is false.
-   * @returns True if the local state has been updated, false otherwise.
-   */
-  update(force?: boolean): boolean {
-    if (super.update(force)) {
-      const shift = this.get() as Shift;
-      this._name = shift._name;
-      this._description = shift._description;
-      this._icon = shift._icon;
-      this._pattern = shift._pattern;
-      this._tasks = shift._tasks;
-      return true;
-    }
-    return false;
   }
 
   /**
@@ -182,7 +141,7 @@ export class Shift extends Base implements IShift {
    * @see {@link Recurrence.getOccurrence}
    */
   getOccurrence(n: number = 0, tzid: string = getLocalTimeZone()): ShiftOccurrence | undefined {
-    const occurrence = this._pattern.getOccurrence(n, tzid);
+    const occurrence = this.pattern.getOccurrence(n, tzid);
     if (occurrence) {
       const { start, end } = occurrence;
       return new ShiftOccurrence(start, end, this.copy());
@@ -201,7 +160,7 @@ export class Shift extends Base implements IShift {
     date: ZonedDateTime,
     tzid: string = getLocalTimeZone()
   ): ShiftOccurrence | undefined {
-    const occurrence = this._pattern.getOccurrenceOn(date, tzid);
+    const occurrence = this.pattern.getOccurrenceOn(date, tzid);
     if (occurrence) {
       const { start, end } = occurrence;
       return new ShiftOccurrence(start, end, this.copy());
@@ -227,7 +186,7 @@ export class Shift extends Base implements IShift {
     inclusive: boolean = true,
     limit: number = -1
   ): ShiftOccurrence[] {
-    const occurrences = this._pattern.getOccurrences(after, before, tzid, inclusive, limit);
+    const occurrences = this.pattern.getOccurrences(after, before, tzid, inclusive, limit);
     return occurrences.map(({ start, end }) => new ShiftOccurrence(start, end, this.copy()));
   }
 
@@ -238,8 +197,7 @@ export class Shift extends Base implements IShift {
    * @param duration Duration of the task. If not set, the task will last the whole shift.
    */
   putTask(task: Task, duration?: TimeDuration): void {
-    this._tasks.set(task, duration || this._pattern.duration);
-    this.touch();
+    this._tasks.set(task.copy(), duration || this.pattern.duration);
   }
 
   /**
@@ -248,71 +206,23 @@ export class Shift extends Base implements IShift {
    */
   removeTask(task: Task): void {
     this._tasks.delete(task);
-    this.touch();
-  }
-
-  /**
-   * Get the name of the shift.
-   */
-  get name(): string {
-    this.update();
-    return this._name;
-  }
-
-  /**
-   * Get the description of the shift.
-   */
-  get description(): string {
-    this.update();
-    return this._description || "";
-  }
-
-  /**
-   * Get the icon representing the shift.
-   */
-  get icon(): Icon | undefined {
-    this.update();
-    return this._icon?.copy();
-  }
-
-  /**
-   * Get the recurrence pattern of the shift.
-   */
-  get pattern(): Recurrence {
-    this.update();
-    return this._pattern.copy();
   }
 
   /**
    * Get the tasks of the shift, with their durations.
    */
   get tasks(): Map<Task, TimeDuration | undefined> {
-    this.update();
-    return tasksCopy(this._tasks);
-  }
-
-  /**
-   * Set the name of the shift.
-   */
-  set name(name: string) {
-    this._name = name;
-    this.touch();
-  }
-
-  /**
-   * Set the description of the shift.
-   */
-  set description(description: string) {
-    this._description = description;
-    this.touch();
-  }
-
-  /**
-   * Set the icon representing the shift.
-   */
-  set icon(icon: Icon | undefined) {
-    this._icon = icon;
-    this.touch();
+    let ans = this._tasks;
+    if (this.state) {
+      ans = new HashMap<Task, TimeDuration | undefined>(undefined, undefined, eq);
+      this._tasks.forEach((duration, task) => {
+        const t = task.get();
+        if (t) {
+          ans.set(t as Task, duration);
+        }
+      });
+    }
+    return tasksCopy(ans);
   }
 
   /**
@@ -321,16 +231,6 @@ export class Shift extends Base implements IShift {
    */
   set tasks(tasks: Map<Task, TimeDuration | undefined> | Task[]) {
     this.initialiseTasks(tasks);
-    this.touch();
-  }
-
-  /**
-   * Set the recurrence pattern of the shift.
-   * @param pattern New pattern.
-   */
-  set pattern(pattern: Recurrence) {
-    this._pattern = pattern.copy();
-    this.touch();
   }
 }
 

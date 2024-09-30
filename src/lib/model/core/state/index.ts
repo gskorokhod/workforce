@@ -9,6 +9,7 @@ import { Person } from "../person";
 import { Shift } from "../shift";
 import { Skill } from "../skill";
 import { Task } from "../task";
+import { copyArr, type Copy } from "../../utils";
 
 // A map of UUIDs to objects of type T
 type Stored<T extends Base> = Map<string, T>;
@@ -97,9 +98,6 @@ export class State {
     for (const storage of this._stores) {
       storage.update((map) => {
         map.delete(target.uuid);
-        for (const val of map.values()) {
-          val.removeDependency(target);
-        }
         return map;
       });
     }
@@ -115,32 +113,32 @@ export class State {
   put<T extends Base>(obj: T): string {
     if (obj instanceof Skill) {
       this._skills.update((map) => {
-        map.set(obj.uuid, (obj as Skill).copy());
+        map.set(obj.uuid, obj as Skill);
         return map;
       });
     } else if (obj instanceof Task) {
       this._tasks.update((map) => {
-        map.set(obj.uuid, (obj as Task).copy());
+        map.set(obj.uuid, obj as Task);
         return map;
       });
     } else if (obj instanceof Person) {
       this._people.update((map) => {
-        map.set(obj.uuid, (obj as Person).copy());
+        map.set(obj.uuid, obj as Person);
         return map;
       });
     } else if (obj instanceof Location) {
       this._locations.update((map) => {
-        map.set(obj.uuid, (obj as Location).copy());
+        map.set(obj.uuid, obj as Location);
         return map;
       });
     } else if (obj instanceof Assignment) {
       this._assignments.update((map) => {
-        map.set(obj.uuid, (obj as Assignment).copy());
+        map.set(obj.uuid, obj as Assignment);
         return map;
       });
     } else if (obj instanceof Shift) {
       this._shifts.update((map) => {
-        map.set(obj.uuid, (obj as Shift).copy());
+        map.set(obj.uuid, obj as Shift);
         return map;
       });
     } else {
@@ -233,13 +231,11 @@ export class State {
     return this.createWritable(this._shifts);
   }
 
-  private createWritable<T extends Base>(storage: Storage<T>): Writable<T[]> {
-    const readable = derived(storage, (map) => Array.from(map.values()));
+  private createWritable<T extends Base & Copy<T>>(storage: Storage<T>): Writable<T[]> {
+    const readable = derived(storage, (map) => copyArr(Array.from(map.values())));
     const set = (items: T[]) => {
-      const uuids = Array.from(_get(storage).keys());
-      const removed = uuids.filter((uuid) => !items.some((item) => item.uuid === uuid));
-      removed.forEach((uuid) => this.delete(uuid));
-      items.forEach((item) => this.put(item));
+      const copied = copyArr(items);
+      storage.set(new Map(copied.map((item) => [item.uuid, item])));
     };
     const update = (fn: (items: T[]) => T[]) => {
       const current = Array.from(_get(storage).values());

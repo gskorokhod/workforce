@@ -9,7 +9,15 @@
   import * as Table from "$lib/components/ui/table";
   import { cn } from "$lib/utils/utils.ts";
   import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-svelte";
-  import { createRender, createTable, type ReadOrWritable, Render, Subscribe } from "svelte-headless-table";
+  import {
+    createRender,
+    createTable,
+    type ReadOrWritable,
+    Render,
+    Subscribe,
+    BodyRow,
+    DataBodyRow
+  } from "svelte-headless-table";
   import {
     addHiddenColumns,
     addPagination,
@@ -23,6 +31,7 @@
 
   let data: ReadOrWritable<T[]>;
   let actions: RowActions<T> = new Map();
+  let defaultAction: (item: T) => void = () => {};
   let columnInitializers: ColumnInitializer<T, V>[] = [];
   let paginationConfig: PaginationConfig | undefined = undefined;
   let sortByConfig: SortByConfig | undefined = undefined;
@@ -40,19 +49,19 @@
   });
 
   const actionsCol: ColumnInitializer<T> = {
-      accessor: (row) => row,
-      cell: (cell) => createRender(ActionsBtn<T>, { actions, item: cell.value }),
-      header: "Actions",
-      id: "actions",
-      plugins: {
-        sort: {
-          disable: true
-        },
-        tableFilter: {
-          disable: true
-        }
+    accessor: (row) => row,
+    cell: (cell) => createRender(ActionsBtn<T>, { actions, item: cell.value }),
+    header: "Actions",
+    id: "actions",
+    plugins: {
+      sort: {
+        disable: true
+      },
+      tableFilter: {
+        disable: true
       }
     }
+  };
   const colInits = [...columnInitializers, actionsCol];
   const columns = table.createColumns(colInits.map((col) => table.column(col)));
   const { flatColumns, headerRows, pageRows, pluginStates, tableAttrs, tableBodyAttrs } =
@@ -62,18 +71,25 @@
   const { sortKeys } = pluginStates.sort;
   const { hiddenColumnIds } = pluginStates.hide;
   const { selectedDataIds } = pluginStates.select;
-  
-  let hideForId: { [key: string]: boolean } = {};
 
+  let hideForId: { [key: string]: boolean } = {};
   $: $hiddenColumnIds = Object.entries(hideForId)
     .filter(([, hide]) => hide)
     .map(([id]) => id);
+
+  function clickRow(row: BodyRow<T>) {
+    if (row.isData()) {
+      const drow = row as DataBodyRow<T>;
+      defaultAction(drow.original);
+    }
+  }
 
   export {
     className as class,
     columnInitializers,
     data,
     actions,
+    defaultAction,
     filterValue,
     flatColumns,
     hideForId,
@@ -131,7 +147,7 @@
       <Table.Body {...$tableBodyAttrs}>
         {#each $pageRows as row (row.id)}
           <Subscribe let:rowAttrs rowAttrs={row.attrs()}>
-            <Table.Row {...rowAttrs} on:click={() => console.log(row)}>
+            <Table.Row {...rowAttrs} on:click={() => clickRow(row)}>
               {#each row.cells as cell (cell.id)}
                 <Subscribe attrs={cell.attrs()} let:attrs props={cell.props()}>
                   <Table.Cell class="[&:has([role=checkbox])]:pl-3" {...attrs}>

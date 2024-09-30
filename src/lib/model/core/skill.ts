@@ -21,9 +21,9 @@ type ISkill = Display;
  * Represents a skill (qualification) that a person can have.
  */
 export class Skill extends Base implements ISkill {
-  private _name: string;
-  private _description?: string;
-  private _icon?: Icon;
+  name: string;
+  description?: string;
+  icon?: Icon;
 
   /**
    * Creates a new skill.
@@ -34,9 +34,9 @@ export class Skill extends Base implements ISkill {
    */
   constructor(props: Partial<ISkill>, state?: State, uuid?: string) {
     super(state, uuid);
-    this._name = props.name || "";
-    this._description = props.description || "";
-    this._icon = props.icon;
+    this.name = props.name || "";
+    this.description = props.description || "";
+    this.icon = props.icon;
   }
 
   /**
@@ -97,43 +97,13 @@ export class Skill extends Base implements ISkill {
    * Serialize the skill to a JSON object.
    * @returns JSON object
    */
-  toJSON(): JsonValue {
+  toJSON(): JsonObject {
     return {
-      name: this._name,
-      description: this._description || "",
-      icon: this._icon?.toJSON() || null,
-      uuid: this.uuid
+      uuid: this.uuid,
+      name: this.name,
+      description: this.description || "",
+      icon: this.icon?.toJSON() || null
     };
-  }
-
-  /**
-   * Get the dependencies of the skill.
-   * @returns Array of dependencies
-   */
-  dependencies(): Base[] {
-    return [];
-  }
-
-  /**
-   * Add a dependency to the skill.
-   * @param dep Dependency to add
-   */
-  removeDependency() {}
-
-  /**
-   * Update the skill from the state.
-   * @param force If true, force an update even if the skill is already up to date.
-   * @returns True if the skill was updated.
-   */
-  update(force?: boolean): boolean {
-    if (super.update(force)) {
-      const skill = this.get() as Skill;
-      this._name = skill._name;
-      this._description = skill._description;
-      this._icon = skill._icon;
-      return true;
-    }
-    return false;
   }
 
   /**
@@ -143,11 +113,11 @@ export class Skill extends Base implements ISkill {
   copy(): Skill {
     return new Skill(
       {
-        name: this._name,
-        description: this._description,
-        icon: this._icon?.copy()
+        name: this.name,
+        description: this.description,
+        icon: this.icon?.copy()
       },
-      this._state,
+      this.state,
       this.uuid
     );
   }
@@ -158,10 +128,10 @@ export class Skill extends Base implements ISkill {
    * @returns Array of tasks that require this skill.
    */
   getTasks(): Task[] {
-    if (!this._state) {
+    if (!this.state) {
       return [];
     }
-    return Task.getRequiring(this._state, this);
+    return Task.getRequiring(this.state, this);
   }
 
   /**
@@ -170,57 +140,9 @@ export class Skill extends Base implements ISkill {
    * @returns Array of people with this skill.
    */
   getPeople(): Person[] {
-    if (!this._state) {
+    if (!this.state) {
       return [];
     }
-    return Person.getWith(this._state, this);
-  }
-
-  /**
-   * Get the name of the skill.
-   */
-  get name(): string {
-    this.update();
-    return this._name;
-  }
-
-  /**
-   * Get the description of the skill.
-   */
-  get description(): string {
-    this.update();
-    return this._description || "";
-  }
-
-  /**
-   * Get the icon of the skill.
-   */
-  get icon(): Icon | undefined {
-    this.update();
-    return this._icon;
-  }
-
-  /**
-   * Set the name of the skill.
-   */
-  set name(name: string) {
-    this._name = name;
-    this.touch();
-  }
-
-  /**
-   * Set the description of the skill.
-   */
-  set description(description: string) {
-    this._description = description;
-    this.touch();
-  }
-
-  /**
-   * Set the icon of the skill.
-   */
-  set icon(icon: Icon | undefined) {
-    this._icon = icon;
-    this.touch();
+    return Person.getWith(this.state, this);
   }
 }

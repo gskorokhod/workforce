@@ -20,7 +20,7 @@
   let position: SidebarPosition = SidebarPosition.left;
   let isExpanded: boolean = false;
 
-  function isActive(href: string): boolean {
+  $: isActive = (href: string) => {
     const pageURL = misc.lstrip($page.url.pathname, base);
     const linkURL = misc.lstrip(href, base);
 
@@ -28,7 +28,7 @@
       return pageURL === linkURL;
     }
     return pageURL.startsWith(linkURL);
-  }
+  };
 </script>
 
 <Sidebar {collapsedWidth} {expandedWidth} {isExpanded} {position}>

@@ -38,12 +38,12 @@ interface ILocation extends Display {
  * Represents a location where tasks can be performed.
  */
 export class Location extends Base implements ILocation {
-  private _name: string;
-  private _description?: string;
-  private _min: LocationMinMax;
-  private _max: LocationMinMax;
-  private _point?: Geopoint;
-  private _avatar?: URL;
+  name: string;
+  description?: string;
+  min: LocationMinMax;
+  max: LocationMinMax;
+  point?: Geopoint;
+  avatar?: URL;
 
   /**
    * Creates a new location.
@@ -53,12 +53,12 @@ export class Location extends Base implements ILocation {
    */
   constructor(props: Partial<ILocation>, state?: State, uuid?: string) {
     super(state, uuid);
-    this._name = props.name || "";
-    this._description = props.description || "";
-    this._avatar = props.avatar;
-    this._point = props.point instanceof Geopoint ? props.point : undefined;
-    this._min = mkMin(props.min || {});
-    this._max = mkMax(props.max || {});
+    this.name = props.name || "";
+    this.description = props.description || "";
+    this.avatar = props.avatar;
+    this.point = props.point instanceof Geopoint ? props.point : undefined;
+    this.min = mkMin(props.min || {});
+    this.max = mkMax(props.max || {});
   }
 
   /**
@@ -174,18 +174,18 @@ export class Location extends Base implements ILocation {
    * Serialize the location to a JSON object.
    * @returns JSON object representing the location.
    */
-  toJSON(): JsonValue {
+  toJSON(): JsonObject {
     const ans: JsonObject = {
       uuid: this.uuid,
-      name: this._name,
-      description: this._description || "",
-      avatar: this._avatar?.href || null,
-      min: this._min as unknown as JsonObject,
-      max: this._max as unknown as JsonObject
+      name: this.name,
+      description: this.description || "",
+      avatar: this.avatar?.href || null,
+      min: this.min as unknown as JsonObject,
+      max: this.max as unknown as JsonObject
     };
 
-    if (this._point) {
-      ans.point = this._point.toJSON();
+    if (this.point) {
+      ans.point = this.point.toJSON();
     }
 
     return ans;
@@ -198,158 +198,27 @@ export class Location extends Base implements ILocation {
   copy(): Location {
     return new Location(
       {
-        name: this._name,
-        description: this._description,
-        avatar: this._avatar,
-        point: this._point,
-        min: this._min,
-        max: this._max
+        name: this.name,
+        description: this.description,
+        avatar: this.avatar ? new URL(this.avatar.href) : undefined,
+        point: this.point?.copy(),
+        min: this.min,
+        max: this.max
       },
-      this._state,
+      this.state,
       this.uuid
     );
   }
-
-  /**
-   * Update the location from the state.
-   * @param force If true, local data is overwritten even if it is newer than the state. Default is false.
-   * @returns True if the local state has been updated, false otherwise.
-   */
-  update(force: boolean = false): boolean {
-    if (super.update(force)) {
-      const location = this.get() as Location;
-      this._name = location._name;
-      this._description = location._description;
-      this._avatar = location._avatar;
-      this._point = location._point;
-      this._min = location._min;
-      this._max = location._max;
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Get objects in the state that this location depends on.
-   * @returns Array of dependencies. At the moment, it is always empty because locations do not depend on other objects.
-   */
-  dependencies(): Base[] {
-    return [];
-  }
-
-  /**
-   * Handle a dependency being removed from the state. At the moment, it does nothing because locations do not depend on other objects.
-   */
-  removeDependency(): void {}
 
   /**
    * Get assignments at this location.
    * @returns Array of assignments at the location.
    */
   getAssignments(): Assignment[] {
-    if (!this._state) {
+    if (!this.state) {
       return [];
     }
-    return Assignment.getWith(this._state, this);
-  }
-
-  /**
-   * Get the name of the location.
-   */
-  get name(): string {
-    this.update();
-    return this._name;
-  }
-
-  /**
-   * Get the description of the location.
-   */
-  get description(): string | undefined {
-    this.update();
-    return this._description;
-  }
-
-  /**
-   * Get the address and coordinates of the location.
-   * @see Geopoint
-   */
-  get point(): Geopoint | undefined {
-    this.update();
-    return this._point;
-  }
-
-  /**
-   * Get the minimum number of people and tasks that can be assigned to the location.
-   * @see LocationMinMax
-   */
-  get min(): LocationMinMax {
-    this.update();
-    return this._min;
-  }
-
-  /**
-   * Get the maximum number of people and tasks that can be assigned to the location.
-   * @see LocationMinMax
-   */
-  get max(): LocationMinMax {
-    this.update();
-    return this._max;
-  }
-
-  /**
-   * Get the URL of the avatar image for the location.
-   */
-  get avatar(): URL | undefined {
-    this.update();
-    return this._avatar;
-  }
-
-  /**
-   * Set the name of the location.
-   */
-  set name(name: string) {
-    this._name = name;
-    this.touch();
-  }
-
-  /**
-   * Set the description of the location.
-   */
-  set description(description: string | undefined) {
-    this._description = description;
-    this.touch();
-  }
-
-  /**
-   * Set the coordinates of the location.
-   */
-  set point(point: Geopoint | undefined) {
-    this._point = point;
-    this.touch();
-  }
-
-  /**
-   * Set the minimum number of people and tasks that can be assigned to the location.
-   */
-  set min(min: Partial<LocationMinMax>) {
-    this._min = mkMin(min);
-    this.touch();
-  }
-
-  /**
-   * Set the maximum number of people and tasks that can be assigned to the location.
-   */
-  set max(max: Partial<LocationMinMax>) {
-    this._max = mkMax(max);
-    this.touch();
-  }
-
-  /**
-   * Set the URL of the avatar image for the location.
-   */
-  set avatar(avatar: URL | undefined) {
-    this._avatar = avatar;
-    this.touch();
+    return Assignment.getWith(this.state, this);
   }
 }
 

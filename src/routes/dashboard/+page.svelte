@@ -125,9 +125,15 @@
     </section>
     <section>
       <h2 class="mb-1.5 text-xl">Edit Dialog</h2>
-      <EditDialog item={$people[0]} title="Edit Person" />
-      <EditDialog item={$skills[0]} title="Edit Skill" />
-      <EditDialog item={$tasks[0]} title="Edit Task" />
+      <EditDialog item={$people[0]} title="Edit Person">
+        <Button>Edit Person</Button>
+      </EditDialog>
+      <EditDialog item={$skills[0]} title="Edit Skill">
+        <Button>Edit Skill</Button>
+      </EditDialog>
+      <EditDialog item={$tasks[0]} title="Edit Task">
+        <Button>Edit Task</Button>
+      </EditDialog>
     </section>
     <section>
       <h2>Data Table</h2>

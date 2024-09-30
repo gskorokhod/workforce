@@ -22,21 +22,21 @@ interface ITask extends Display {
 }
 
 export class Task extends Base implements ITask {
-  private _name: string;
-  private _description?: string;
-  private _icon?: Icon;
+  name: string;
+  description?: string;
+  icon?: Icon;
+  min: TaskMinMax;
+  max: TaskMinMax;
   private _skills: Skill[] = [];
-  private _min: TaskMinMax;
-  private _max: TaskMinMax;
 
   constructor(props: Partial<ITask>, state?: State, uuid?: string) {
     super(state, uuid);
-    this._name = props.name || "";
-    this._description = props.description || "";
-    this._icon = props.icon;
-    this.skills = props.skills || [];
-    this._min = { people: props.min?.people || 0 };
-    this._max = { people: props.max?.people || Infinity };
+    this.name = props.name || "";
+    this.description = props.description || "";
+    this.icon = props.icon;
+    this.min = { people: props.min?.people || 0 };
+    this.max = { people: props.max?.people || Infinity };
+    this._skills = props.skills || [];
   }
 
   /**
@@ -163,39 +163,22 @@ export class Task extends Base implements ITask {
    * Serialize the task to a JSON value.
    * @returns JSON value representing the task.
    */
-  toJSON(): JsonValue {
+  toJSON(): JsonObject {
     const ans: JsonObject = {
-      name: this._name,
-      description: this._description || "",
-      icon: this._icon?.toJSON() || null,
-      skills: this._skills.map((skill) => skill.toJSON()),
+      uuid: this.uuid,
+      name: this.name,
+      description: this.description || "",
+      icon: this.icon?.toJSON() || null,
+      skills: this.skills.map((skill) => skill.toJSON()),
       min: {
-        people: this._min.people
+        people: this.min.people
       },
       max: {
-        people: this._max.people === Infinity ? null : this._max.people
+        people: this.max.people === Infinity ? null : this.max.people
       }
     };
 
     return ans;
-  }
-
-  /**
-   * Get the objects in the state that this task depends on.
-   * @returns Array of dependencies.
-   */
-  dependencies(): Base[] {
-    return this._skills;
-  }
-
-  /**
-   * Handle a dependency being removed from the state.
-   * @param dep Dependency to remove
-   */
-  removeDependency(dep: Base): void {
-    if (dep instanceof Skill) {
-      this.removeSkill(dep);
-    }
   }
 
   /**
@@ -205,33 +188,25 @@ export class Task extends Base implements ITask {
   copy(): Task {
     return new Task(
       {
-        name: this._name,
-        description: this._description,
-        icon: this._icon?.copy(),
-        skills: copyArr(this._skills)
+        name: this.name,
+        description: this.description,
+        icon: this.icon?.copy(),
+        skills: copyArr(this.skills)
       },
-      this._state,
+      this.state,
       this.uuid
     );
   }
 
   /**
-   * Update the task with the current value from the state.
-   * @param force If true, local data is overwritten even if it is newer than the state. Default is false.
-   * @returns True if local state has been updated, false otherwise. If the object is not bound to a state or doesn't exist there, always returns false.
+   * Write this Task and its required skills to the state
    */
-  update(force: boolean = false): boolean {
-    if (super.update(force)) {
-      const task = this.get() as Task;
-      this._name = task._name;
-      this._description = task._description;
-      this._icon = task._icon;
-      this._skills = task._skills;
-      this._min = task._min;
-      this._max = task._max;
-      return true;
+  put() {
+    if (this.state) {
+      this.state.put(this);
+      this._skills.forEach((skill) => (skill.state = this.state));
+      this._skills.forEach((skill) => skill.put());
     }
-    return false;
   }
 
   /**
@@ -241,7 +216,6 @@ export class Task extends Base implements ITask {
   addSkill(skill: Skill): void {
     if (!has(this._skills, skill)) {
       this._skills.push(skill);
-      this.touch();
     }
   }
 
@@ -252,7 +226,6 @@ export class Task extends Base implements ITask {
   removeSkill(skill: Skill): void {
     if (has(this._skills, skill)) {
       this._skills = without(this._skills, skill);
-      this.touch();
     }
   }
 
@@ -261,58 +234,21 @@ export class Task extends Base implements ITask {
    * @returns Array of assignments for this task.
    */
   getAssignments(): Assignment[] {
-    if (!this._state) {
+    if (!this.state) {
       return [];
     }
-    return Assignment.getWith(this._state, this);
-  }
-
-  /**
-   * Get the name of the task.
-   */
-  get name(): string {
-    this.update();
-    return this._name;
-  }
-
-  /**
-   * Get the description of the task.
-   */
-  get description(): string {
-    this.update();
-    return this._description || "";
-  }
-
-  /**
-   * Get the icon of the task.
-   */
-  get icon(): Icon | undefined {
-    this.update();
-    return this._icon;
+    return Assignment.getWith(this.state, this);
   }
 
   /**
    * Get the skills required for the task.
    */
   get skills(): Skill[] {
-    this.update();
-    return this._skills;
-  }
-
-  /**
-   * Get the minimum number of people that can be assigned to the task.
-   */
-  get min(): { people: number } {
-    return this._min;
-  }
-
-  /**
-   * Get the maximum number of people that can be assigned to the task.
-   */
-  get max(): { people: number } {
-    return {
-      people: this._max?.people || Infinity
-    };
+    let ans = this._skills;
+    if (this.state) {
+      ans = this._skills.map((s) => s.get()).filter((s) => s !== undefined) as Skill[];
+    }
+    return copyArr(ans);
   }
 
   /**
@@ -320,46 +256,5 @@ export class Task extends Base implements ITask {
    */
   set skills(skills: Skill[]) {
     this._skills = copyArr(skills);
-    this.touch();
-  }
-
-  /**
-   * Set the minimum number of people that can be assigned to the task.
-   */
-  set min(min: Partial<TaskMinMax>) {
-    this._min.people = min.people || 0;
-    this.touch();
-  }
-
-  /**
-   * Set the maximum number of people that can be assigned to the task.
-   */
-  set max(max: Partial<TaskMinMax>) {
-    this._max.people = max.people || Infinity;
-    this.touch();
-  }
-
-  /**
-   * Set the name of the task.
-   */
-  set name(name: string) {
-    this._name = name;
-    this.touch();
-  }
-
-  /**
-   * Set the description of the task.
-   */
-  set description(description: string) {
-    this._description = description;
-    this.touch();
-  }
-
-  /**
-   * Set the icon of the task.
-   */
-  set icon(icon: Icon | undefined) {
-    this._icon = icon;
-    this.touch();
   }
 }

@@ -1,4 +1,5 @@
 import type { JsonObject } from "type-fest";
+import type { Copy } from "../../utils";
 
 /**
  * A structured address.
@@ -55,7 +56,7 @@ type AddressField = keyof Address;
  * Note: This is designed to be a simple, structured representation of an address that can be easily displayed in the UI, manipulated, parsed, etc.
  *       It is not intended to be comprehensive or 100% accurate to real-world administrative divisions / hierarchy.
  */
-export class Address {
+export class Address implements Copy<Address> {
   /**
    * The identifier of a space within a building.
    * (E.g.: apartment, office, unit, floor, etc.)
@@ -147,6 +148,13 @@ export class Address {
       country: this.country,
       postcode: this.postcode
     };
+  }
+
+  /**
+   * Create a copy of the Address object.
+   */
+  copy(): Address {
+    return new Address(this.toJSON());
   }
 
   /**

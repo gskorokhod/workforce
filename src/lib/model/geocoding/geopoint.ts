@@ -4,8 +4,9 @@ import type { LngLat } from ".";
 import { geocode, reverseGeocode, search } from "./osm";
 import { Address } from "./types/address";
 import type { OSMSearchParams } from "./types/osm";
+import { type Copy } from "../utils";
 
-export class Geopoint {
+export class Geopoint implements Copy<Geopoint> {
   private _address: Address;
   private _coords: LngLat;
 
@@ -79,6 +80,13 @@ export class Geopoint {
     }
 
     return new Geopoint(coords);
+  }
+
+  /**
+   * Create a copy of this geopoint.
+   */
+  copy(): Geopoint {
+    return new Geopoint(this.coords, this.address.copy());
   }
 
   /**

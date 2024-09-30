@@ -41,7 +41,7 @@ interface IAssignment {
  * Represents an assignment of people to a task at a location during a time slot.
  */
 export class Assignment extends Base implements IAssignment {
-  private _time: TimeSlot;
+  time: TimeSlot;
   private _people: Person[] = [];
   private _location?: Location;
   private _task?: Task;
@@ -56,7 +56,7 @@ export class Assignment extends Base implements IAssignment {
   constructor(props: Partial<IAssignment>, state?: State, uuid?: string) {
     super(state, uuid);
     const dtNow = now(getLocalTimeZone());
-    this._time = props.time || new TimeSlot(dtNow, dtNow.add({ hours: 1 }));
+    this.time = props.time || new TimeSlot(dtNow, dtNow.add({ hours: 1 }));
     this._people = props.people || [];
     this._location = props.location;
     this._task = props.task;
@@ -200,19 +200,19 @@ export class Assignment extends Base implements IAssignment {
    * Serialize the `Assignment` to a JSON object.
    * @returns JSON object representing the `Assignment`.
    */
-  toJSON(): JsonValue {
+  toJSON(): JsonObject {
     const ans: JsonObject = {
       uuid: this.uuid,
-      time: this._time.toJSON(),
-      people: this._people.map((person) => person.toJSON())
+      time: this.time.toJSON(),
+      people: this.people.map((person) => person.toJSON())
     };
 
-    if (this._location) {
-      ans.location = this._location.toJSON();
+    if (this.location) {
+      ans.location = this.location.toJSON();
     }
 
-    if (this._task) {
-      ans.task = this._task.toJSON();
+    if (this.task) {
+      ans.task = this.task.toJSON();
     }
 
     return ans;
@@ -225,59 +225,28 @@ export class Assignment extends Base implements IAssignment {
   copy(): Assignment {
     return new Assignment(
       {
-        time: this._time.copy(),
+        time: this.time.copy(),
         people: copyArr(this._people),
         location: this._location ? this._location.copy() : undefined,
         task: this._task ? this._task.copy() : undefined
       },
-      this._state,
+      this.state,
       this.uuid
     );
   }
 
-  /**
-   * Get all objects in the State that this `Assignment` depends on.
-   * @returns Array of objects that this `Assignment` depends on.
-   */
-  dependencies(): Base[] {
-    return [
-      ...this._people,
-      ...(this._location ? [this._location] : []),
-      ...(this._task ? [this._task] : [])
-    ];
-  }
+  put(): void {
+    if (this.state) {
+      this.state.put(this);
 
-  /**
-   * Handle a dependency being deleted from the State.
-   * @param dep Dependency to remove.
-   */
-  removeDependency(dep: Base): void {
-    if (dep instanceof Person) {
-      this.removePerson(dep);
-    } else if (dep instanceof Location) {
-      this._location = undefined;
-      this.touch();
-    } else if (dep instanceof Task) {
-      this._task = undefined;
-      this.touch();
-    }
-  }
+      this._people.forEach((p) => (p.state = this.state));
+      if (this._location) this._location.state = this.state;
+      if (this._task) this._task.state = this.state;
 
-  /**
-   * Update the local state with the current value from the bound state.
-   * @param force If true, force an update even if the local state is newer. Default is false.
-   * @returns True if the local state has been updated, false otherwise.
-   */
-  update(force: boolean = false): boolean {
-    if (super.update(force)) {
-      const assignment = this.get() as Assignment;
-      this._time = assignment._time;
-      this._people = assignment._people;
-      this._location = assignment._location;
-      this._task = assignment._task;
-      return true;
+      this.people.forEach((p) => p.put());
+      this.location?.put();
+      this.task?.put();
     }
-    return false;
   }
 
   /**
@@ -287,7 +256,6 @@ export class Assignment extends Base implements IAssignment {
   addPerson(person: Person): void {
     if (!has(this._people, person)) {
       this._people.push(person);
-      this.touch();
     }
   }
 
@@ -298,7 +266,6 @@ export class Assignment extends Base implements IAssignment {
   removePerson(person: Person): void {
     if (has(this._people, person)) {
       this._people = without(this._people, person);
-      this.touch();
     }
   }
 
@@ -308,12 +275,12 @@ export class Assignment extends Base implements IAssignment {
    * @returns Array of assignable locations.
    */
   getAssignableLocations(): Location[] {
-    if (!this._state) {
+    if (!this.state) {
       return [];
     }
 
     // ToDo: Update this when location availability is implemented.
-    const locations = _get(this._state._locations).values();
+    const locations = _get(this.state._locations).values();
     return Array.from(locations);
   }
 
@@ -322,50 +289,43 @@ export class Assignment extends Base implements IAssignment {
    * @returns Array of assignable people.
    */
   getAssignablePeople(): Person[] {
-    if (!this._state || !this.task) {
+    if (!this.state || !this.task) {
       return [];
     }
-    return Person.getWith(this._state, this.task.skills);
-  }
-
-  /**
-   * Get the time slot of the assignment.
-   */
-  get time(): TimeSlot {
-    this.update();
-    return this._time;
+    return Person.getWith(this.state, this.task.skills);
   }
 
   /**
    * Get the people assigned to the assignment.
    */
   get people(): Person[] {
-    this.update();
-    return this._people;
+    let ans = this._people;
+    if (this.state) {
+      ans = ans.map((p) => p.get()).filter((p) => p !== undefined) as Person[];
+    }
+    return copyArr(ans);
   }
 
   /**
    * Get the location of the assignment.
    */
   get location(): Location | undefined {
-    this.update();
-    return this._location;
+    let ans = this._location;
+    if (this.state) {
+      ans = ans?.get() as Location | undefined;
+    }
+    return ans?.copy();
   }
 
   /**
    * Get the task of the assignment.
    */
   get task(): Task | undefined {
-    this.update();
-    return this._task;
-  }
-
-  /**
-   * Set the time slot of the assignment.
-   */
-  set time(time: TimeSlot) {
-    this._time = time.copy();
-    this.touch();
+    let ans = this._task;
+    if (this.state) {
+      ans = ans?.get() as Task | undefined;
+    }
+    return ans?.copy();
   }
 
   /**
@@ -373,7 +333,6 @@ export class Assignment extends Base implements IAssignment {
    */
   set people(people: Person[]) {
     this._people = copyArr(people);
-    this.touch();
   }
 
   /**
@@ -381,7 +340,6 @@ export class Assignment extends Base implements IAssignment {
    */
   set location(location: Location | undefined) {
     this._location = location?.copy();
-    this.touch();
   }
 
   /**
@@ -389,6 +347,5 @@ export class Assignment extends Base implements IAssignment {
    */
   set task(task: Task | undefined) {
     this._task = task?.copy();
-    this.touch();
   }
 }

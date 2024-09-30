@@ -11,15 +11,18 @@
   import { ProfilesList } from "../profile-picture";
   import ProfilePicture from "../profile-picture/profile-picture.svelte";
   import { type ColumnInitializer, DataTableCore } from "./core";
+  import EditDialog from "../edit-dialog/edit-dialog.svelte";
 
   let data: ReadOrWritable<Person[]>;
-  let actions: Map<string, (item: Person) => void> = new Map();
+  let rowActions: Map<string, (item: Person) => void> = new Map();
   let filterValue: Writable<string> = writable("");
   let sortKeys: WritableSortKeys = createSortKeysStore([]);
   let hideForId: { [key: string]: boolean } = {};
   let flatColumns: FlatColumn<Person, AnyPlugins, string>[];
   let className: string = "";
 
+  let selected: Person | undefined = undefined;
+  let dialogOpen: boolean = false;
   let columnInitializers: ColumnInitializer<Person>[] = [
     {
       accessor: (row) => row as Display,
@@ -66,7 +69,18 @@
     }
   ];
 
-  export { data, actions, className as class};
+  let actions = new Map([
+    ...rowActions,
+    ["Edit", (item: Person) => rowClick(item)],
+    ["Delete", (item: Person) => item.delete()]
+  ]);
+
+  function rowClick(item: Person) {
+    selected = item;
+    dialogOpen = true;
+  }
+
+  export { data, actions, className as class };
 </script>
 
 <DataTableCore
@@ -78,4 +92,6 @@
   {columnInitializers}
   {data}
   {actions}
+  defaultAction={rowClick}
 />
+<EditDialog item={selected} bind:open={dialogOpen} title="Edit Person" />
