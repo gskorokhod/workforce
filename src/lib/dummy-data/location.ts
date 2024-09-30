@@ -28,7 +28,7 @@ function mkName(): string {
 function mkCoords(): LngLat {
   const [lat, lon] = faker.location.nearbyGPSCoordinate({
     origin: LONDON,
-    radius: 1000
+    radius: 10
   });
   return [lon, lat];
 }

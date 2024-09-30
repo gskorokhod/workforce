@@ -40,4 +40,5 @@ export interface OSMSearchParams {
   bounded?: boolean;
   addressDetails?: boolean;
   acceptLanguage?: string;
+  featureType?: "country" | "state" | "city" | "settlement" | null;
 }

@@ -17,6 +17,7 @@
   import { Icon, type Display } from "$lib/model/ui";
   import { faker } from "@faker-js/faker";
   import { GraduationCapIcon, XIcon } from "lucide-svelte";
+  import LocationDataTable from "$lib/components/ui/data-table/location-data-table.svelte";
 
   const schedules: ComboboxItem[] = [
     { label: "Schedule 1", value: "schedule1" },
@@ -47,6 +48,7 @@
   let people = dummyState.people;
   let skills = dummyState.skills;
   let tasks = dummyState.tasks;
+  let locations = dummyState.locations;
 </script>
 
 <div class="h-dvh w-full overflow-y-scroll bg-gray-50">
@@ -136,8 +138,12 @@
       </EditDialog>
     </section>
     <section>
-      <h2>Data Table</h2>
-      <PersonDataTable data={people} />
+      <h2>Data Table - Person</h2>
+      <PersonDataTable data={people} state={dummyState} />
+    </section>
+    <section>
+      <h2>Data Table - Location</h2>
+      <LocationDataTable data={locations} state={dummyState} />
     </section>
   </main>
 </div>

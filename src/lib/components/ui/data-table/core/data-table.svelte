@@ -77,7 +77,14 @@
     .filter(([, hide]) => hide)
     .map(([id]) => id);
 
-  function clickRow(row: BodyRow<T>) {
+  function handleRowClick(e: Event, row: BodyRow<T>) {
+    const target = e.target as HTMLElement;
+    if (target?.closest("button") === null) {
+      rowClicked(row);
+    }
+  }
+
+  function rowClicked(row: BodyRow<T>) {
     if (row.isData()) {
       const drow = row as DataBodyRow<T>;
       defaultAction(drow.original);
@@ -147,7 +154,7 @@
       <Table.Body {...$tableBodyAttrs}>
         {#each $pageRows as row (row.id)}
           <Subscribe let:rowAttrs rowAttrs={row.attrs()}>
-            <Table.Row {...rowAttrs} on:click={() => clickRow(row)}>
+            <Table.Row {...rowAttrs} on:click={(e) => handleRowClick(e, row)}>
               {#each row.cells as cell (cell.id)}
                 <Subscribe attrs={cell.attrs()} let:attrs props={cell.props()}>
                   <Table.Cell class="[&:has([role=checkbox])]:pl-3" {...attrs}>

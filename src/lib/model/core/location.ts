@@ -220,6 +220,10 @@ export class Location extends Base implements ILocation {
     }
     return Assignment.getWith(this.state, this);
   }
+
+  get address(): string {
+    return this.point?.address.format() || "";
+  }
 }
 
 /**

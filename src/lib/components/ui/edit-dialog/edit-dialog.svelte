@@ -1,6 +1,8 @@
 <script lang="ts" generics="T extends Base">
+  import { Geopoint } from "$lib/model/geocoding";
+
   import * as Dialog from "$lib/components/ui/dialog";
-  import { state } from "$lib/model";
+  import { state as GLOBAL_STATE } from "$lib/model";
   import { Assignment, Base, Location, Person, Shift, Skill, Task } from "$lib/model/core";
   import { Button } from "../button";
   import { DatePicker } from "../date-picker";
@@ -9,12 +11,24 @@
   import { Label } from "../label";
   import { SelectorMany } from "../selector";
   import { Textarea } from "../textarea";
+  import { Map, MapMarker } from "../map";
+  import { Search } from "../search";
+  import { without } from "$lib/model/utils";
+  import { getAddressCompletions } from "$lib/model/geocoding/osm";
+  import EditLocation from "./edit-location.svelte";
 
   export let item: T | undefined;
   export let title: string = "Edit";
   export let open: boolean = false;
+  export let state = GLOBAL_STATE;
 
   $: skills = item?.state?.skills || state.skills;
+  $: locations = item?.state?.locations || state.locations;
+  // $: tasks = item?.state?.tasks || state.tasks;
+  // $: people = item?.state?.people || state.people;
+  // $: shifts = item?.state?.shifts || state.shifts;
+  // $: assignments = item?.state?.assignments || state.assignments;
+
   function handleSubmit() {
     if (item) {
       item.put();
@@ -27,7 +41,7 @@
   <Dialog.Trigger>
     <slot />
   </Dialog.Trigger>
-  <Dialog.Content class="p-4">
+  <Dialog.Content class="max-w-2xl p-4">
     <Dialog.Header>
       <Dialog.Title class="text-xl font-semibold">{title}</Dialog.Title>
       <Dialog.Description>
@@ -35,7 +49,7 @@
       </Dialog.Description>
     </Dialog.Header>
     {#if item}
-      <div class="mb-4 mt-4 flex h-full max-h-[400px] w-full flex-col gap-6 overflow-y-scroll p-1">
+      <div class="mb-4 mt-4 flex h-full max-h-[60vh] w-full flex-col gap-6 overflow-y-scroll p-1">
         {#if item instanceof Person || item instanceof Skill || item instanceof Task || item instanceof Location || item instanceof Shift}
           <div class="flex w-full flex-row items-center justify-between gap-8">
             <ImagePicker bind:item size="xl" />
@@ -70,7 +84,7 @@
             <SelectorMany id="skills" bind:value={item.skills} options={$skills} />
           </div>
         {:else if item instanceof Location}
-          TODO: Port location map component
+          <EditLocation {item} locations={$locations} />
         {:else if item instanceof Assignment}
           TODO: Assignment UI
         {:else if item instanceof Shift}

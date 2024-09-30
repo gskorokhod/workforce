@@ -11,7 +11,7 @@ export const BTN_SIZE: ProfileSize = {
 
 export const PLUS = new Icon({
   pack: "lucide",
-  name: "circle-plus"
+  name: "plus"
 });
 
 export const PLACEHOLDER = new Icon({

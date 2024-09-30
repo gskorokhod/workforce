@@ -9,6 +9,7 @@ const DEFAULTS: Required<OSMSearchParams> = {
   limit: 10,
   min_rank: 16,
   focusPoint: null,
+  featureType: null,
   countryCodes: [],
   boxSize: 0.1,
   bounded: false,
@@ -40,9 +41,21 @@ export async function getAddressCompletions(
  * @see OSMSearchParams
  * @returns
  */
-export async function search(search: string, params?: OSMSearchParams): Promise<OSMPlace[]> {
+export async function search(
+  search: string,
+  params?: Partial<OSMSearchParams>
+): Promise<OSMPlace[]> {
   // TODO: Implement caching to avoid unnecessary requests.
-  const { limit, min_rank, focusPoint, countryCodes, boxSize, bounded, addressDetails } = {
+  const {
+    limit,
+    min_rank,
+    focusPoint,
+    countryCodes,
+    boxSize,
+    bounded,
+    addressDetails,
+    featureType
+  } = {
     ...DEFAULTS,
     ...params
   };
@@ -52,6 +65,8 @@ export async function search(search: string, params?: OSMSearchParams): Promise<
     query += `&viewbox=${focusPoint[0] - boxSize},${focusPoint[1] + boxSize},${focusPoint[0] + boxSize},${focusPoint[1] - boxSize}`;
     query += `&bounded=${bounded ? 1 : 0}`;
   }
+
+  if (featureType) query += `&featureType=${featureType}`;
 
   if (countryCodes.length > 0) query += `&countrycodes=${countryCodes.join(",")}`;
   query += `&addressdetails=${addressDetails ? 1 : 0}`;
@@ -103,12 +118,14 @@ export async function geocode(address: string | Address): Promise<LngLat | undef
  * @returns OSMPlace object representing the address, or undefined if the coordinates could not be resolved.
  */
 export async function reverseGeocode(coords: LngLat, lang?: string): Promise<OSMPlace | undefined> {
+  console.log("reverseGeocode", coords);
   // TODO: Implement caching to avoid unnecessary requests.
   if (!lang) lang = navigator?.language || DEFAULTS.acceptLanguage;
   const query = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords[1]}&lon=${coords[0]}&accept-language=${lang}`;
   const response = await fetch(query);
 
   const data: OSMReverseResponse = await response.json();
+  console.log("data:", data);
   if ("error" in data) return undefined;
   return data;
 }
