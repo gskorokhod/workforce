@@ -36,8 +36,8 @@
     {
       accessor: (row) => row as Display,
       cell: (cell) => createRender(ProfilePicture, { item: cell.value }),
-      header: "Avatar",
-      id: "avatar",
+      header: "Picture",
+      id: "picture",
       plugins: {
         sort: {
           disable: true
@@ -93,7 +93,7 @@
   export { data, actions, header, state, className as class };
 </script>
 
-<div class="flex h-max w-max flex-col items-start justify-start overflow-y-scroll {className}">
+<div class="flex flex-col items-start justify-start {className}">
   {#if header}
     <MapComponent
       locations={$data}

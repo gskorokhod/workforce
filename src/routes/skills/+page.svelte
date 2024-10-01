@@ -1,3 +1,10 @@
-<div class="w-full bg-gray-50">
-  <h1>TODO: Update skills page</h1>
-</div>
+<script lang="ts">
+  import SkillDataTable from "$lib/components/ui/data-table/skill-data-table.svelte";
+  import { state } from "$lib/model";
+
+  const skills = state.skills;
+</script>
+
+<main class="h-full w-full">
+  <SkillDataTable data={skills} class="h-full w-full" />
+</main>

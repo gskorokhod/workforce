@@ -7,11 +7,11 @@ import { generateTask, generateTasks } from "./task";
 
 export function populateState(state: State): void {
   state.clear();
-  state.putAll(generateSkills(10, 20, state));
-  state.putAll(generateLocations(10, 20, state));
-  state.putAll(generateTasks(10, 20, state));
-  state.putAll(generateShifts(10, 20, state));
-  state.putAll(generatePeople(10, 20, state));
+  state.putAll(generateSkills(5, 10, state));
+  state.putAll(generateLocations(5, 10, state));
+  state.putAll(generateTasks(5, 10, state));
+  state.putAll(generateShifts(5, 10, state));
+  state.putAll(generatePeople(5, 10, state));
 }
 
 export {

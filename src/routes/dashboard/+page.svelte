@@ -141,9 +141,5 @@
       <h2>Data Table - Person</h2>
       <PersonDataTable data={people} state={dummyState} />
     </section>
-    <section>
-      <h2>Data Table - Location</h2>
-      <LocationDataTable data={locations} state={dummyState} />
-    </section>
   </main>
 </div>

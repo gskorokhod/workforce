@@ -1,3 +1,10 @@
-<div class="w-full bg-gray-50">
-  <h1>TODO: Update locations page</h1>
-</div>
+<script lang="ts">
+  import LocationDataTable from "$lib/components/ui/data-table/location-data-table.svelte";
+  import { state } from "$lib/model";
+
+  const locations = state.locations;
+</script>
+
+<main class="h-full w-full">
+  <LocationDataTable data={locations} class="h-full w-full" />
+</main>

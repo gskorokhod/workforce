@@ -3,9 +3,11 @@
   import "../app.css";
 </script>
 
-<div class="flex h-screen w-screen flex-row">
+<div class="flex h-dvh w-dvw flex-row bg-gray-100">
   <NavMenu />
-  <slot />
+  <div class="flex h-dvh w-full flex-col overflow-y-scroll rounded p-4">
+    <slot />
+  </div>
 </div>
 
 <footer class="text-center">

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Person, Skill, State } from "$lib/model";
+  import { Person, Task, Skill, State } from "$lib/model";
   import type { Display } from "$lib/model/ui";
   import { state as GLOBAL_STATE } from "$lib/model";
   import { createRender, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
@@ -17,25 +17,25 @@
   import { EditDialog } from "../edit-dialog";
   import { TableHeader, ColumnHideSelector } from "./lib";
 
-  let data: ReadOrWritable<Person[]>;
+  let data: ReadOrWritable<Skill[]>;
   let header: boolean = true;
   let state: State = GLOBAL_STATE;
-  let rowActions: Map<string, (item: Person) => void> = new Map();
+  let rowActions: Map<string, (item: Skill) => void> = new Map();
   let filterValue: Writable<string> = writable("");
   let sortKeys: WritableSortKeys = createSortKeysStore([]);
   let hideForId: { [key: string]: boolean } = {};
-  let flatColumns: FlatColumn<Person, AnyPlugins, string>[];
+  let flatColumns: FlatColumn<Skill, AnyPlugins, string>[];
   let className: string = "";
 
-  let selected: Person | undefined = undefined;
+  let selected: Skill | undefined = undefined;
   let dialogOpen: boolean = false;
   let dialogTitle: string = "Edit Person";
-  let columnInitializers: ColumnInitializer<Person>[] = [
+  let columnInitializers: ColumnInitializer<Skill>[] = [
     {
       accessor: (row) => row as Display,
       cell: (cell) => createRender(ProfilePicture, { item: cell.value }),
-      header: "Avatar",
-      id: "avatar",
+      header: "Icon",
+      id: "icon",
       plugins: {
         sort: {
           disable: true
@@ -46,31 +46,35 @@
       }
     },
     {
-      accessor: (row: Person) => row.name,
+      accessor: (row: Skill) => row.name,
       header: "Name",
       id: "name"
     },
     {
-      accessor: (row: Person) => row.age,
-      header: "Age",
-      id: "age"
-    },
-    {
-      accessor: (row: Person) => row.job,
-      header: "Job Title",
-      id: "job"
-    },
-    {
-      accessor: (row: Person) => row.skills,
-      cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No Skills" }),
-      header: "Skills",
-      id: "skills",
+      accessor: (row: Skill) => row.getPeople(),
+      cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No People" }),
+      header: "People with Skill",
+      id: "people",
       plugins: {
         sort: {
-          getSortValue: (value: Skill[]) => value.map((skill) => skill.name).join(" ")
+          getSortValue: (value: Person[]) => value.map((p) => p.name).join(" ")
         },
         tableFilter: {
-          getFilterValue: (value: Skill[]) => value.map((skill) => skill.name).join(" ")
+          getFilterValue: (value: Person[]) => value.map((p) => p.name).join(" ")
+        }
+      }
+    },
+    {
+      accessor: (row: Skill) => row.getTasks(),
+      cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No Tasks" }),
+      header: "Tasks requiring Skill",
+      id: "tasks",
+      plugins: {
+        sort: {
+          getSortValue: (value: Task[]) => value.map((t) => t.name).join(" ")
+        },
+        tableFilter: {
+          getFilterValue: (value: Task[]) => value.map((t) => t.name).join(" ")
         }
       }
     }
@@ -78,19 +82,19 @@
 
   let actions = new Map([
     ...rowActions,
-    ["Edit", (item: Person) => rowClick(item)],
-    ["Delete", (item: Person) => item.delete()]
+    ["Edit", (item: Skill) => rowClick(item)],
+    ["Delete", (item: Skill) => item.delete()]
   ]);
 
-  function rowClick(item: Person) {
-    dialogTitle = "Edit Person";
+  function rowClick(item: Skill) {
+    dialogTitle = "Edit Skill";
     selected = item;
     dialogOpen = true;
   }
 
-  function newPerson() {
-    dialogTitle = "Create new Person";
-    selected = new Person({}, state);
+  function newSkill() {
+    dialogTitle = "Create new Skill";
+    selected = new Skill({}, state);
     dialogOpen = true;
   }
 
@@ -103,7 +107,7 @@
       <svelte:fragment slot="start">
         <Button
           class="text-muted-foreground hover:text-accent-foreground"
-          on:click={newPerson}
+          on:click={newSkill}
           size="icon-xl"
           variant="ghost"
         >
