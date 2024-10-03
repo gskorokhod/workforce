@@ -12,20 +12,28 @@ const SETTINGS_LABELS: SettingsLabels = {
   development: {
     name: "Development Mode",
     description:
-      "Enable development features, such as dummy data generation and the UI playground. Disable in production!"
+      "Enable development features, such as dummy data generation and the UI playground. Disable in production!",
+    options: {
+      "true": {
+        label: "Enabled"
+      },
+      "false": {
+        label: "Disabled"
+      }
+    }
   },
   assignmentMode: {
     name: "Assignment Mode",
     description: "Choose how employee workload is managed within your organisation",
-    labels: {
-      granular: "Granular",
-      shift: "Shift-based"
-    },
-    descriptions: {
-      granular:
-        "Each Shift comprises a number of Tasks that need to be done, and employees are assigned to individual Tasks during the Shift",
-      shift:
-        "Employees are assigned directly to Shifts, without planning their individual tasks within the Shift"
+    options: {
+      "shift": {
+        label: "Shift-based",
+        description: "Employees are assigned directly to Shifts, without planning their individual tasks within the Shift"
+      },
+      "granular": {
+        label: "Granular",
+        description: "Each Shift comprises a number of Tasks that need to be done, and employees are assigned to individual Tasks during the Shift"
+      }
     }
   }
 };
@@ -34,49 +42,44 @@ export function getSetting<K extends keyof Settings>(key: K, settings: Partial<S
   const name = SETTINGS_LABELS[key].name;
   const description = SETTINGS_LABELS[key].description;
   const value = settings[key] ?? SETTINGS_DEFAULTS[key];
+  const options = 
 
   const ans: Setting<K> = {
     key,
     name,
     description,
-    option: {
+    selected: {
       value,
       isDefault: value === SETTINGS_DEFAULTS[key]
-    }
+    },
   };
 
-  const labels = SETTINGS_LABELS[key].labels;
-  if (labels) {
-    ans.option.name = labels[value];
-  }
-
-  const descriptions = SETTINGS_LABELS[key].descriptions;
-  if (descriptions) {
-    ans.option.description = descriptions[value];
-  }
-
   return ans;
+}
+
+interface SettingOption<K extends keyof Settings> {
+  value: Settings[K];
+  isDefault: boolean;
+  name?: string;
+  description?: string;
 }
 
 type Setting<K extends keyof Settings> = {
   key: K;
   name: string;
   description?: string;
-  option: {
-    value: Settings[K];
-    isDefault: boolean;
-    name?: string;
-    description?: string;
-  };
+  selected: SettingOption<K>,
+  options: SettingOption<K>[];
 };
-
 
 type SettingsLabels = {
   [K in keyof Settings]: {
     name: string;
     description?: string;
-    labels?: Partial<Record<SettingValue<K>, string>>;
-    descriptions?: Partial<Record<SettingValue<K>, string>>;
+    options: Record<SettingValue<K>, {
+      label: string,
+      description?: string
+    }>
   };
 };
 
