@@ -12,13 +12,11 @@
   import Search from "$lib/components/ui/search/search.svelte";
   import { Selector } from "$lib/components/ui/selector";
   import SelectorMany from "$lib/components/ui/selector/selector-many.svelte";
-  import { populateState } from "$lib/dummy-data";
-  import { State } from "$lib/model";
+  import { state, State } from "$lib/model";
   import { Icon, type Display } from "$lib/model/ui";
   import { faker } from "@faker-js/faker";
   import { GraduationCapIcon, XIcon } from "lucide-svelte";
-  import LocationDataTable from "$lib/components/ui/data-table/location-data-table.svelte";
-
+  
   const schedules: ComboboxItem[] = [
     { label: "Schedule 1", value: "schedule1" },
     { label: "Schedule 2", value: "schedule2" }
@@ -44,15 +42,12 @@
     icon: Icon.fromString("lucide:user"),
     avatar: new URL(faker.image.avatar())
   };
-  let dummyState: State = new State("dummy_state");
-  let people = dummyState.people;
-  let skills = dummyState.skills;
-  let tasks = dummyState.tasks;
-  let locations = dummyState.locations;
+  let people = state.people;
+  let skills = state.skills;
+  let tasks = state.tasks;
 </script>
 
 <div class="h-dvh w-full overflow-y-scroll bg-gray-50">
-  <Button on:click={() => populateState(dummyState)}>Populate</Button>
   <main class="flex w-full flex-col gap-6 pl-6 pt-4">
     <h1 class="text-2xl font-semibold">Components playground</h1>
     <section class="flex w-full flex-col gap-3">
@@ -139,7 +134,7 @@
     </section>
     <section>
       <h2>Data Table - Person</h2>
-      <PersonDataTable data={people} state={dummyState} />
+      <PersonDataTable data={people} state={state} />
     </section>
   </main>
 </div>

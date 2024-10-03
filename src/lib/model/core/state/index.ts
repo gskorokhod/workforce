@@ -2,14 +2,15 @@ import { persisted, type Serializer } from "svelte-persisted-store";
 import { get as _get, derived, type Writable } from "svelte/store";
 import type { JsonValue } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
+import { copyArr, type Copy } from "../../utils";
 import { Assignment } from "../assignment";
 import { Base } from "../base";
 import { Location } from "../location";
 import { Person } from "../person";
+import { SETTINGS_DEFAULTS, type Settings } from "../settings";
 import { Shift } from "../shift";
 import { Skill } from "../skill";
 import { Task } from "../task";
-import { copyArr, type Copy } from "../../utils";
 
 // A map of UUIDs to objects of type T
 type Stored<T extends Base> = Map<string, T>;
@@ -18,6 +19,7 @@ type Storage<T extends Base> = Writable<Stored<T>>;
 
 export class State {
   private readonly stateID: string;
+  readonly settings: Writable<Settings>;
   readonly _skills: Storage<Skill>;
   readonly _tasks: Storage<Task>;
   readonly _people: Storage<Person>;
@@ -27,6 +29,7 @@ export class State {
 
   constructor(stateID?: string) {
     this.stateID = stateID || uuidv4();
+    this.settings = persisted("settings_" + this.stateID, {...SETTINGS_DEFAULTS});
     this._skills = persisted("skills_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Skill.fromJSON)
     });
@@ -156,13 +159,30 @@ export class State {
     for (const obj of objs) {
       this.put(obj);
     }
-    // console.log("putAll");
-    // console.log("Skills: ", _get(this.skills));
-    // console.log("Tasks: ", _get(this.tasks));
-    // console.log("People: ", _get(this.people));
-    // console.log("Locations: ", _get(this.locations));
-    // console.log("Assignments: ", _get(this.assignments));
-    // console.log("Shifts: ", _get(this.shifts));
+  }
+
+  get skills(): Writable<Skill[]> {
+    return this.createWritable(this._skills);
+  }
+
+  get tasks(): Writable<Task[]> {
+    return this.createWritable(this._tasks);
+  }
+
+  get people(): Writable<Person[]> {
+    return this.createWritable(this._people);
+  }
+
+  get locations(): Writable<Location[]> {
+    return this.createWritable(this._locations);
+  }
+
+  get assignments(): Writable<Assignment[]> {
+    return this.createWritable(this._assignments);
+  }
+
+  get shifts(): Writable<Shift[]> {
+    return this.createWritable(this._shifts);
   }
 
   /**
@@ -196,7 +216,7 @@ export class State {
   /**
    * Get all the stores in the state.
    */
-  get _stores(): Storage<Base>[] {
+  private get _stores(): Storage<Base>[] {
     return [
       this._skills,
       this._tasks,
@@ -205,30 +225,6 @@ export class State {
       this._assignments,
       this._shifts
     ];
-  }
-
-  get skills(): Writable<Skill[]> {
-    return this.createWritable(this._skills);
-  }
-
-  get tasks(): Writable<Task[]> {
-    return this.createWritable(this._tasks);
-  }
-
-  get people(): Writable<Person[]> {
-    return this.createWritable(this._people);
-  }
-
-  get locations(): Writable<Location[]> {
-    return this.createWritable(this._locations);
-  }
-
-  get assignments(): Writable<Assignment[]> {
-    return this.createWritable(this._assignments);
-  }
-
-  get shifts(): Writable<Shift[]> {
-    return this.createWritable(this._shifts);
   }
 
   private createWritable<T extends Base & Copy<T>>(storage: Storage<T>): Writable<T[]> {
