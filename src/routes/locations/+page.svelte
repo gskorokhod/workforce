@@ -1,9 +1,10 @@
 <script lang="ts">
-  import LocationsDataView from "$lib/components/elements/data-views/locations-data-view.svelte";
+  import LocationDataTable from "$lib/components/ui/data-table/location-data-table.svelte";
+  import { state } from "$lib/model";
+
+  const locations = state.locations;
 </script>
 
-<div class="w-full bg-gray-50">
-  <main class="h-dvh w-full p-4">
-    <LocationsDataView />
-  </main>
-</div>
+<main class="h-full w-full">
+  <LocationDataTable data={locations} class="h-full w-full" mapClass="w-full h-[50%]" />
+</main>

@@ -1,4 +1,4 @@
-import type { TimeDuration } from "@internationalized/date";
+import type { CalendarDateTime, TimeDuration } from "@internationalized/date";
 import type {
   DailyOptions,
   MonthlyOptions,
@@ -11,23 +11,27 @@ import {
   CalendarDate,
   fromDate,
   getLocalTimeZone,
-  now,
   parseZonedDateTime,
   toCalendarDate,
+  toZoned,
   ZonedDateTime
 } from "@internationalized/date";
 import { RRule, RRuleSet } from "rrule";
 import type { JsonObject } from "type-fest";
-import { HashMap } from "../utils";
+import { HashMap, type Copy } from "../utils";
 import { toRecurrenceOptions } from "./options";
 import {
   completeDuration,
+  dtMax,
+  dtMin,
   hasDate,
   localToUTC,
   parseDates,
   parseDateTimeDuration,
   toUTCDate
 } from "./utils";
+
+type Exceptions = Map<CalendarDate, DateOption> | { rdates?: Date[]; exdates?: Date[] };
 
 /**
  * Properties for creating a Recurrence object.
@@ -43,12 +47,7 @@ import {
 interface RecurrenceProps {
   dtstart?: ZonedDateTime;
   duration?: TimeDuration | undefined;
-  exceptions?:
-    | Map<CalendarDate, DateOption>
-    | {
-        rdates?: Date[];
-        exdates?: Date[];
-      };
+  exceptions?: Exceptions;
   rrule: RecurrenceOptions | RRule;
 }
 
@@ -87,7 +86,7 @@ interface ProbeResult {
 /**
  * Represents a time period during which an event occurs.
  */
-class TimeSlot {
+class TimeSlot implements Copy<TimeSlot> {
   /**
    * End date & time of the time slot.
    */
@@ -108,11 +107,36 @@ class TimeSlot {
   }
 
   /**
+   * Get a time slot that spans the entire day of a given date.
+   * @param date Date to get the time slot for. Can be an instance of `CalendarDate`, `CalendarDateTime`, or `ZonedDateTime`.
+   * @param tzid For `CalendarDate` objects, the timezone ID to use. Defaults to the local timezone.
+   * @returns TimeSlot object representing the entire day of the given date.
+   */
+  static allDay(date: CalendarDate | CalendarDateTime | ZonedDateTime, tzid?: string): TimeSlot {
+    if (date instanceof ZonedDateTime) {
+      return new TimeSlot(
+        date.set({ hour: 0, minute: 0, second: 0 }),
+        date.set({ hour: 23, minute: 59, second: 59 })
+      );
+    }
+    const start = toZoned(date, tzid || getLocalTimeZone()).set({ hour: 0, minute: 0, second: 0 });
+    const end = start.set({ hour: 23, minute: 59, second: 59 });
+    return new TimeSlot(start, end);
+  }
+
+  /**
+   * Create a deep copy of the time slot object.
+   */
+  copy(): TimeSlot {
+    return new TimeSlot(this.start, this.end);
+  }
+
+  /**
    * Check if this time slot clashes with another time slot.
    * @param other time slot to check against
    * @returns True if the time slots clash, false otherwise
    */
-  clashesWith(other: TimeSlot) {
+  intersects(other: TimeSlot): boolean {
     return this.start.compare(other.end) < 0 && this.end.compare(other.start) > 0;
   }
 
@@ -121,14 +145,33 @@ class TimeSlot {
    * @param other time slot to check against
    * @returns An time slot object representing the time period during which the time slots clash, or undefined if they do not clash
    */
-  getClash(other: TimeSlot): TimeSlot | undefined {
-    if (this.clashesWith(other)) {
-      const start = this.start.compare(other.start) > 0 ? this.start : other.start;
-      const end = this.end.compare(other.end) < 0 ? this.end : other.end;
+  intersect(other: TimeSlot): TimeSlot | undefined {
+    if (this.intersects(other)) {
+      const start = dtMax(this.start, other.start);
+      const end = dtMin(this.end, other.end);
       return new TimeSlot(start, end);
     }
 
     return undefined;
+  }
+
+  /**
+   * Get the parts of this time slot that are not covered by another time slot.
+   * @param other Time slot to compare against
+   * @returns Array of TimeSlot objects
+   */
+  except(other: TimeSlot): TimeSlot[] {
+    const clash = this.intersect(other);
+    if (!clash) return [this.copy()];
+
+    const ans: TimeSlot[] = [];
+    if (this.start.compare(clash.start) < 0) {
+      ans.push(new TimeSlot(this.start, clash.start));
+    }
+    if (this.end.compare(clash.end) > 0) {
+      ans.push(new TimeSlot(clash.end, this.end));
+    }
+    return ans;
   }
 
   /**
@@ -212,7 +255,7 @@ class TimeSlot {
  * Represents something that occurs at regular intervals and lasts for a certain duration.
  * (e.g. a shift that occurs every Monday from 9am to 5pm)
  */
-class Recurrence {
+class Recurrence implements Copy<Recurrence> {
   /**
    * The duration of the event.
    * If undefined, the event is considered to last the entire day (i.e. from 00:00 to 23:59 on every date that matches the recurrence pattern).
@@ -236,35 +279,64 @@ class Recurrence {
 
   /**
    * Create a new Recurrence object.
-   * @param opts RRule options.
+   * @param props RRule options.
    * @see RecurrenceProps
    */
   constructor(props: RecurrenceProps) {
+    this._rrule = this.initializeRRule(props);
+    this._duration = props.duration;
+    this.initializeExceptions(props.exceptions);
+  }
+
+  /**
+   * Initialize the RRule object.
+   * @param props Recurrence properties
+   * @returns RRule object
+   */
+  private initializeRRule(props: RecurrenceProps): RRule {
     if (props.rrule instanceof RRule) {
-      this._rrule = props.rrule;
+      return props.rrule;
     } else {
       if (props.dtstart) {
         props.rrule.dtstart = toUTCDate(props.dtstart);
       }
 
-      const dtNow = toUTCDate(now(getLocalTimeZone()));
-      this._rrule = new RRule({
+      return new RRule({
         ...props.rrule,
-        dtstart: props.rrule.dtstart || dtNow
+        dtstart: props.rrule.dtstart || new Date()
       });
     }
+  }
 
-    this._duration = props.duration || undefined;
-    if (props.exceptions) {
-      if (props.exceptions instanceof Map || props.exceptions instanceof HashMap) {
-        props.exceptions.forEach((status, date) => {
-          this.setException(date, status);
-        });
-      } else {
-        this._rdates = props.exceptions.rdates?.map((d) => localToUTC(d)) || [];
-        this._exdates = props.exceptions.exdates?.map((d) => localToUTC(d)) || [];
-      }
+  /**
+   * Initialize the exception dates.
+   * @param exceptions Map of dates to their status in the recurrence pattern, or an object with `rdates` and `exdates` fields.
+   * @returns void. This method modifies the object's `_rdates` and `_exdates` fields in place.
+   */
+  private initializeExceptions(exceptions?: Exceptions): void {
+    if (!exceptions) return;
+
+    if (exceptions instanceof Map || exceptions instanceof HashMap) {
+      exceptions.forEach((status, date) => {
+        this.setException(date, status);
+      });
+    } else {
+      this._rdates = exceptions.rdates?.map(localToUTC) || [];
+      this._exdates = exceptions.exdates?.map(localToUTC) || [];
     }
+  }
+  /**
+   * Create a deep copy of the Recurrence object.
+   */
+  copy(): Recurrence {
+    const rdates = this._rdates.map((d) => new Date(d.valueOf()));
+    const exdates = this._exdates.map((d) => new Date(d.valueOf()));
+
+    return new Recurrence({
+      rrule: new RRule(this._rrule.options),
+      duration: this._duration,
+      exceptions: { rdates, exdates }
+    });
   }
 
   /**
@@ -345,7 +417,7 @@ class Recurrence {
     const occ = this.getOccurrences(after, before, "UTC", true, limit, applyExceptions);
     const otherOcc = other.getOccurrences(after, before, "UTC", true, limit, applyExceptions);
 
-    return occ.some((thisOcc) => otherOcc.some((otherOcc) => thisOcc.clashesWith(otherOcc)));
+    return occ.some((thisOcc) => otherOcc.some((otherOcc) => thisOcc.intersects(otherOcc)));
   }
 
   /**
@@ -367,7 +439,7 @@ class Recurrence {
 
     occ.forEach((thisOcc) => {
       otherOcc.forEach((otherOcc) => {
-        const clash = thisOcc.getClash(otherOcc);
+        const clash = thisOcc.intersect(otherOcc);
         if (clash) clashes.push(clash);
       });
     });
@@ -401,6 +473,30 @@ class Recurrence {
         start.set({ hour: 23, minute: 59, second: 59 })
       );
     }
+  }
+
+  /**
+   * Get the start and end of an occurrence of the event that would be happening at a given date & time.
+   * @param date ZonedDateTime to check
+   * @param tzid ISO 8601 timezone ID to use for the occurrence. Defaults to the local timezone.
+   * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
+   * @returns TimeSlot object representing the occurrence, or undefined if the event is not occurring at the given date & time.
+   */
+  getOccurrenceOn(
+    date: ZonedDateTime,
+    tzid: string = getLocalTimeZone(),
+    applyExceptions: boolean = true
+  ): TimeSlot | undefined {
+    const occurrences = this.getOccurrences(
+      date.subtract({ days: 1 }),
+      date.add({ days: 1 }),
+      tzid,
+      true,
+      Infinity,
+      applyExceptions
+    );
+
+    return occurrences.find((occ) => occ.includes(date)) || undefined;
   }
 
   /**
@@ -468,30 +564,6 @@ class Recurrence {
 
     // Get the actual nth occurrence
     return fromDate(dates[n], tzid);
-  }
-
-  /**
-   * Get the start and end of an occurrence of the event that would be happening at a given date & time.
-   * @param date ZonedDateTime to check
-   * @param tzid ISO 8601 timezone ID to use for the occurrence. Defaults to the local timezone.
-   * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
-   * @returns TimeSlot object representing the occurrence, or undefined if the event is not occurring at the given date & time.
-   */
-  getOccurrenceOn(
-    date: ZonedDateTime,
-    tzid: string = getLocalTimeZone(),
-    applyExceptions: boolean = true
-  ): TimeSlot | undefined {
-    const occurrences = this.getOccurrences(
-      date.subtract({ days: 1 }),
-      date.add({ days: 1 }),
-      tzid,
-      true,
-      Infinity,
-      applyExceptions
-    );
-
-    return occurrences.find((occ) => occ.includes(date)) || undefined;
   }
 
   /**
@@ -665,7 +737,7 @@ class Recurrence {
    * @param options A `RecurrenceOptions` object representing the new options. Only the `freq` field is required.
    * @see RecurrenceOptions
    */
-  updateOptions(options: RecurrenceOptions) {
+  setOptions(options: RecurrenceOptions) {
     let opts: RecurrenceOptions;
 
     switch (options.freq) {
@@ -683,6 +755,20 @@ class Recurrence {
     }
 
     this._rrule = new RRule({ ...opts, ...options });
+  }
+
+  /**
+   * Create a new Recurrence object with updated properties.
+   * @param props Partial properties to update
+   * @returns New Recurrence object with the updated properties
+   */
+  update(props: Partial<RecurrenceProps>): Recurrence {
+    return new Recurrence({
+      dtstart: props.dtstart || this.dtStart,
+      duration: props.duration || this._duration,
+      exceptions: props.exceptions || { rdates: this._rdates, exdates: this._exdates },
+      rrule: props.rrule || this._rrule
+    });
   }
 
   /**
@@ -711,9 +797,21 @@ class Recurrence {
   /**
    * Get the options of the recurrence pattern.
    */
-  get options(): RecurrenceOptions {
+  get recurrenceOptions(): RecurrenceOptions {
     // Safe to cast because the constructor takes a `RecurrenceOptions` object, so there can be no unsupported options
     return toRecurrenceOptions(this._rrule.options) as RecurrenceOptions;
+  }
+
+  /**
+   * Get the properties of the Recurrence object.
+   */
+  get props(): RecurrenceProps {
+    return {
+      dtstart: this.dtStart,
+      duration: this._duration,
+      exceptions: this.getExceptions(),
+      rrule: this.recurrenceOptions
+    };
   }
 
   /**

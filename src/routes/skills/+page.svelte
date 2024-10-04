@@ -1,9 +1,10 @@
 <script lang="ts">
-  import SkillsDataView from "$lib/components/elements/data-views/skills-data-view.svelte";
+  import SkillDataTable from "$lib/components/ui/data-table/skill-data-table.svelte";
+  import { state } from "$lib/model";
+
+  const skills = state.skills;
 </script>
 
-<div class="w-full bg-gray-50">
-  <main class="h-dvh w-full p-4">
-    <SkillsDataView />
-  </main>
-</div>
+<main class="h-full w-full">
+  <SkillDataTable data={skills} class="h-full w-full" />
+</main>

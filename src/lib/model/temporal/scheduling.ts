@@ -84,7 +84,7 @@ function moveSingle(
     dtstart: recurrence.dtStart,
     duration: recurrence.duration,
     exceptions: exceptions,
-    rrule: recurrence.options
+    rrule: recurrence.recurrenceOptions
   });
 }
 
@@ -104,7 +104,9 @@ function offset(recurrence: Recurrence, by: DateTimeDuration): Recurrence | unde
 
   const options = recurrence.rawOptions;
   options.dtstart = toUTCDate(newStart);
-  options.until = recurrence.options.until ? moveDate(recurrence.options.until, by) : null;
+  options.until = recurrence.recurrenceOptions.until
+    ? moveDate(recurrence.recurrenceOptions.until, by)
+    : null;
   options.byweekday = options.byweekday
     ? options.byweekday.map((wd) => cycle(wd, daysOffset, 0, 6))
     : [];
@@ -131,7 +133,7 @@ function offset(recurrence: Recurrence, by: DateTimeDuration): Recurrence | unde
  * @returns new `bymonth` values of the recurrence pattern
  */
 function moveMonths(recurrence: Recurrence, by: DateTimeDuration): number[] {
-  if (!recurrence.options.bymonth) {
+  if (!recurrence.recurrenceOptions.bymonth) {
     return [];
   }
 

@@ -1,28 +1,43 @@
 <script lang="ts">
+  import { chipVariants, type Props } from "$lib/components/ui/chip/index.ts";
+  import { cn } from "$lib/utils/utils.ts";
   import { PlusIcon } from "lucide-svelte";
-  import { chipClasses as cl, ChipSize, ChipVariant } from "$lib/components/ui/chip/index.ts";
-  import { darken, getTextColour } from "$lib/utils/utils.ts";
 
-  let variant: ChipVariant = ChipVariant.default;
-  let size: ChipSize = ChipSize.md;
-  let color: string | undefined = undefined;
-  let className: string = "";
+  type $$Props = Props;
 
-  $: chipColor = color ? color : "hsl(var(--muted-foreground) / 1)";
-  $: textColor = color ? getTextColour(color) : "white";
-  $: darkenedColor = color ? darken(color, 0.2) : "hsl(var(--muted-foreground) / 1)";
+  let variant: $$Props["variant"] = "default";
+  let size: $$Props["size"] = "md";
+  let color: $$Props["color"] = undefined;
+  let className: $$Props["class"] = "";
+
+  let style: string = "";
+  $: {
+    if (color) {
+      const hex = color.hex();
+      const text = color.isDark()
+        ? "hsl(var(--primary-foreground) / 1)"
+        : "hsl(var(--primary) / 1)";
+      const darkened = color.darken(0.2).hex();
+      style = `--chip-color: ${hex}; --chip-text-color: ${text}; --chip-darkened-color: ${darkened};`;
+    }
+  }
 
   export { variant, size, color, className as class };
 </script>
 
 <div
-  class="group/chip {cl.base} {cl.variants[variant]} {cl.sizes[size]} {className}"
-  class:color={[ChipVariant.color, ChipVariant.colorOutline, ChipVariant.colorSolid].includes(
-    variant
+  class={cn(
+    chipVariants({
+      variant: color ? "none" : variant,
+      size,
+      className
+    })
   )}
-  class:outline={variant === ChipVariant.colorOutline}
-  class:solid={variant === ChipVariant.colorSolid}
-  style="--chip-color: {chipColor}; --chip-text-color: {textColor}; --chip-darkened-color: {darkenedColor};"
+  class:color
+  class:outline={color && variant === "outline"}
+  class:solid={color && variant !== "outline"}
+  {style}
+  {...$$restProps}
 >
   <span
     class="group-hover/chip:hidden {$$slots.default && 'pl-2'} {$$slots.hover &&

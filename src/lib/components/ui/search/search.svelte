@@ -1,14 +1,14 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import { type Writable, writable } from "svelte/store";
   import { Button } from "$lib/components/ui/button";
-  import { SearchIcon } from "lucide-svelte";
   import { Input } from "$lib/components/ui/input";
   import * as Popover from "$lib/components/ui/popover";
   import { debounce } from "$lib/utils/utils.ts";
+  import { SearchIcon } from "lucide-svelte";
+  import { type Writable, writable } from "svelte/store";
 
-  let suggestions: Writable<string[]> = writable([]);
-  let searchInput: Writable<string> = writable("");
+  let suggestions: string[] = [];
+  let value: string = "";
   let placeholder: string = "Search";
   let submitOnSelect: boolean = true;
   let className: string = "";
@@ -17,42 +17,43 @@
   let selectedSuggestion: number = 0;
   let formElement: HTMLFormElement;
   let open: boolean = false;
+  let id: string | undefined = undefined;
   let onInput: (value: string) => void = () => {};
   let onSubmit: (value: string) => void = () => {};
   let getSuggestions: (value: string) => Promise<string[]> = () => Promise.resolve([]);
 
   function updateSuggestions(value: string) {
     getSuggestions(value).then((s) => {
-      suggestions.set(s);
+      suggestions = s;
       open = true;
     });
   }
 
   const handleInputChange = debounce(() => {
-    updateSuggestions($searchInput);
-    onInput($searchInput);
+    updateSuggestions(value);
+    onInput(value);
   }, debounceDelay);
 
   function handleSubmit() {
     open = false;
 
-    if (useSuggestionOnSubmit && $suggestions.length > selectedSuggestion) {
-      searchInput.set($suggestions[selectedSuggestion]);
+    if (useSuggestionOnSubmit && suggestions.length > selectedSuggestion) {
+      value = suggestions[selectedSuggestion];
     }
 
-    onSubmit($searchInput);
+    onSubmit(value);
 
     const focusedElement = document.activeElement as HTMLElement;
     focusedElement.blur();
   }
 
   function handleFocusIn() {
-    updateSuggestions($searchInput);
+    updateSuggestions(value);
   }
 
   function handleSelect(suggestion: string) {
-    searchInput.set(suggestion);
-    suggestions.set([suggestion]);
+    value = suggestion;
+    suggestions = [suggestion];
 
     if (submitOnSelect) {
       handleSubmit();
@@ -63,7 +64,8 @@
   }
 
   export {
-    searchInput,
+    id,
+    value,
     placeholder,
     submitOnSelect,
     useSuggestionOnSubmit,
@@ -80,9 +82,10 @@
   bind:this={formElement}
 >
   <Input
+    {id}
     type="text"
     {placeholder}
-    bind:value={$searchInput}
+    bind:value
     on:input={handleInputChange}
     on:focus={handleFocusIn}
     class="overflow-ellipsis pr-12 outline-none focus:outline-accent-foreground {className}"
@@ -97,10 +100,10 @@
   </Button>
   <Popover.Root bind:open disableFocusTrap>
     <Popover.Trigger class="absolute -bottom-2 left-0 right-0" disabled />
-    {#if $suggestions.length > 0}
-      <Popover.Content class="p-0 {className}">
+    {#if suggestions.length > 0}
+      <Popover.Content class="w-full p-0 {className}">
         <div class="group/suggestions flex max-h-[300px] w-full flex-col overflow-y-scroll p-0">
-          {#each $suggestions as suggestion, i}
+          {#each suggestions as suggestion, i}
             <Button
               type="button"
               variant="ghost"

@@ -237,19 +237,19 @@ test("Update options", () => {
     rrule: opts
   });
 
-  expect(recurrence.options.freq).toEqual(RRule.MONTHLY);
-  expect(recurrence.options.count).toEqual(5);
-  expect(recurrence.options.dtstart).toEqual(dtstart);
+  expect(recurrence.recurrenceOptions.freq).toEqual(RRule.MONTHLY);
+  expect(recurrence.recurrenceOptions.count).toEqual(5);
+  expect(recurrence.recurrenceOptions.dtstart).toEqual(dtstart);
 
   const newOpts: RecurrenceOptions = {
     freq: RRule.WEEKLY
   };
 
-  recurrence.updateOptions(newOpts);
+  recurrence.setOptions(newOpts);
 
-  expect(recurrence.options.freq).toEqual(RRule.WEEKLY);
-  expect(recurrence.options.count).toEqual(5);
-  expect(recurrence.options.dtstart).toEqual(dtstart);
+  expect(recurrence.recurrenceOptions.freq).toEqual(RRule.WEEKLY);
+  expect(recurrence.recurrenceOptions.count).toEqual(5);
+  expect(recurrence.recurrenceOptions.dtstart).toEqual(dtstart);
 
   const last = recurrence.getOccurrence(-1);
   expect(last).toBeDefined();
@@ -375,7 +375,7 @@ test("Serialize and deserialize", () => {
   expect(deserialized).toBeInstanceOf(Recurrence);
   deserialized = deserialized as Recurrence;
 
-  let options = deserialized?.options;
+  let options = deserialized?.recurrenceOptions;
   expect(options).toBeDefined();
   expect(options?.freq).toEqual(RRule.MONTHLY);
 

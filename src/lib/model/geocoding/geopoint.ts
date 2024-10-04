@@ -1,11 +1,12 @@
+import { getDistance } from "geolib";
 import type { JsonObject, JsonValue } from "type-fest";
 import type { LngLat } from ".";
 import { geocode, reverseGeocode, search } from "./osm";
 import { Address } from "./types/address";
 import type { OSMSearchParams } from "./types/osm";
+import { type Copy } from "../utils";
 
-export class Geopoint {
-  name: string = "";
+export class Geopoint implements Copy<Geopoint> {
   private _address: Address;
   private _coords: LngLat;
 
@@ -67,7 +68,9 @@ export class Geopoint {
    * @param json JSON object to parse.
    * @returns Geopoint if the JSON object could be parsed, otherwise undefined.
    */
-  static fromJSON(json: JsonObject): Geopoint | undefined {
+  static fromJSON(json: JsonValue): Geopoint | undefined {
+    json = json as JsonObject;
+
     const coords = tryParseCoords(json.coords);
     if (!coords) return undefined;
 
@@ -80,12 +83,34 @@ export class Geopoint {
   }
 
   /**
+   * Create a copy of this geopoint.
+   */
+  copy(): Geopoint {
+    return new Geopoint(this.coords, this.address.copy());
+  }
+
+  /**
+   * Get the distance in meters between this geopoint and another geopoint or coordinates.
+   * @param other Geopoint or raw coordinates to calculate the distance to.
+   * @param accuracy Accuracy of the distance calculation in meters. Default is 1.
+   * @returns Distance between the two geopoints in meters, or undefined if the distance could not be calculated.
+   */
+  distanceTo(other: Geopoint | LngLat, accuracy: number = 1): number | undefined {
+    const otherCoords = other instanceof Geopoint ? other.coords : other;
+    if (!this.coords || !otherCoords) return undefined;
+    return getDistance(
+      { latitude: this.coords[1], longitude: this.coords[0] },
+      { latitude: otherCoords[1], longitude: otherCoords[0] },
+      accuracy
+    );
+  }
+
+  /**
    * Convert the geopoint to a JSON object.
    * @returns JSON object representing the geopoint.
    */
   toJSON(): JsonObject {
     return {
-      name: this.name,
       coords: this._coords,
       address: this._address ? this._address.toJSON() : ""
     };

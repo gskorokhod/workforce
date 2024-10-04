@@ -246,11 +246,11 @@ describe("Rescheduling a WEEKLY recurrence", () => {
     expect(newDay).toEqual(4); // Friday
 
     // Days of the week should remain the same (looping around)
-    const dows = recurrence.options.byweekday as number[];
-    expect(newRecurrence?.options.byweekday).toEqual(dows);
+    const dows = recurrence.recurrenceOptions.byweekday as number[];
+    expect(newRecurrence?.recurrenceOptions.byweekday).toEqual(dows);
 
     // Some occurrences spill over into February
-    expect(newRecurrence?.options.bymonth).toEqual([1, 2]);
+    expect(newRecurrence?.recurrenceOptions.bymonth).toEqual([1, 2]);
 
     // All occurrences should be pushed forward by 1 week
     const oldOccurrences = recurrence.getOccurrences();
@@ -268,7 +268,7 @@ describe("Rescheduling a WEEKLY recurrence", () => {
     expect(newRecurrence).not.toBeNull();
 
     // The `bymonth` values should be updated
-    const bymonth = newRecurrence?.options.bymonth as number[];
+    const bymonth = newRecurrence?.recurrenceOptions.bymonth as number[];
     expect(bymonth).toEqual([2, 3]);
 
     // All occurrences should be pushed forward by 30 days

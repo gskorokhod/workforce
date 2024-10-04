@@ -1,9 +1,10 @@
 <script lang="ts">
-  import TasksDataView from "$lib/components/elements/data-views/tasks-data-view.svelte";
+  import TaskDataTable from "$lib/components/ui/data-table/task-data-table.svelte";
+  import { state } from "$lib/model";
+
+  const tasks = state.tasks;
 </script>
 
-<div class="w-full bg-gray-50">
-  <main class="h-dvh w-full p-4">
-    <TasksDataView />
-  </main>
-</div>
+<main class="h-full w-full">
+  <TaskDataTable data={tasks} class="h-full w-full" />
+</main>

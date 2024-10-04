@@ -1,43 +1,46 @@
-export enum ChipSize {
-  sm = "sm",
-  md = "md",
-  lg = "lg",
-  xl = "xl"
-}
+import type Color from "color";
+import { type VariantProps, tv } from "tailwind-variants";
+import Root from "./chip.svelte";
 
-export enum ChipVariant {
-  default = "default",
-  outline = "outline",
-  primary = "primary",
-  muted = "muted",
-  destructive = "destructive",
-  destructiveOutline = "destructiveOutline",
-  color = "color",
-  colorSolid = "colorSolid",
-  colorOutline = "colorOutline"
-}
-
-export const chipClasses = {
-  base: "w-max h-fit inline-flex flex-row items-center justify-start gap-2 rounded-full outline-none outline-offset-0 transition-all",
-  variants: {
-    [ChipVariant.default]:
-      "bg-muted text-muted-foreground hover:text-accent-foreground hover:outline-accent-foreground",
-    [ChipVariant.outline]:
-      "outline-muted-foreground text-muted-foreground bg-background hover:bg-accent hover:text-accent-foreground hover:outline-accent-foreground",
-    [ChipVariant.primary]:
-      "bg-primary text-primary-foreground hover:bg-primary/90 hover:outline-primary/90",
-    [ChipVariant.muted]: "bg-muted text-muted-foreground hover:bg-muted/90 hover:outline-muted/90",
-    [ChipVariant.destructive]: "bg-red-100 text-destructive hover:outline-destructive",
-    [ChipVariant.destructiveOutline]:
-      "bg-red-100 text-destructive outline-destructive hover:bg-destructive hover:text-destructive-foreground",
-    [ChipVariant.color]: "",
-    [ChipVariant.colorOutline]: "",
-    [ChipVariant.colorSolid]: ""
-  },
-  sizes: {
-    [ChipSize.sm]: "h-6 text-sm p-0.5",
-    [ChipSize.md]: "h-8 text-md p-1",
-    [ChipSize.lg]: "h-10 text-lg p-2",
-    [ChipSize.xl]: "h-12 text-xl p-3"
-  }
+type ChipProps = {
+  color?: Color;
+  class?: string;
 };
+
+const chipVariants = tv({
+  base: "w-max h-fit inline-flex flex-row items-center justify-center gap-2 rounded-full outline-none outline-offset-0 transition-all",
+  variants: {
+    variant: {
+      none: "",
+      default: "bg-primary text-primary-foreground hover:bg-primary/90 hover:outline-primary/90",
+      outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+      secondary:
+        "bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:outline-secondary/90",
+      muted: "bg-muted text-muted-foreground hover:bg-muted/90 hover:outline-muted-foreground/90",
+      destructive:
+        "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:outline-destructive/90",
+      ghost: "hover:bg-accent hover:text-accent-foreground"
+    },
+    size: {
+      xs: "h-5 min-w-5 text-sm p-0.5",
+      sm: "h-6 min-w-6 text-md p-0.5",
+      md: "h-8 min-w-8 text-lg p-1",
+      lg: "h-10 min-w-10 text-xl p-2",
+      xl: "h-12 min-w-12 text-2xl p-3"
+    }
+  },
+  defaultVariants: {
+    variant: "default",
+    size: "md"
+  }
+});
+
+type Variant = VariantProps<typeof chipVariants>["variant"];
+type Size = VariantProps<typeof chipVariants>["size"];
+
+type Props = ChipProps & {
+  variant?: Variant;
+  size?: Size;
+};
+
+export { Root as Chip, Root, chipVariants, type Props };
