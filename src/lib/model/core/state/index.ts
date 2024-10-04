@@ -7,7 +7,7 @@ import { Assignment } from "../assignment";
 import { Base } from "../base";
 import { Location } from "../location";
 import { Person } from "../person";
-import { SETTINGS_DEFAULTS, type Settings } from "../settings";
+import { DEFAULTS, type Settings } from "../settings";
 import { Shift } from "../shift";
 import { Skill } from "../skill";
 import { Task } from "../task";
@@ -29,7 +29,7 @@ export class State {
 
   constructor(stateID?: string) {
     this.stateID = stateID || uuidv4();
-    this.settings = persisted("settings_" + this.stateID, {...SETTINGS_DEFAULTS});
+    this.settings = persisted("settings_" + this.stateID, { ...DEFAULTS });
     this._skills = persisted("skills_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Skill.fromJSON)
     });

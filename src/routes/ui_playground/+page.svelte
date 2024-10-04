@@ -12,11 +12,11 @@
   import Search from "$lib/components/ui/search/search.svelte";
   import { Selector } from "$lib/components/ui/selector";
   import SelectorMany from "$lib/components/ui/selector/selector-many.svelte";
-  import { state, State } from "$lib/model";
+  import { state } from "$lib/model";
   import { Icon, type Display } from "$lib/model/ui";
   import { faker } from "@faker-js/faker";
   import { GraduationCapIcon, XIcon } from "lucide-svelte";
-  
+
   const schedules: ComboboxItem[] = [
     { label: "Schedule 1", value: "schedule1" },
     { label: "Schedule 2", value: "schedule2" }
@@ -134,7 +134,7 @@
     </section>
     <section>
       <h2>Data Table - Person</h2>
-      <PersonDataTable data={people} state={state} />
+      <PersonDataTable data={people} {state} />
     </section>
   </main>
 </div>

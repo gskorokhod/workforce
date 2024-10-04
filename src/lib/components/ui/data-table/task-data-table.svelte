@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { state as GLOBAL_STATE, Location, State } from "$lib/model";
+  import { state as GLOBAL_STATE, Skill, State, Task } from "$lib/model";
   import type { Geopoint } from "$lib/model/geocoding";
   import type { Display } from "$lib/model/ui";
   import { PlusIcon } from "lucide-svelte";
@@ -12,27 +12,25 @@
   import { type Writable, writable } from "svelte/store";
   import { Button } from "../button";
   import { EditDialog } from "../edit-dialog";
-  import { Map as MapComponent } from "../map";
-  import { ProfilePicture } from "../profile-picture";
+  import { ProfilePicture, ProfilesList } from "../profile-picture";
   import { Search } from "../search";
   import { type ColumnInitializer, DataTableCore } from "./core";
   import { ColumnHideSelector, mkCapacity, TableHeader } from "./lib";
 
-  let data: ReadOrWritable<Location[]>;
+  let data: ReadOrWritable<Task[]>;
   let header: boolean = true;
   let state: State = GLOBAL_STATE;
-  let rowActions: Map<string, (item: Location) => void> = new Map();
+  let rowActions: Map<string, (item: Task) => void> = new Map();
   let filterValue: Writable<string> = writable("");
   let sortKeys: WritableSortKeys = createSortKeysStore([]);
   let hideForId: { [key: string]: boolean } = {};
-  let flatColumns: FlatColumn<Location, AnyPlugins, string>[];
+  let flatColumns: FlatColumn<Task, AnyPlugins, string>[];
   let className: string = "";
-  let mapClass: string = "h-[300px] w-full";
 
-  let selected: Location | undefined = undefined;
+  let selected: Task | undefined = undefined;
   let dialogOpen: boolean = false;
   let dialogTitle: string = "Edit Person";
-  let columnInitializers: ColumnInitializer<Location>[] = [
+  let columnInitializers: ColumnInitializer<Task>[] = [
     {
       accessor: (row) => row as Display,
       cell: (cell) => createRender(ProfilePicture, { item: cell.value }),
@@ -48,66 +46,66 @@
       }
     },
     {
-      accessor: (row: Location) => row.name,
+      accessor: (row: Task) => row.name,
       header: "Name",
       id: "name"
     },
     {
-      accessor: (row: Location) =>
-        row.point?.address.format(["street", "settlement", "country", "postcode"]) || "No Address",
-      header: "Address",
-      id: "address"
+      accessor: (row: Task) => mkCapacity(row.min.people, row.max.people, "people"),
+      header: "Required Workers",
+      id: "capacity"
     },
     {
-      accessor: (row: Location) => mkCapacity(row.min.people, row.max.people, "people"),
-      header: "Capacity (People)",
-      id: "capacity_people"
-    },
-    {
-      accessor: (row: Location) => mkCapacity(row.min.tasks, row.max.tasks, "tasks"),
-      header: "Capacity (Tasks)",
-      id: "capacity_tasks"
+      accessor: (row: Task) => row.skills,
+      cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No Skills" }),
+      header: "Required Skills",
+      id: "skills",
+      plugins: {
+        sort: {
+          getSortValue: (value: Skill[]) => value.map((skill) => skill.name).join(" ")
+        },
+        tableFilter: {
+          getFilterValue: (value: Skill[]) => value.map((skill) => skill.name).join(" ")
+        }
+      }
     }
   ];
 
   let actions = new Map([
     ...rowActions,
-    ["Edit", (item: Location) => rowClick(item)],
-    ["Delete", (item: Location) => item.delete()]
+    ["Edit", (item: Task) => rowClick(item)],
+    ["Delete", (item: Task) => item.delete()]
   ]);
 
-  function rowClick(item: Location) {
-    dialogTitle = "Edit Location";
+  function rowClick(item: Task) {
+    dialogTitle = "Edit Task";
     selected = item;
     dialogOpen = true;
   }
 
-  function markerClick(item: Geopoint | Location) {
-    if (item instanceof Location) {
+  function markerClick(item: Geopoint | Task) {
+    if (item instanceof Task) {
       rowClick(item);
     }
   }
 
-  function newLocation() {
+  function newTask() {
     dialogTitle = "Create new Location";
-    selected = new Location({}, state);
+    selected = new Task({}, state);
     dialogOpen = true;
   }
 
-  export { data, actions, header, state, mapClass, className as class };
+  export { data, actions, header, state, className as class };
 </script>
 
 <div class="flex flex-col items-start justify-start {className}">
-  {#if header}
-    <MapComponent locations={$data} class="aspect-auto {mapClass}" onMarkerClick={markerClick} />
-  {/if}
   <div class="mt-4 flex h-max w-full flex-col items-start justify-start overflow-y-scroll">
     {#if header}
       <TableHeader sticky={true}>
         <svelte:fragment slot="start">
           <Button
             class="text-muted-foreground hover:text-accent-foreground"
-            on:click={newLocation}
+            on:click={newTask}
             size="icon-xl"
             variant="ghost"
           >

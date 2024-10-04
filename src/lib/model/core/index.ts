@@ -6,5 +6,6 @@ import { Shift } from "./shift";
 import { Skill } from "./skill";
 import { State } from "./state";
 import { Task } from "./task";
+import { type Settings } from "./settings";
 
-export { Assignment, Base, Location, Person, Shift, Skill, State, Task };
+export { Assignment, Base, Location, Person, Shift, Skill, State, Task, type Settings };
