@@ -20,7 +20,7 @@ export class ShiftOccurrence extends TimeSlot {
    * Get the assignments that are scheduled to occur during this occurrence, and their time slots.
    * @returns A map of `Assignment`s to `TimeSlot`s, representing periods when the `Assignment` overlaps with this occurrence.
    */
-  getAssignments(): HashMap<Assignment, TimeSlot> {
+  getAssignments(): Map<Assignment, TimeSlot> {
     const ans: HashMap<Assignment, TimeSlot> = new HashMap(undefined, undefined, eq);
 
     if (!this.shift.state) {

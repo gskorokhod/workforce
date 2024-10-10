@@ -13,6 +13,7 @@ import { Base } from "./base";
 import { Location } from "./location";
 import { revivedArr } from "./misc";
 import { Person } from "./person";
+import type { Shift } from "./shift";
 import { State } from "./state";
 import { Task } from "./task";
 
@@ -35,6 +36,7 @@ interface IAssignment {
   people: Person[];
   location?: Location;
   task?: Task;
+  shift?: Shift;
 }
 
 /**
@@ -45,6 +47,7 @@ export class Assignment extends Base implements IAssignment {
   private _people: Person[] = [];
   private _location?: Location;
   private _task?: Task;
+  private _shift?: Shift;
 
   /**
    * Create a new `Assignment` instance.
@@ -60,6 +63,7 @@ export class Assignment extends Base implements IAssignment {
     this._people = props.people || [];
     this._location = props.location;
     this._task = props.task;
+    this._shift = props.shift;
   }
 
   /**
@@ -235,6 +239,9 @@ export class Assignment extends Base implements IAssignment {
     );
   }
 
+  /**
+   * Put the assignment in the state.
+   */
   put(): void {
     if (this.state) {
       this.state.put(this);
@@ -310,22 +317,21 @@ export class Assignment extends Base implements IAssignment {
    * Get the location of the assignment.
    */
   get location(): Location | undefined {
-    let ans = this._location;
-    if (this.state) {
-      ans = ans?.get() as Location | undefined;
-    }
-    return ans?.copy();
+    return this._location?.copy() as Location | undefined;
   }
 
   /**
    * Get the task of the assignment.
    */
   get task(): Task | undefined {
-    let ans = this._task;
-    if (this.state) {
-      ans = ans?.get() as Task | undefined;
-    }
-    return ans?.copy();
+    return this._task?.get()?.copy() as Task | undefined;
+  }
+
+  /**
+   * Get the shift of the assignment.
+   */
+  get shift(): Shift | undefined {
+    return this._shift?.get()?.copy() as Shift | undefined;
   }
 
   /**
@@ -347,5 +353,12 @@ export class Assignment extends Base implements IAssignment {
    */
   set task(task: Task | undefined) {
     this._task = task?.copy();
+  }
+
+  /**
+   * Set the shift of the assignment.
+   */
+  set shift(shift: Shift | undefined) {
+    this._shift = shift?.copy();
   }
 }

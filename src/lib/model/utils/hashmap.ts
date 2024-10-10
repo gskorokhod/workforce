@@ -112,79 +112,49 @@ export class HashMap<K extends objectHash.NotUndefined, V> implements Map<K, V> 
     return this;
   }
 
-  entries(): IterableIterator<[K, V]> {
-    const it: IterableIterator<Bucket<K, V>> = this._map.values();
-    let bucket: IteratorResult<Bucket<K, V>> | undefined = undefined;
-    let index = 0;
+  entries(): MapIterator<[K, V]> {
+    const it: MapIterator<Bucket<K, V>> = this._map.values();
 
-    return {
-      [Symbol.iterator]() {
-        return this;
-      },
-      next() {
-        if (!bucket) {
-          bucket = it.next();
-          index = 0;
+    function* generator() {
+      for (const bucket of it) {
+        for (const entry of bucket) {
+          yield entry;
         }
-
-        if (!bucket.done) {
-          const entry = bucket.value[index];
-          index++;
-
-          if (index >= bucket.value.length) {
-            bucket = undefined;
-          }
-
-          return {
-            done: false,
-            value: entry
-          };
-        }
-
-        return { done: true, value: undefined };
       }
-    };
+    }
+
+    return Iterator.from(generator());
   }
 
-  keys(): IterableIterator<K> {
-    const it: IterableIterator<[K, V]> = this.entries();
+  keys(): MapIterator<K> {
+    const it: MapIterator<[K, V]> = this.entries();
 
-    return {
-      [Symbol.iterator]() {
-        return this;
-      },
-      next() {
-        const next = it.next();
-        return {
-          done: next.done,
-          value: next.value ? next.value[0] : undefined
-        };
+    function* generator() {
+      for (const entry of it) {
+        yield entry[0];
       }
-    };
+    }
+
+    return Iterator.from(generator());
   }
 
-  values(): IterableIterator<V> {
-    const it: IterableIterator<[K, V]> = this.entries();
+  values(): MapIterator<V> {
+    const it: MapIterator<[K, V]> = this.entries();
 
-    return {
-      [Symbol.iterator]() {
-        return this;
-      },
-      next() {
-        const next = it.next();
-        return {
-          done: next.done,
-          value: next.value ? next.value[1] : undefined
-        };
+    function* generator() {
+      for (const entry of it) {
+        yield entry[1];
       }
-    };
+    }
+
+    return Iterator.from(generator());
   }
 
   toMap(): Map<K, V> {
     return new Map<K, V>(this.entries());
   }
 
-  [Symbol.iterator](): IterableIterator<[K, V]> {
+  [Symbol.iterator](): MapIterator<[K, V]> {
     return this.entries();
   }
 
