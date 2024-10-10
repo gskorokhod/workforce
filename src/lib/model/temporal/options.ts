@@ -153,64 +153,41 @@ export type SupportedFrequency = Frequency.DAILY | Frequency.WEEKLY | Frequency.
  * @returns `RecurrenceOptions` object or `undefined`
  */
 export function toRecurrenceOptions(po: ParsedOptions): RecurrenceOptions | undefined {
+  const shared = {
+    freq: po.freq,
+    bymonth: po.bymonth,
+    dtstart: po.dtstart,
+    interval: po.interval,
+    wkst: po.wkst,
+    count: po.count ? po.count : undefined,
+    until: po.until ? po.until : undefined
+  } as Partial<RecurrenceOptions>;
+
   switch (po.freq) {
     case Frequency.DAILY: {
-      const rest = {
-        bymonth: po.bymonth,
+      return {
+        ...shared,
         bymonthday: po.bymonthday,
         byweekday: po.byweekday ? po.byweekday.map((wd) => new Weekday(wd)) : null,
-        dtstart: po.dtstart,
-        freq: po.freq,
-        interval: po.interval,
-        wkst: po.wkst
+        freq: po.freq
       };
-
-      if (po.until) {
-        return { ...rest, until: po.until };
-      } else if (po.count) {
-        return { ...rest, count: po.count };
-      } else {
-        return { ...rest };
-      }
     }
     case Frequency.WEEKLY: {
-      const rest = {
-        bymonth: po.bymonth,
+      return {
+        ...shared,
         bysetpos: po.bysetpos,
         byweekday: po.byweekday ? po.byweekday.map((wd) => new Weekday(wd)) : null,
-        dtstart: po.dtstart,
-        freq: po.freq,
-        interval: po.interval,
-        wkst: po.wkst
+        freq: po.freq
       };
-
-      if (po.until) {
-        return { ...rest, until: po.until };
-      } else if (po.count) {
-        return { ...rest, count: po.count };
-      } else {
-        return { ...rest };
-      }
     }
     case Frequency.MONTHLY: {
-      const rest = {
-        bymonth: po.bymonth,
+      return {
+        ...shared,
         bymonthday: po.bymonthday,
         bysetpos: po.bysetpos,
-        byweekday: po.byweekday,
-        dtstart: po.dtstart,
-        freq: po.freq,
-        interval: po.interval,
-        wkst: po.wkst
+        byweekday: po.byweekday ? po.byweekday.map((wd) => new Weekday(wd)) : null,
+        freq: po.freq
       };
-
-      if (po.until) {
-        return { ...rest, until: po.until };
-      } else if (po.count) {
-        return { ...rest, count: po.count };
-      } else {
-        return { ...rest };
-      }
     }
   }
 

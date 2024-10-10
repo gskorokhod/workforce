@@ -101,12 +101,15 @@ export class Location extends Base implements ILocation {
     radius: number,
     accuracy: number = 1
   ): Location[] {
-    const coords =
-      point instanceof Location
-        ? point.point?.coords
-        : point instanceof Geopoint
-          ? point.coords
-          : point;
+    let coords: LngLat | undefined;
+    if (point instanceof Location) {
+      coords = point.point?.coords;
+    } else if (point instanceof Geopoint) {
+      coords = point.coords;
+    } else {
+      coords = point;
+    }
+    
     if (!coords) {
       return [];
     }

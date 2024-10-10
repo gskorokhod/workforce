@@ -1,3 +1,5 @@
+/* eslint-disable sonarjs/slow-regex */
+
 import type { PlaywrightTestConfig } from "@playwright/test";
 
 const config: PlaywrightTestConfig = {

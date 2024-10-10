@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/pseudo-random */
 import { Recurrence } from "$lib/model/temporal";
 import type { RecurrenceOptions, RecurrenceProps } from "$lib/model/temporal/recurrence";
 import { faker } from "@faker-js/faker";

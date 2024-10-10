@@ -1,9 +1,11 @@
+/* eslint-disable sonarjs/pseudo-random */
+
 import { Location, State } from "$lib/model";
 import { Geopoint, type LngLat } from "$lib/model/geocoding";
 import { Address } from "$lib/model/geocoding/types/address";
 import { faker } from "@faker-js/faker";
-import { sample, select } from "./misc";
 import { get } from "svelte/store";
+import { sample, select } from "./misc";
 
 const NAMES = ["Office", "Hospital", "Building", "Ward", "Unit"];
 
@@ -12,12 +14,11 @@ const LONDON: [number, number] = [51.5074, -0.1278];
 function mkSuffix(): string {
   if (Math.random() < 0.5) {
     return "";
+    // eslint-disable-next-line no-dupe-else-if, sonarjs/no-identical-conditions  -- It's not actually the same as random() gets called again
+  } else if (Math.random() < 0.5) {
+    return Math.floor(Math.random() * 10).toString();
   } else {
-    if (Math.random() < 0.5) {
-      return Math.floor(Math.random() * 10).toString();
-    } else {
-      return select(["A", "B", "C", "D", "E"]);
-    }
+    return select(["A", "B", "C", "D", "E"]);
   }
 }
 
