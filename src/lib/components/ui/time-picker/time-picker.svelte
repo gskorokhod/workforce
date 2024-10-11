@@ -2,7 +2,7 @@
   import { CalendarDateTime, ZonedDateTime, type TimeDuration } from "@internationalized/date";
   import { Input } from "../input";
 
-  export let value: T;
+  export let value: T | undefined = undefined;
   export let onChange: (val: T) => void = () => {};
   export let id: string | undefined = undefined;
   let className: string = "";
@@ -19,7 +19,10 @@
     return `${hours}:${minutes}`;
   }
 
-  function durationString(duration: TimeDuration): string {
+  function durationString(duration?: TimeDuration): string {
+    if (!duration) {
+      return "00:00";
+    }
     const hours = (duration.hours || 0).toString().padStart(2, "0");
     const minutes = (duration.minutes || 0).toString().padStart(2, "0");
     return `${hours}:${minutes}`;
