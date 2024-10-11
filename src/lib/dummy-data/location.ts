@@ -1,8 +1,8 @@
 /* eslint-disable sonarjs/pseudo-random */
 
-import { Location, State } from "$lib/model";
-import { Geopoint, type LngLat } from "$lib/model/geocoding";
-import { Address } from "$lib/model/geocoding/types/address";
+import { Location, State } from "$lib/backend";
+import { Geopoint, type LngLat } from "$lib/backend/geocoding";
+import { Address } from "$lib/backend/geocoding/types/address";
 import { faker } from "@faker-js/faker";
 import { get } from "svelte/store";
 import { sample, select } from "./misc";

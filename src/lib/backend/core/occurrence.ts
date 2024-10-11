@@ -1,8 +1,8 @@
-import { TimeSlot } from "$lib/model/temporal";
-import { eq, HashMap } from "$lib/model/utils";
+import { TimeSlot } from "$lib/backend/temporal";
+import { eq, HashMap } from "$lib/backend/utils";
 import type { ZonedDateTime } from "@internationalized/date";
 import { get } from "svelte/store";
-import type { Assignment } from "../assignment";
+import type { Assignment } from "./assignment";
 import type { Shift } from "./shift";
 
 /**

@@ -1,8 +1,8 @@
 <script lang="ts">
   import { base } from "$app/paths";
   import { page } from "$app/stores";
-  import { state } from "$lib/model";
-  import { misc } from "$lib/model/utils";
+  import { state } from "$lib/backend";
+  import { misc } from "$lib/backend/utils";
   import {
     BriefcaseBusinessIcon,
     CalendarRangeIcon,

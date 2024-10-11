@@ -1,7 +1,7 @@
 <script lang="ts">
   import * as Select from "$lib/components/ui/select";
   import * as ToggleGroup from "$lib/components/ui/toggle-group";
-  import { type RecurrenceOptions } from "$lib/model/temporal";
+  import { type RecurrenceOptions } from "$lib/backend/temporal";
   import { fromDate, getLocalTimeZone, type DateValue } from "@internationalized/date";
   import type { Selected } from "bits-ui";
   import { Frequency, RRule, type ByWeekday } from "rrule";

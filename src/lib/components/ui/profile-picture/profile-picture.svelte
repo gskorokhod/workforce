@@ -3,8 +3,8 @@
 
   import * as Avatar from "$lib/components/ui/avatar";
   import IconElement from "$lib/components/ui/icon/icon.svelte";
-  import { Icon, type Display } from "$lib/model/ui";
-  import { misc } from "$lib/model/utils";
+  import { Icon, type Display } from "$lib/backend/ui";
+  import { misc } from "$lib/backend/utils";
   import { PFP_HEIGHT, PFP_WIDTH, type Size } from ".";
 
   let item: T | undefined = undefined;

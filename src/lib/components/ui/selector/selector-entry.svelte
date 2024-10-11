@@ -1,7 +1,7 @@
 <script lang="ts" generics="T extends Base & Display">
   import * as Command from "$lib/components/ui/command";
-  import { Base } from "$lib/model/core";
-  import type { Display, Icon } from "$lib/model/ui";
+  import { Base } from "$lib/backend/core";
+  import type { Display, Icon } from "$lib/backend/ui";
   import { Check } from "lucide-svelte";
   import { ProfilePicture, type Size } from "../profile-picture";
   import { PLACEHOLDER } from "./misc";

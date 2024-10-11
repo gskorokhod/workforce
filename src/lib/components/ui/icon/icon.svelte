@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Icon as TIcon } from "$lib/model/ui";
+  import { Icon as TIcon } from "$lib/backend/ui";
   import Icon from "@iconify/svelte";
   import type Color from "color";
 

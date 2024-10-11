@@ -1,4 +1,4 @@
-import { Person, State } from "$lib/model";
+import { Person, State } from "$lib/backend";
 import { faker } from "@faker-js/faker";
 import { CalendarDate, fromDate, toCalendarDate } from "@internationalized/date";
 import { get } from "svelte/store";

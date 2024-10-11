@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { state as GLOBAL_STATE, Skill, State, Task } from "$lib/model";
-  import type { Geopoint } from "$lib/model/geocoding";
-  import type { Display } from "$lib/model/ui";
+  import { state as GLOBAL_STATE, Skill, State, Task } from "$lib/backend";
+  import type { Geopoint } from "$lib/backend/geocoding";
+  import type { Display } from "$lib/backend/ui";
   import { PlusIcon } from "lucide-svelte";
   import { createRender, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import {

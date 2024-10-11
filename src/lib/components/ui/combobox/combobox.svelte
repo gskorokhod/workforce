@@ -9,7 +9,7 @@
   import { tick } from "svelte";
   import type { ComboboxItem } from "$lib/components/ui/combobox/index.ts";
   import Icon from "$lib/components/ui/icon/icon.svelte";
-  import type { Icon as TIcon } from "$lib/model/ui";
+  import type { Icon as TIcon } from "$lib/backend/ui";
 
   let options: ComboboxItem[] = [];
   let open = false;

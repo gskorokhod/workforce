@@ -2,15 +2,15 @@ import { persisted, type Serializer } from "svelte-persisted-store";
 import { get as _get, derived, type Writable } from "svelte/store";
 import type { JsonValue } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
-import { copyArr, type Copy } from "../../utils";
-import { Assignment } from "../assignment";
-import { Base } from "../base";
-import { Location } from "../location";
-import { Person } from "../person";
-import { DEFAULTS, type Settings } from "../settings";
-import { Shift } from "../shift";
-import { Skill } from "../skill";
-import { Task } from "../task";
+import { copyArr, type Copy } from "../utils";
+import { Assignment } from "./assignment";
+import { Base } from "./base";
+import { Location } from "./location";
+import { Person } from "./person";
+import { DEFAULTS, type Settings } from "./settings";
+import { Shift } from "./shift";
+import { Skill } from "./skill";
+import { Task } from "./task";
 
 // A map of UUIDs to objects of type T
 type Stored<T extends Base> = Map<string, T>;

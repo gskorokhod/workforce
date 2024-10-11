@@ -1,9 +1,9 @@
-import { State, Task } from "$lib/model";
-import { Icon } from "$lib/model/ui";
+import { State, Task } from "$lib/backend";
+import { Icon } from "$lib/backend/ui";
 import { faker } from "@faker-js/faker";
+import { get } from "svelte/store";
 import { sample, select } from "./misc";
 import { generateSkills, sampleSkills } from "./skill";
-import { get } from "svelte/store";
 
 const ICONS = [
   Icon.fromString("mdi:cleaning"),

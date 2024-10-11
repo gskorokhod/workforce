@@ -1,6 +1,6 @@
 /* eslint-disable sonarjs/pseudo-random */
-import { Recurrence } from "$lib/model/temporal";
-import type { RecurrenceOptions, RecurrenceProps } from "$lib/model/temporal/recurrence";
+import { Recurrence } from "$lib/backend/temporal";
+import type { RecurrenceOptions, RecurrenceProps } from "$lib/backend/temporal/recurrence";
 import { faker } from "@faker-js/faker";
 import { fromDate, type TimeDuration } from "@internationalized/date";
 import { RRule, Weekday } from "rrule";
