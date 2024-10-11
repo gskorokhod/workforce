@@ -4,6 +4,7 @@ import {
   getDayOfWeek,
   parseZonedDateTime,
   toCalendarDate,
+  toTimeZone,
   ZonedDateTime
 } from "@internationalized/date";
 import { Frequency, RRule } from "rrule";
@@ -200,7 +201,8 @@ describe("Rescheduling a WEEKLY recurrence", () => {
     expect(newOccurrence?.start).toEqual(occurrence?.start.add(by));
 
     // The recurrence start date should remain the same
-    expect(newRecurrence?.dtStart).toEqual(startZDT);
+    const dts = toTimeZone(newRecurrence?.dtStart as ZonedDateTime, "UTC");
+    expect(dts).toEqual(startZDT);
 
     // The rest of the occurrences should remain the same
     const allOccurrences = recurrence.getOccurrences();

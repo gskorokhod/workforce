@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/pseudo-random */
 import { Recurrence } from "$lib/model/temporal";
 import type { RecurrenceOptions, RecurrenceProps } from "$lib/model/temporal/recurrence";
 import { faker } from "@faker-js/faker";
@@ -62,11 +63,12 @@ function mkExceprions(): {
 }
 
 export function generateRecurrence(): Recurrence {
+  const freq = mkFreq();
   const options: RecurrenceOptions = {
     ...mkEnd(),
-    freq: mkFreq(),
+    freq,
     interval: mkInterval(),
-    byweekday: mkWeekdays()
+    byweekday: freq === RRule.DAILY ? [] : mkWeekdays()
   };
 
   const dtstart = fromDate(faker.date.recent({ days: 14 }), "UTC");

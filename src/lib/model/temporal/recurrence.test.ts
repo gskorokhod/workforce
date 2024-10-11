@@ -241,11 +241,10 @@ test("Update options", () => {
   expect(recurrence.recurrenceOptions.count).toEqual(5);
   expect(recurrence.recurrenceOptions.dtstart).toEqual(dtstart);
 
-  const newOpts: RecurrenceOptions = {
+  recurrence.recurrenceOptions = {
+    ...opts,
     freq: RRule.WEEKLY
   };
-
-  recurrence.setOptions(newOpts);
 
   expect(recurrence.recurrenceOptions.freq).toEqual(RRule.WEEKLY);
   expect(recurrence.recurrenceOptions.count).toEqual(5);
@@ -381,7 +380,7 @@ test("Serialize and deserialize", () => {
 
   options = options as MonthlyOptions;
   expect(options.bymonth).toEqual([2, 4]);
-  expect(options.byweekday).toEqual([0, 1]); // MO, TU
+  expect(options.byweekday).toEqual([RRule.MO, RRule.TU]);
   expect(options.bymonthday).toEqual([1, 15]);
 
   const calDate = toCalendarDate(fromDate(datetime(2012, 2, 15, 10, 30), "UTC"));

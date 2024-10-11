@@ -15,7 +15,8 @@ export default [
   sonarjs.configs.recommended,
   {
     rules: {
-      "sonarjs/no-duplicate-string": "warn"
+      "sonarjs/no-duplicate-string": "warn",
+      "sonarjs/todo-tag": "warn"
     }
   },
   {

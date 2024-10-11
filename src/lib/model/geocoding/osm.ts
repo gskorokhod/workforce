@@ -85,6 +85,7 @@ export async function search(
  * @param address Address to geocode or search string.
  * @returns Coordinates of the address.
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity -- It's just if statements for address fields, we're all good
 export async function geocode(address: string | Address): Promise<LngLat | undefined> {
   let data: OSMPlace[] = [];
 
