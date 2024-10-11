@@ -4,6 +4,7 @@
   import type { ComboboxItem } from "$lib/components/ui/combobox";
   import Combobox from "$lib/components/ui/combobox/combobox.svelte";
   import PersonDataTable from "$lib/components/ui/data-table/person-data-table.svelte";
+  import ShiftDataTable from "$lib/components/ui/data-table/shift-data-table.svelte";
   import EditDialog from "$lib/components/ui/edit-dialog/edit-dialog.svelte";
   import IconPicker from "$lib/components/ui/image-picker/icon-picker.svelte";
   import ImagePicker from "$lib/components/ui/image-picker/image-picker.svelte";
@@ -12,9 +13,11 @@
   import Search from "$lib/components/ui/search/search.svelte";
   import { Selector } from "$lib/components/ui/selector";
   import SelectorMany from "$lib/components/ui/selector/selector-many.svelte";
+  import TimePicker from "$lib/components/ui/time-picker/time-picker.svelte";
   import { state } from "$lib/model";
   import { Icon, type Display } from "$lib/model/ui";
   import { faker } from "@faker-js/faker";
+  import { getLocalTimeZone, now, ZonedDateTime, type TimeDuration } from "@internationalized/date";
   import { GraduationCapIcon, XIcon } from "lucide-svelte";
 
   const schedules: ComboboxItem[] = [
@@ -46,6 +49,13 @@
   let skills = state.skills;
   let tasks = state.tasks;
   let shifts = state.shifts;
+
+  let time1: ZonedDateTime = now(getLocalTimeZone());
+  let time2 = new Date();
+  let time3: TimeDuration = {
+    hours: 10,
+    minutes: 30
+  };
 </script>
 
 <div class="h-dvh w-full overflow-y-scroll bg-gray-50">
@@ -80,6 +90,24 @@
         options={schedules}
         placeholder="Select schedule..."
       />
+    </section>
+    <section class="flex w-full flex-col gap-3">
+      <h2 class="text-xl">Time Input</h2>
+      <div class="flex flex-row items-center gap-2">
+        a:
+        <TimePicker bind:value={time1} />
+      </div>
+      <div class="flex flex-row gap-2">
+        b:
+        <TimePicker bind:value={time2} />
+      </div>
+      <div class="flex flex-row gap-2">
+        c:
+        <TimePicker bind:value={time3} />
+      </div>
+      <p>a = ZonedDateTime({time1.toString()})</p>
+      <p>b = Date({time2.toString()})</p>
+      <p>c = {JSON.stringify(time3)}</p>
     </section>
     <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Icon Picker</h2>
@@ -138,8 +166,12 @@
       <PersonDataTable data={people} {state} />
     </section>
     <section>
+      <h2 class="mb-1.5 text-xl">Data Table - Shift</h2>
+      <ShiftDataTable data={shifts} {state} />
+    </section>
+    <section>
       <h2 class="mb-1.5 text-xl">Recurrence Editor</h2>
-      <div class="w-max rounded-lg bg-card p-6">
+      <div class="flex w-max flex-col gap-6 rounded-lg bg-card p-6">
         <RecurrenceOptionsEdit value={$shifts[0].pattern.recurrenceOptions} />
       </div>
     </section>

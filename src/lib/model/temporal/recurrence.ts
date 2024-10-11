@@ -1,11 +1,5 @@
 import type { CalendarDateTime, TimeDuration } from "@internationalized/date";
-import type {
-  DailyOptions,
-  MonthlyOptions,
-  RecurrenceOptions,
-  SupportedFrequency,
-  WeeklyOptions
-} from "./options";
+import type { RecurrenceOptions, SupportedFrequency } from "./options";
 
 import {
   CalendarDate,
@@ -16,7 +10,7 @@ import {
   toZoned,
   ZonedDateTime
 } from "@internationalized/date";
-import { RRule, RRuleSet } from "rrule";
+import { datetime, RRule, RRuleSet } from "rrule";
 import type { JsonObject } from "type-fest";
 import { HashMap, type Copy } from "../utils";
 import { toRecurrenceOptions } from "./options";
@@ -411,11 +405,12 @@ class Recurrence implements Copy<Recurrence> {
     other: Recurrence,
     after: ZonedDateTime | undefined = undefined,
     before: ZonedDateTime | undefined = undefined,
+    tzid: string = getLocalTimeZone(),
     limit: number = -1,
     applyExceptions: boolean = true
   ): boolean {
-    const occ = this.getOccurrences(after, before, "UTC", true, limit, applyExceptions);
-    const otherOcc = other.getOccurrences(after, before, "UTC", true, limit, applyExceptions);
+    const occ = this.getOccurrences(after, before, tzid, true, limit, applyExceptions);
+    const otherOcc = other.getOccurrences(after, before, tzid, true, limit, applyExceptions);
 
     return occ.some((thisOcc) => otherOcc.some((otherOcc) => thisOcc.intersects(otherOcc)));
   }
@@ -429,11 +424,12 @@ class Recurrence implements Copy<Recurrence> {
     other: Recurrence,
     after: ZonedDateTime | undefined = undefined,
     before: ZonedDateTime | undefined = undefined,
+    tzid: string = getLocalTimeZone(),
     limit: number = -1,
     applyExceptions: boolean = true
   ): TimeSlot[] {
-    const occ = this.getOccurrences(after, before, "UTC", true, limit, applyExceptions);
-    const otherOcc = other.getOccurrences(after, before, "UTC", true, limit, applyExceptions);
+    const occ = this.getOccurrences(after, before, tzid, true, limit, applyExceptions);
+    const otherOcc = other.getOccurrences(after, before, tzid, true, limit, applyExceptions);
 
     const clashes: TimeSlot[] = [];
 
@@ -629,7 +625,7 @@ class Recurrence implements Copy<Recurrence> {
    */
   probe(zdt: ZonedDateTime): ProbeResult {
     const status = this.checkException(toCalendarDate(zdt));
-    const matchesPattern = this.getOccurrenceOn(zdt, "UTC", false) !== undefined;
+    const matchesPattern = this.getOccurrenceOn(zdt, zdt.timeZone, false) !== undefined;
     const occurrence = this.getOccurrenceOn(zdt) || undefined;
 
     return { date: zdt, matchesPattern, occurrence, status };
@@ -692,18 +688,18 @@ class Recurrence implements Copy<Recurrence> {
 
   /**
    * Get the dates that are explicitly included or excluded from the recurrence pattern.
-   * @returns A map of CalendarDate objects (in UTC) to their status in the recurrence pattern.
+   * @returns A map of CalendarDate objects (in the local timezone) to their status in the recurrence pattern.
    */
-  getExceptions(): Map<CalendarDate, DateOption> {
+  getExceptions(tzid?: string): Map<CalendarDate, DateOption> {
     const equals = (a: CalendarDate, b: CalendarDate) => a.compare(b) === 0;
     const exceptions = new HashMap<CalendarDate, DateOption>(undefined, undefined, equals);
 
     this._rdates.forEach((d) => {
-      exceptions.set(toCalendarDate(fromDate(d, "UTC")), DateOption.INCLUDED);
+      exceptions.set(toCalendarDate(fromDate(d, tzid || getLocalTimeZone())), DateOption.INCLUDED);
     });
 
     this._exdates.forEach((d) => {
-      exceptions.set(toCalendarDate(fromDate(d, "UTC")), DateOption.EXCLUDED);
+      exceptions.set(toCalendarDate(fromDate(d, tzid || getLocalTimeZone())), DateOption.EXCLUDED);
     });
 
     return exceptions;
@@ -730,34 +726,6 @@ class Recurrence implements Copy<Recurrence> {
   }
 
   /**
-   * Update the recurrence pattern options.
-   * Fields that are not set in the new options will remain unchanged.
-   * Explicitly setting a field to undefined will reset it to its default value.
-   * The `freq` field is required and existing options that are incompatible with the new frequency will be removed.
-   * @param options A `RecurrenceOptions` object representing the new options. Only the `freq` field is required.
-   * @see RecurrenceOptions
-   */
-  setOptions(options: RecurrenceOptions) {
-    let opts: RecurrenceOptions;
-
-    switch (options.freq) {
-      case RRule.DAILY:
-        opts = this._rrule.options as unknown as DailyOptions;
-        break;
-      case RRule.WEEKLY:
-        opts = this._rrule.options as unknown as WeeklyOptions;
-        break;
-      case RRule.MONTHLY:
-        opts = this._rrule.options as unknown as MonthlyOptions;
-        break;
-      default:
-        throw new Error("Invalid frequency; must be one of DAILY, WEEKLY, or MONTHLY");
-    }
-
-    this._rrule = new RRule({ ...opts, ...options });
-  }
-
-  /**
    * Create a new Recurrence object with updated properties.
    * @param props Partial properties to update
    * @returns New Recurrence object with the updated properties
@@ -769,6 +737,30 @@ class Recurrence implements Copy<Recurrence> {
       exceptions: props.exceptions || { rdates: this._rdates, exdates: this._exdates },
       rrule: props.rrule || this._rrule
     });
+  }
+
+  /**
+   * Get a human-readable string representing the recurrence pattern.
+   * @returns A human-readable string representing the recurrence pattern.
+   */
+  toText(): string {
+    const opts = this.recurrenceOptions;
+    const dts = this.dtStart;
+    const rrule = new RRule({
+      ...opts,
+      dtstart: datetime(dts.year, dts.month, dts.day, dts.hour, dts.minute)
+    });
+    return rrule.toText();
+  }
+
+  /**
+   * Get the duration of the event as a formatted string (HH:MM)
+   */
+  formattedDuration(): string {
+    if (!this._duration) return "23:59";
+    const hours = this._duration.hours || 0;
+    const minutes = this._duration.minutes || 0;
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
   }
 
   /**
@@ -803,6 +795,13 @@ class Recurrence implements Copy<Recurrence> {
   }
 
   /**
+   * Update the recurrence pattern options, but keep the start date the same.
+   */
+  set recurrenceOptions(options: RecurrenceOptions) {
+    this._rrule = new RRule(options);
+  }
+
+  /**
    * Get the properties of the Recurrence object.
    */
   get props(): RecurrenceProps {
@@ -815,6 +814,13 @@ class Recurrence implements Copy<Recurrence> {
   }
 
   /**
+   * Get the RRule object representing the recurrence pattern.
+   */
+  get rrule(): RRule {
+    return new RRule(this._rrule.origOptions);
+  }
+
+  /**
    * Check if the recurrence pattern is finite (i.e. has a count or until date).
    */
   get isFinite(): boolean {
@@ -822,11 +828,15 @@ class Recurrence implements Copy<Recurrence> {
   }
 
   /**
-   * Get the start date of the recurrence pattern in UTC.
+   * Get the start date of the recurrence pattern in the local timezone.
    */
   get dtStart(): ZonedDateTime {
     const dtstart = this._rrule.options.dtstart;
-    return fromDate(dtstart, "UTC");
+    return fromDate(dtstart, getLocalTimeZone());
+  }
+
+  set dtStart(zdt: ZonedDateTime) {
+    this._rrule.options.dtstart = toUTCDate(zdt);
   }
 }
 

@@ -1,3 +1,4 @@
+import "core-js/actual/iterator";
 import deepEqual from "deep-equal";
 import objectHash from "object-hash";
 
@@ -54,6 +55,10 @@ export class HashMap<K extends objectHash.NotUndefined, V> implements Map<K, V> 
     if (!bucket) return undefined;
 
     return bucket.find(([k]) => this._equals(k, key));
+  }
+
+  toJSON() {
+    return this.toMap().toJSON();
   }
 
   clear(): void {

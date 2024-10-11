@@ -28,15 +28,8 @@ export function toUTCDate(dt: ZonedDateTime | CalendarDate): Date {
     return datetime(dt.year, dt.month, dt.day);
   }
 
-  const d = toTimeZone(dt, "UTC").toDate();
-  return datetime(
-    d.getUTCFullYear(),
-    d.getUTCMonth() + 1,
-    d.getUTCDate(),
-    d.getUTCHours(),
-    d.getUTCMinutes(),
-    d.getUTCSeconds()
-  );
+  const d = toTimeZone(dt, "UTC");
+  return datetime(d.year, d.month, d.day, d.hour, d.minute, d.second);
 }
 
 /**

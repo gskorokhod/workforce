@@ -1,6 +1,4 @@
 <script lang="ts" generics="T extends Base">
-  import { Geopoint } from "$lib/model/geocoding";
-
   import * as Dialog from "$lib/components/ui/dialog";
   import { state as GLOBAL_STATE } from "$lib/model";
   import { Assignment, Base, Location, Person, Shift, Skill, Task } from "$lib/model/core";
@@ -9,12 +7,9 @@
   import ImagePicker from "../image-picker/image-picker.svelte";
   import { Input } from "../input";
   import { Label } from "../label";
+  import RecurrenceOptionsEdit from "../recurrence/recurrence_options_edit.svelte";
   import { SelectorMany } from "../selector";
   import { Textarea } from "../textarea";
-  import { Map, MapMarker } from "../map";
-  import { Search } from "../search";
-  import { without } from "$lib/model/utils";
-  import { getAddressCompletions } from "$lib/model/geocoding/osm";
   import EditLocation from "./edit-location.svelte";
 
   export let item: T | undefined;
@@ -88,7 +83,11 @@
         {:else if item instanceof Assignment}
           TODO: Assignment UI
         {:else if item instanceof Shift}
-          TODO: Shift UI
+          <div class="flex w-full flex-col gap-1.5">
+            <Label class="font-semibold" for="duration">Duration</Label>
+            <Input id="duration" type="time" bind:value={item.pattern.formattedDuration} />
+          </div>
+          <RecurrenceOptionsEdit bind:value={item.pattern.recurrenceOptions} />
         {/if}
       </div>
       <Dialog.Footer>
