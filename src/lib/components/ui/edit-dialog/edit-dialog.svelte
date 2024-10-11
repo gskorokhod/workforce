@@ -10,6 +10,7 @@
   import RecurrenceOptionsEdit from "../recurrence/recurrence_options_edit.svelte";
   import { SelectorMany } from "../selector";
   import { Textarea } from "../textarea";
+  import TimePicker from "../time-picker/time-picker.svelte";
   import EditLocation from "./edit-location.svelte";
 
   export let item: T | undefined;
@@ -85,7 +86,10 @@
         {:else if item instanceof Shift}
           <div class="flex w-full flex-col gap-1.5">
             <Label class="font-semibold" for="duration">Duration</Label>
-            <Input id="duration" type="time" bind:value={item.pattern.formattedDuration} />
+            <div class="flex flex-row items-center gap-2">
+              <TimePicker id="duration" bind:value={item.pattern.duration} />
+              hours
+            </div>
           </div>
           <RecurrenceOptionsEdit bind:value={item.pattern.recurrenceOptions} />
         {/if}

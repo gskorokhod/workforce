@@ -772,6 +772,14 @@ class Recurrence implements Copy<Recurrence> {
   }
 
   /**
+   * Set the duration of the event.
+   * @param duration Duration of the event. If undefined, the event is considered to last the entire day.
+   */
+  set duration(duration: TimeDuration | undefined) {
+    this._duration = duration;
+  }
+
+  /**
    * Get the frequency of the recurrence pattern.
    */
   get frequency(): SupportedFrequency {
