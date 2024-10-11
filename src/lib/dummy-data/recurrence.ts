@@ -63,11 +63,12 @@ function mkExceprions(): {
 }
 
 export function generateRecurrence(): Recurrence {
+  const freq = mkFreq();
   const options: RecurrenceOptions = {
     ...mkEnd(),
-    freq: mkFreq(),
+    freq,
     interval: mkInterval(),
-    byweekday: mkWeekdays()
+    byweekday: freq === RRule.DAILY ? [] : mkWeekdays()
   };
 
   const dtstart = fromDate(faker.date.recent({ days: 14 }), "UTC");

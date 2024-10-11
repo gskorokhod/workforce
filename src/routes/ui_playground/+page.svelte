@@ -1,14 +1,14 @@
 <script lang="ts">
-  import type { ComboboxItem } from "$lib/components/ui/combobox";
-
   import { Button } from "$lib/components/ui/button";
   import Chip from "$lib/components/ui/chip/chip.svelte";
+  import type { ComboboxItem } from "$lib/components/ui/combobox";
   import Combobox from "$lib/components/ui/combobox/combobox.svelte";
   import PersonDataTable from "$lib/components/ui/data-table/person-data-table.svelte";
   import EditDialog from "$lib/components/ui/edit-dialog/edit-dialog.svelte";
   import IconPicker from "$lib/components/ui/image-picker/icon-picker.svelte";
   import ImagePicker from "$lib/components/ui/image-picker/image-picker.svelte";
   import { Profile } from "$lib/components/ui/profile-picture";
+  import RecurrenceOptionsEdit from "$lib/components/ui/recurrence/recurrence_options_edit.svelte";
   import Search from "$lib/components/ui/search/search.svelte";
   import { Selector } from "$lib/components/ui/selector";
   import SelectorMany from "$lib/components/ui/selector/selector-many.svelte";
@@ -45,6 +45,7 @@
   let people = state.people;
   let skills = state.skills;
   let tasks = state.tasks;
+  let shifts = state.shifts;
 </script>
 
 <div class="h-dvh w-full overflow-y-scroll bg-gray-50">
@@ -133,8 +134,14 @@
       </EditDialog>
     </section>
     <section>
-      <h2>Data Table - Person</h2>
+      <h2 class="mb-1.5 text-xl">Data Table - Person</h2>
       <PersonDataTable data={people} {state} />
+    </section>
+    <section>
+      <h2 class="mb-1.5 text-xl">Recurrence Editor</h2>
+      <div class="w-max rounded-lg bg-card p-6">
+        <RecurrenceOptionsEdit value={$shifts[0].pattern.recurrenceOptions} />
+      </div>
     </section>
   </main>
 </div>

@@ -2,19 +2,51 @@
   import * as Select from "$lib/components/ui/select";
   import * as ToggleGroup from "$lib/components/ui/toggle-group";
   import { type RecurrenceOptions } from "$lib/model/temporal";
+  import { fromDate, type DateValue } from "@internationalized/date";
   import type { Selected } from "bits-ui";
-  import { Frequency, RRule } from "rrule";
+  import { Frequency, RRule, type ByWeekday } from "rrule";
+  import { DatePicker } from "../date-picker";
   import { Input } from "../input";
+  import { Label } from "../label";
 
   type SupportedFrequency = Frequency.DAILY | Frequency.WEEKLY | Frequency.MONTHLY;
   const WEEKDAYS = [RRule.MO, RRule.TU, RRule.WE, RRule.TH, RRule.FR, RRule.SA, RRule.SU];
+  const FREQUENCIES: Map<SupportedFrequency, string> = new Map([
+    [RRule.DAILY, "day"],
+    [RRule.WEEKLY, "week"],
+    [RRule.MONTHLY, "month"]
+  ]);
+  const END_OPTIONS: Map<string, string> = new Map([
+    ["until", "On"],
+    ["count", "After"],
+    ["infinite", "Never"]
+  ]);
 
   export let value: RecurrenceOptions;
+
+  let prevByweekday: ByWeekday[] | undefined = undefined;
+  $: until = value.until ? fromDate(value.until, "UTC") : fromDate(new Date(), "UTC");
+  $: count = value.count || 1;
+  $: freqSelected = { value: value.freq, label: mkFreqLabel(value.freq, value.interval) };
+  $: endVal = value.count ? "count" : value.until ? "until" : "infinite";
+  $: endSelected = { value: endVal, label: END_OPTIONS.get(endVal) || "Never" };
   $: byweekday = (value.byweekday || WEEKDAYS).map((day) => day.toString());
+  $: dtstart = fromDate(value.dtstart || new Date(), "UTC");
+  $: rrule = new RRule(value);
 
   function onFreqChange(val: Selected<SupportedFrequency> | undefined) {
     if (val) {
-      value.freq = val.value;
+      const fval = val.value;
+
+      if (fval === RRule.DAILY && value.byweekday && value.byweekday.length !== 7) {
+        prevByweekday = value.byweekday;
+        value.byweekday = undefined;
+      } else if (fval !== RRule.DAILY && prevByweekday) {
+        value.byweekday = prevByweekday;
+        prevByweekday = undefined;
+      }
+
+      value.freq = fval;
     }
   }
 
@@ -26,35 +58,80 @@
     if (value.freq === RRule.DAILY) {
       value = {
         ...value,
-        freq: RRule.WEEKLY
+        freq: RRule.WEEKLY,
+        interval: 1
       };
     }
 
-    value.byweekday = WEEKDAYS.filter((day) => val.includes(day.toString()));
+    const byweekday = WEEKDAYS.filter((day) => val.includes(day.toString()));
+    value.byweekday = byweekday && byweekday.length !== 7 ? byweekday : undefined;
   }
 
-  function pluralise(unit: string, n?: number) {
-    if (!n) return unit;
-    return n === 1 ? unit : `${unit}s`;
+  function onDtstartChange(val: DateValue | undefined) {
+    value.dtstart = val?.toDate("UTC");
+  }
+
+  function pluralise(unit: string, n?: number | string) {
+    const num = typeof n === "string" ? parseInt(n) : n;
+    return num === 1 ? unit : `${unit}s`;
+  }
+
+  function mkFreqLabel(freq: SupportedFrequency, n?: number) {
+    return pluralise(FREQUENCIES.get(freq) || "", n);
+  }
+
+  function onEndValChange(
+    end: string | undefined,
+    until: DateValue | undefined,
+    count: number | undefined
+  ) {
+    console.log("onEndValChange", end, until, count);
+    if (end) {
+      if (end === "infinite") {
+        value.until = undefined;
+        value.count = undefined;
+      } else if (end === "until") {
+        value.until = until?.toDate("UTC");
+        value.count = undefined;
+      } else if (end === "count") {
+        value.count = count;
+        value.until = undefined;
+      }
+    }
   }
 </script>
 
-<div class="flex flex-col">
-  <div class="flex flex-row">
-    <Input type="number" bind:value={value.interval} min={1} />
-    <Select.Root selected={{value: value.freq}} onSelectedChange={onFreqChange} required>
-      <Select.Trigger id="frequency">
-        <Select.Value placeholder="Frequency" />
-      </Select.Trigger>
-      <Select.Content>
-        <Select.Item value={RRule.DAILY}>{pluralise("day", value.interval)}</Select.Item>
-        <Select.Item value={RRule.WEEKLY}>{pluralise("week", value.interval)}</Select.Item>
-        <Select.Item value={RRule.MONTHLY}>{pluralise("month", value.interval)}</Select.Item>
-      </Select.Content>
-    </Select.Root>
+<div class="flex w-min flex-col gap-6">
+  <div class="flex w-full flex-col gap-1.5">
+    <Label for="dtstart" class="font-semibold">Starts on</Label>
+    <DatePicker id="dtstart" value={dtstart} onChange={onDtstartChange} />
   </div>
-  <div>
-    <ToggleGroup.Root type="multiple" value={byweekday} onValueChange={onByweekdayChange}>
+  <div class="flex w-full flex-col gap-1.5">
+    <Label for="occurs" class="font-semibold">Occurs</Label>
+    <div class="flex flex-row items-center gap-2" id="occurs">
+      <span>Every</span>
+      <Input class="w-20" type="number" bind:value={value.interval} min={1} />
+      <Select.Root selected={freqSelected} onSelectedChange={onFreqChange} required>
+        <Select.Trigger id="frequency" class="w-40">
+          <Select.Value placeholder="Frequency" />
+        </Select.Trigger>
+        <Select.Content>
+          {#each FREQUENCIES.keys() as freq}
+            <Select.Item value={freq}>{mkFreqLabel(freq, value.interval)}</Select.Item>
+          {/each}
+        </Select.Content>
+      </Select.Root>
+    </div>
+  </div>
+  <div class="flex w-full flex-col gap-1.5">
+    <Label for="byweekday" class="font-semibold">On</Label>
+    <ToggleGroup.Root
+      class="justify-start"
+      id="byweekday"
+      type="multiple"
+      value={byweekday}
+      onValueChange={onByweekdayChange}
+    >
       {#each WEEKDAYS as weekday}
         <ToggleGroup.Item value={weekday.toString()}>
           {weekday.toString()}
@@ -62,4 +139,44 @@
       {/each}
     </ToggleGroup.Root>
   </div>
+  <div class="flex w-full flex-col gap-1.5">
+    <Label for="occurs" class="font-semibold">Ends</Label>
+    <div class="flex flex-row items-center gap-2" id="occurs">
+      <Select.Root
+        selected={endSelected}
+        onSelectedChange={(e) => onEndValChange(e?.value, until, count)}
+      >
+        <Select.Trigger class="w-24">
+          <Select.Value />
+        </Select.Trigger>
+        <Select.Content>
+          {#each END_OPTIONS.entries() as [end, label]}
+            <Select.Item value={end}>{label}</Select.Item>
+          {/each}
+        </Select.Content>
+      </Select.Root>
+      {#if endVal === "until"}
+        <DatePicker
+          class="w-56"
+          id="until"
+          bind:value={until}
+          onChange={() => onEndValChange("until", until, count)}
+        />
+      {:else if endVal === "count"}
+        <Input
+          class="w-20"
+          type="number"
+          bind:value={value.count}
+          min={1}
+          on:change={() => onEndValChange("count", until, count)}
+        />
+        <span>
+          {pluralise("occurrence", value.count)}
+        </span>
+      {/if}
+    </div>
+  </div>
+  <p class="text-muted-foreground">
+    Occurs {rrule.toText()}
+  </p>
 </div>

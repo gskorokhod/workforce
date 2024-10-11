@@ -109,7 +109,7 @@ export class Location extends Base implements ILocation {
     } else {
       coords = point;
     }
-    
+
     if (!coords) {
       return [];
     }
