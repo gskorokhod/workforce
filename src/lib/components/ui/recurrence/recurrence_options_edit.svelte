@@ -25,8 +25,8 @@
   export let value: RecurrenceOptions;
 
   let prevByweekday: ByWeekday[] | undefined = undefined;
-  $: until = value.until ? fromDate(value.until, "UTC") : fromDate(new Date(), "UTC");
-  $: count = value.count || 1;
+  let until = value.until ? fromDate(value.until, "UTC") : fromDate(new Date(), "UTC");
+  let count = value.count || 1;
   $: freqSelected = { value: value.freq, label: mkFreqLabel(value.freq, value.interval) };
   $: endVal = value.count ? "count" : value.until ? "until" : "infinite";
   $: endSelected = { value: endVal, label: END_OPTIONS.get(endVal) || "Never" };
@@ -85,7 +85,6 @@
     until: DateValue | undefined,
     count: number | undefined
   ) {
-    console.log("onEndValChange", end, until, count);
     if (end) {
       if (end === "infinite") {
         value.until = undefined;
@@ -160,13 +159,13 @@
           class="w-56"
           id="until"
           bind:value={until}
-          onChange={() => onEndValChange("until", until, count)}
+          onChange={(val) => onEndValChange("until", val, count)}
         />
       {:else if endVal === "count"}
         <Input
           class="w-20"
           type="number"
-          bind:value={value.count}
+          bind:value={count}
           min={1}
           on:change={() => onEndValChange("count", until, count)}
         />
