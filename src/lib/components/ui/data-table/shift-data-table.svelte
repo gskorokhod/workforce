@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { state as GLOBAL_STATE, Shift, State, Task } from "$lib/model";
-  import type { Display } from "$lib/model/ui";
+  import { state as GLOBAL_STATE, Shift, State, Task } from "$lib/backend";
+  import type { Display } from "$lib/backend/ui";
   import { capitalize } from "$lib/utils/utils";
   import { DateFormatter, getLocalTimeZone } from "@internationalized/date";
   import { PlusIcon } from "lucide-svelte";

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { Location } from "$lib/model/core";
-  import { Icon } from "$lib/model/ui";
-  import { Geopoint, Address, type LngLat } from "$lib/model/geocoding";
+  import { Location } from "$lib/backend/core";
+  import { Icon } from "$lib/backend/ui";
+  import { Geopoint, Address, type LngLat } from "$lib/backend/geocoding";
   import { debounce } from "$lib/utils/utils.ts";
   import { MapPinIcon } from "lucide-svelte";
   import { Marker, type MarkerClickInfo, Popup } from "svelte-maplibre";

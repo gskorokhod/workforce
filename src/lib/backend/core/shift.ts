@@ -1,14 +1,14 @@
-import { Recurrence } from "$lib/model/temporal";
-import { completeDuration } from "$lib/model/temporal/utils";
-import { Icon, type Display } from "$lib/model/ui";
-import { eq, HashMap } from "$lib/model/utils";
+import { Recurrence } from "$lib/backend/temporal";
+import { completeDuration } from "$lib/backend/temporal/utils";
+import { Icon, type Display } from "$lib/backend/ui";
+import { eq, HashMap } from "$lib/backend/utils";
 import { getLocalTimeZone, now, ZonedDateTime, type TimeDuration } from "@internationalized/date";
 import { RRule } from "rrule";
 import type { JsonObject, JsonValue } from "type-fest";
-import { Base } from "../base";
-import { State } from "../state";
-import { Task } from "../task";
+import { Base } from "./base";
 import { ShiftOccurrence } from "./occurrence";
+import { State } from "./state";
+import { Task } from "./task";
 
 /**
  * Represents a shift that a person can work.

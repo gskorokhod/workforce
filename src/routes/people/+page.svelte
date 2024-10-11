@@ -1,6 +1,6 @@
 <script lang="ts">
   import PersonDataTable from "$lib/components/ui/data-table/person-data-table.svelte";
-  import { state } from "$lib/model";
+  import { state } from "$lib/backend";
 
   const people = state.people;
 </script>

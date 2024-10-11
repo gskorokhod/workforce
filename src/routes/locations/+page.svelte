@@ -1,6 +1,6 @@
 <script lang="ts">
   import LocationDataTable from "$lib/components/ui/data-table/location-data-table.svelte";
-  import { state } from "$lib/model";
+  import { state } from "$lib/backend";
 
   const locations = state.locations;
 </script>

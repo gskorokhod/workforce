@@ -1,6 +1,6 @@
 <script lang="ts">
   import TaskDataTable from "$lib/components/ui/data-table/task-data-table.svelte";
-  import { state } from "$lib/model";
+  import { state } from "$lib/backend";
 
   const tasks = state.tasks;
 </script>

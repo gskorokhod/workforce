@@ -3,7 +3,7 @@
 
   import { Button } from "$lib/components/ui/button";
   import * as Popover from "$lib/components/ui/popover";
-  import { Icon, type Display } from "$lib/model/ui";
+  import { Icon, type Display } from "$lib/backend/ui";
   import { tick } from "svelte";
   import type { Size } from "../profile-picture";
   import ProfilePicture from "../profile-picture/profile-picture.svelte";

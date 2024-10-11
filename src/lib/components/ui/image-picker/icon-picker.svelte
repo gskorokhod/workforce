@@ -4,7 +4,7 @@
   import { Chip } from "$lib/components/ui/chip";
   import { Icon } from "$lib/components/ui/icon";
   import * as Popover from "$lib/components/ui/popover/";
-  import { Icon as TIcon } from "$lib/model/ui";
+  import { Icon as TIcon } from "$lib/backend/ui";
   import { ChevronDownIcon } from "lucide-svelte";
   import { tick } from "svelte";
   import { PFP_HEIGHT, PFP_WIDTH, type Size } from "../profile-picture";

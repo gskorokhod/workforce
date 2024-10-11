@@ -14,8 +14,8 @@
   import { Selector } from "$lib/components/ui/selector";
   import SelectorMany from "$lib/components/ui/selector/selector-many.svelte";
   import TimePicker from "$lib/components/ui/time-picker/time-picker.svelte";
-  import { state } from "$lib/model";
-  import { Icon, type Display } from "$lib/model/ui";
+  import { state } from "$lib/backend";
+  import { Icon, type Display } from "$lib/backend/ui";
   import { faker } from "@faker-js/faker";
   import { getLocalTimeZone, now, ZonedDateTime, type TimeDuration } from "@internationalized/date";
   import { GraduationCapIcon, XIcon } from "lucide-svelte";

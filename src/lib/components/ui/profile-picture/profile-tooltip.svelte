@@ -1,8 +1,8 @@
 <script lang="ts" generics="T extends Display">
   import { ProfilePicture } from ".";
 
-  import { Person, Shift, Skill, Task } from "$lib/model/core";
-  import { type Display } from "$lib/model/ui";
+  import { Person, Shift, Skill, Task } from "$lib/backend/core";
+  import { type Display } from "$lib/backend/ui";
   import { CakeIcon } from "lucide-svelte";
 
   let item: T | undefined = undefined;

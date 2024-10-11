@@ -5,7 +5,7 @@
   import { Search } from "$lib/components/ui/search";
   import { Separator } from "$lib/components/ui/separator";
   import * as Tooltip from "$lib/components/ui/tooltip";
-  import { Icon as TIcon } from "$lib/model/ui";
+  import { Icon as TIcon } from "$lib/backend/ui";
   import { capitalize } from "$lib/utils/utils";
   import type Color from "color";
   import { LoaderIcon } from "lucide-svelte";

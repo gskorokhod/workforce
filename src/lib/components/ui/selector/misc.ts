@@ -1,4 +1,4 @@
-import { Icon } from "$lib/model/ui";
+import { Icon } from "$lib/backend/ui";
 import type { ProfileSize } from "../profile-picture";
 
 export const BTN_SIZE: ProfileSize = {

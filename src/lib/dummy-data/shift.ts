@@ -1,10 +1,10 @@
-import { State, Shift } from "$lib/model";
-import { Icon } from "$lib/model/ui";
+import { Shift, State } from "$lib/backend";
+import { Icon } from "$lib/backend/ui";
 import { faker } from "@faker-js/faker";
+import { get } from "svelte/store";
 import { sample, select } from "./misc";
 import { generateRecurrence } from "./recurrence";
 import { generateTasks, sampleTasks } from "./task";
-import { get } from "svelte/store";
 
 const SHIFTS: Map<string, Icon> = new Map([
   ["Morning", Icon.fromString("mdi:sunrise")],

@@ -1,5 +1,5 @@
 <script lang="ts" generics="T extends Display">
-  import { Icon, type Display } from "$lib/model/ui";
+  import { Icon, type Display } from "$lib/backend/ui";
   import { PFP_HEIGHT, PFP_WIDTH, Profile, type ProfileSize, type Size } from ".";
 
   const COMPACT_WIDTH: ProfileSize = {

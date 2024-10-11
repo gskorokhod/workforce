@@ -1,9 +1,9 @@
 <script lang="ts" generics="T extends Base & Display">
   import { Button } from "$lib/components/ui/button";
   import * as Popover from "$lib/components/ui/popover";
-  import { Base } from "$lib/model/core";
-  import { Icon, type Display } from "$lib/model/ui";
-  import { has, without } from "$lib/model/utils";
+  import { Base } from "$lib/backend/core";
+  import { Icon, type Display } from "$lib/backend/ui";
+  import { has, without } from "$lib/backend/utils";
   import { ChevronDownIcon } from "lucide-svelte";
   import { type Size } from "../profile-picture";
   import ProfilesList from "../profile-picture/profiles-list.svelte";

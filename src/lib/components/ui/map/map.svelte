@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { Location } from "$lib/model";
-  import { Geopoint, type LngLat, findBoundingBox } from "$lib/model/geocoding";
+  import { Location } from "$lib/backend";
+  import { Geopoint, type LngLat, findBoundingBox } from "$lib/backend/geocoding";
   import { MapLibre } from "svelte-maplibre";
   import type { MapMouseEvent } from "maplibre-gl";
   import MapMarker from "./map-marker.svelte";

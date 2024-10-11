@@ -2,8 +2,8 @@
   import { Button } from "$lib/components/ui/button";
   import * as Popover from "$lib/components/ui/popover";
   import * as Tooltip from "$lib/components/ui/tooltip";
-  import { Base } from "$lib/model/core";
-  import { Icon, type Display } from "$lib/model/ui";
+  import { Base } from "$lib/backend/core";
+  import { Icon, type Display } from "$lib/backend/ui";
   import { ChevronDownIcon } from "lucide-svelte";
   import { ProfilePicture, ProfileTooltip, type Size } from "../profile-picture";
   import {

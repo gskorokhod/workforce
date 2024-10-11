@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { Location } from "$lib/model";
+  import { Location } from "$lib/backend";
   import { Label } from "$lib/components/ui/label";
   import { Search } from "$lib/components/ui/search";
   import { Map, MapMarker } from "$lib/components/ui/map";
-  import { Geopoint } from "$lib/model/geocoding";
-  import { without } from "$lib/model/utils";
-  import { getAddressCompletions } from "$lib/model/geocoding/osm";
+  import { Geopoint } from "$lib/backend/geocoding";
+  import { without } from "$lib/backend/utils";
+  import { getAddressCompletions } from "$lib/backend/geocoding/osm";
 
   export let item: Location;
   export let locations: Location[];

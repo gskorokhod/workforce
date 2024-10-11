@@ -1,8 +1,8 @@
 <script lang="ts" generics="T extends Base & Display">
   import * as Command from "$lib/components/ui/command";
   import * as Popover from "$lib/components/ui/popover";
-  import { Base } from "$lib/model/core";
-  import { Icon, type Display } from "$lib/model/ui";
+  import { Base } from "$lib/backend/core";
+  import { Icon, type Display } from "$lib/backend/ui";
   import { tick } from "svelte";
   import { type Size } from "../profile-picture";
   import { CLEAR, PLACEHOLDER, type OptionsCmp, type OptionsFilter } from "./misc";

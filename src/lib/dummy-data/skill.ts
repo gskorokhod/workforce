@@ -1,9 +1,9 @@
-import { Skill, State } from "$lib/model";
-import { Icon } from "$lib/model/ui";
+import { Skill, State } from "$lib/backend";
+import { Icon } from "$lib/backend/ui";
 import { faker } from "@faker-js/faker";
+import Color from "color";
 import { get } from "svelte/store";
 import { sample, select } from "./misc";
-import Color from "color";
 
 const SKILLS: Map<string, Icon> = new Map([
   ["Nurse", Icon.fromString("lucide:pill-bottle")],

@@ -5,8 +5,8 @@
   import * as RadioGroup from "$lib/components/ui/radio-group";
   import { Switch } from "$lib/components/ui/switch";
   import { populateState } from "$lib/dummy-data";
-  import { state } from "$lib/model";
-  import { type Settings } from "$lib/model/core";
+  import { state } from "$lib/backend";
+  import { type Settings } from "$lib/backend/core";
   import { RefreshCwIcon, TrashIcon } from "lucide-svelte";
 
   const settings = state.settings;

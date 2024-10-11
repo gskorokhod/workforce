@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { Person, Skill, State } from "$lib/model";
-  import type { Display } from "$lib/model/ui";
-  import { state as GLOBAL_STATE } from "$lib/model";
+  import { Person, Skill, State } from "$lib/backend";
+  import type { Display } from "$lib/backend/ui";
+  import { state as GLOBAL_STATE } from "$lib/backend";
   import { createRender, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import {
     type AnyPlugins,

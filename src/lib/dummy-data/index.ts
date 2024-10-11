@@ -1,4 +1,4 @@
-import type { State } from "$lib/model";
+import type { State } from "$lib/backend";
 import { generateLocation, generateLocations, generateTrueLocation } from "./location";
 import { generatePeople, generatePerson } from "./person";
 import { generateShift, generateShifts } from "./shift";
