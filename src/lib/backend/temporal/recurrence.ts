@@ -1,270 +1,48 @@
-import type { CalendarDateTime, TimeDuration } from "@internationalized/date";
-import type { RecurrenceOptions, SupportedFrequency } from "./options";
+import type { TimeDuration } from "@internationalized/date";
+import type { RecurrenceOptions } from "./options";
 
 import {
   CalendarDate,
   fromDate,
   getLocalTimeZone,
-  parseZonedDateTime,
-  toCalendarDate,
-  toZoned,
   ZonedDateTime
 } from "@internationalized/date";
 import { datetime, RRule, RRuleSet } from "rrule";
 import type { JsonObject } from "type-fest";
-import { HashMap, type Copy } from "../utils";
-import { toRecurrenceOptions } from "./options";
-import {
-  completeDuration,
-  dtMax,
-  dtMin,
-  hasDate,
-  localToUTC,
-  parseDates,
-  parseDateTimeDuration,
-  toUTCDate
-} from "./utils";
+import { TimeSlot } from ".";
+import { type Copy } from "../utils";
+import { fromRecurrenceOptions, toRecurrenceOptions } from "./options";
+import { completeDuration, parseDates, parseDateTimeDuration, toUTCDate } from "./utils";
 
-type Exceptions = Map<CalendarDate, DateOption> | { rdates?: Date[]; exdates?: Date[] };
-
-/**
- * Properties for creating a Recurrence object.
- *
- * @property rrule RRule options. This field is required. It is recommended to use the `RecurrenceOptions` type for this field, but you can pass an RRule object directly if you need to.
- * @property dtStart Start date of the recurrence pattern. Defaults to the current date & time in the local timezone.
- * @property duration Duration of the event. If undefined, the event is considered to last the entire day (i.e. from 00:00 to 23:59 on every date that matches the recurrence pattern).
- * @property dateOptions A map of dates to their status in the recurrence pattern. This can be used to explicitly include or exclude dates from the recurrence pattern.
- *
- * @see RecurrenceOptions
- * @see Recurrence
- */
 interface RecurrenceProps {
-  dtstart?: ZonedDateTime;
-  duration?: TimeDuration | undefined;
-  exceptions?: Exceptions;
-  rrule: RecurrenceOptions | RRule;
+  rule: RecurrenceOptions | RRule;
+  tzid?: string;
+  duration?: TimeDuration;
+  rdates?: CalendarDate[];
+  exdates?: CalendarDate[];
 }
 
-/**
- * Represents the status of a date in a recurrence pattern.
- *
- * Possible values:
- * - `ALLOWED`: The date is not explicitly included or excluded from the recurrence pattern. The event may occur on this date if it matches the recurrence pattern. (This is the default state)
- * - `INCLUDED`: The date is explicitly included in the recurrence pattern. The event will always occur on this date, even if it does not match the recurrence pattern.
- * - `EXCLUDED`: The date is explicitly excluded from the recurrence pattern. The event will never occur on this date, even if it matches the recurrence pattern.
- */
-enum DateOption {
-  ALLOWED = "ALLOWED",
-  EXCLUDED = "EXCLUDED",
-  INCLUDED = "INCLUDED"
-}
-
-/**
- * Helper interface for the return value of the `Recurrence.probe` method.
- *
- * @property date Date & time that was probed.
- * @property status Whether the date is included, excluded, or allowed by the recurrence pattern.
- * @property matchesPattern Pattern Whether the date matches the recurrence pattern (ignoring explicit inclusions / exclusions).
- * @property occurrence If the event actually occurs at the given date & time, this field will contain the time slot during which the event occurs.
- *
- * @see Recurrence.probe
- * @see DateOption
- */
-interface ProbeResult {
-  date: ZonedDateTime;
-  matchesPattern: boolean;
-  occurrence?: TimeSlot;
-  status: DateOption;
-}
-
-/**
- * Represents a time period during which an event occurs.
- */
-class TimeSlot implements Copy<TimeSlot> {
-  /**
-   * End date & time of the time slot.
-   */
-  readonly end: ZonedDateTime;
-  /**
-   * Start date & time of the time slot.
-   */
-  readonly start: ZonedDateTime;
-
-  /**
-   * Create a new time slot object.
-   * @param start Start date & time of the time slot.
-   * @param end End date & time of the time slot.
-   */
-  constructor(start: ZonedDateTime, end: ZonedDateTime) {
-    this.start = start;
-    this.end = end;
-  }
-
-  /**
-   * Get a time slot that spans the entire day of a given date.
-   * @param date Date to get the time slot for. Can be an instance of `CalendarDate`, `CalendarDateTime`, or `ZonedDateTime`.
-   * @param tzid For `CalendarDate` objects, the timezone ID to use. Defaults to the local timezone.
-   * @returns TimeSlot object representing the entire day of the given date.
-   */
-  static allDay(date: CalendarDate | CalendarDateTime | ZonedDateTime, tzid?: string): TimeSlot {
-    if (date instanceof ZonedDateTime) {
-      return new TimeSlot(
-        date.set({ hour: 0, minute: 0, second: 0 }),
-        date.set({ hour: 23, minute: 59, second: 59 })
-      );
-    }
-    const start = toZoned(date, tzid || getLocalTimeZone()).set({ hour: 0, minute: 0, second: 0 });
-    const end = start.set({ hour: 23, minute: 59, second: 59 });
-    return new TimeSlot(start, end);
-  }
-
-  /**
-   * Create a deep copy of the time slot object.
-   */
-  copy(): TimeSlot {
-    return new TimeSlot(this.start, this.end);
-  }
-
-  /**
-   * Check if this time slot clashes with another time slot.
-   * @param other time slot to check against
-   * @returns True if the time slots clash, false otherwise
-   */
-  intersects(other: TimeSlot): boolean {
-    return this.start.compare(other.end) < 0 && this.end.compare(other.start) > 0;
-  }
-
-  /**
-   * Get the time period during which this time slot clashes with another time slot.
-   * @param other time slot to check against
-   * @returns An time slot object representing the time period during which the time slots clash, or undefined if they do not clash
-   */
-  intersect(other: TimeSlot): TimeSlot | undefined {
-    if (this.intersects(other)) {
-      const start = dtMax(this.start, other.start);
-      const end = dtMin(this.end, other.end);
-      return new TimeSlot(start, end);
-    }
-
-    return undefined;
-  }
-
-  /**
-   * Get the parts of this time slot that are not covered by another time slot.
-   * @param other Time slot to compare against
-   * @returns Array of TimeSlot objects
-   */
-  except(other: TimeSlot): TimeSlot[] {
-    const clash = this.intersect(other);
-    if (!clash) return [this.copy()];
-
-    const ans: TimeSlot[] = [];
-    if (this.start.compare(clash.start) < 0) {
-      ans.push(new TimeSlot(this.start, clash.start));
-    }
-    if (this.end.compare(clash.end) > 0) {
-      ans.push(new TimeSlot(clash.end, this.end));
-    }
-    return ans;
-  }
-
-  /**
-   * Get the dates that this time slot spans.
-   * @returns An Array of CalendarDate objects representing the dates that this time slot spans
-   */
-  getDates(): CalendarDate[] {
-    let start = toCalendarDate(this.start);
-    const end = toCalendarDate(this.end);
-
-    const dates: CalendarDate[] = [start.copy()];
-
-    while (start.compare(end) < 0) {
-      start = start.add({ days: 1 });
-      dates.push(start.copy());
-    }
-
-    return dates;
-  }
-
-  /**
-   * Check if the event will be occurring at a given date & time.
-   * @param zdt Date & time to check
-   * @returns true if the event will be occurring at the given date & time, false otherwise
-   */
-  includes(zdt: ZonedDateTime) {
-    return this.end.compare(zdt) >= 0 && this.start.compare(zdt) <= 0;
-  }
-
-  /**
-   * Return a new TimeSlot object with the start and end times offset by a given duration.
-   * @param by Duration by which to offset the time slot
-   * @returns New TimeSlot object with the start and end times offset by the given duration
-   */
-  offset(by: TimeDuration): TimeSlot {
-    return new TimeSlot(this.start.add(by), this.end.add(by));
-  }
-
-  /**
-   * Serialize the time slot to a JSON object.
-   * @returns The JSON object representing the time slot
-   */
-  toJSON(): JsonObject {
-    return {
-      start: this.start.toString(),
-      end: this.end.toString()
-    };
-  }
-
-  /**
-   * Deserialize a JSON object to a TimeSlot object.
-   * @param json JSON object to deserialize
-   * @returns TimeSlot object, or undefined if the JSON object is invalid
-   */
-  static fromJSON(json: JsonObject): TimeSlot | undefined {
-    if (typeof json.start !== "string" || typeof json.end !== "string") return undefined;
-
-    try {
-      const start = parseZonedDateTime(json.start);
-      const end = parseZonedDateTime(json.end);
-      return new TimeSlot(start, end);
-    } catch {
-      return undefined;
-    }
-  }
-
-  /**
-   * Get the duration of the time slot.
-   * @returns Duration of the time slot.
-   */
-  get duration(): TimeDuration {
-    const millis = this.end.toDate().valueOf() - this.start.toDate().valueOf();
-    return {
-      hours: Math.floor(millis / (1000 * 60 * 60)),
-      minutes: Math.floor((millis / (1000 * 60)) % 60),
-      seconds: Math.floor((millis / 1000) % 60)
-    };
-  }
-}
 /**
  * Represents something that occurs at regular intervals and lasts for a certain duration.
  * (e.g. a shift that occurs every Monday from 9am to 5pm)
  */
 class Recurrence implements Copy<Recurrence> {
+  tzid: string = getLocalTimeZone();
   /**
    * The duration of the event.
    * If undefined, the event is considered to last the entire day (i.e. from 00:00 to 23:59 on every date that matches the recurrence pattern).
    */
-  private _duration: TimeDuration | undefined = undefined;
+  duration: TimeDuration | undefined = undefined;
   /**
    * Dates to exclude from the recurrence pattern.
    * These dates are always in UTC (i.e. there is no timezone offset).
    */
-  private _exdates: Date[] = [];
+  exdates: CalendarDate[] = [];
   /**
    * Dates to include in the recurrence pattern.
    * These dates are always in UTC (i.e. there is no timezone offset).
    */
-  private _rdates: Date[] = [];
+  rdates: CalendarDate[] = [];
 
   /**
    * The RRule object that defines the recurrence pattern.
@@ -278,8 +56,8 @@ class Recurrence implements Copy<Recurrence> {
    */
   constructor(props: RecurrenceProps) {
     this._rrule = this.initializeRRule(props);
-    this._duration = props.duration;
-    this.initializeExceptions(props.exceptions);
+    this.duration = props.duration;
+    this.tzid = props.tzid || getLocalTimeZone();
   }
 
   /**
@@ -288,48 +66,23 @@ class Recurrence implements Copy<Recurrence> {
    * @returns RRule object
    */
   private initializeRRule(props: RecurrenceProps): RRule {
-    if (props.rrule instanceof RRule) {
-      return props.rrule;
+    if (props.rule instanceof RRule) {
+      return props.rule;
     } else {
-      if (props.dtstart) {
-        props.rrule.dtstart = toUTCDate(props.dtstart);
-      }
-
-      return new RRule({
-        ...props.rrule,
-        dtstart: props.rrule.dtstart || new Date()
-      });
+      const options = fromRecurrenceOptions(props.rule);
+      return new RRule(options);
     }
   }
 
-  /**
-   * Initialize the exception dates.
-   * @param exceptions Map of dates to their status in the recurrence pattern, or an object with `rdates` and `exdates` fields.
-   * @returns void. This method modifies the object's `_rdates` and `_exdates` fields in place.
-   */
-  private initializeExceptions(exceptions?: Exceptions): void {
-    if (!exceptions) return;
-
-    if (exceptions instanceof Map || exceptions instanceof HashMap) {
-      exceptions.forEach((status, date) => {
-        this.setException(date, status);
-      });
-    } else {
-      this._rdates = exceptions.rdates?.map(localToUTC) || [];
-      this._exdates = exceptions.exdates?.map(localToUTC) || [];
-    }
-  }
   /**
    * Create a deep copy of the Recurrence object.
    */
   copy(): Recurrence {
-    const rdates = this._rdates.map((d) => new Date(d.valueOf()));
-    const exdates = this._exdates.map((d) => new Date(d.valueOf()));
-
     return new Recurrence({
-      rrule: new RRule(this._rrule.options),
-      duration: this._duration,
-      exceptions: { rdates, exdates }
+      rule: new RRule(this._rrule.options),
+      duration: this.duration,
+      rdates: this.rdates.map((d) => d.copy()),
+      exdates: this.exdates.map((d) => d.copy())
     });
   }
 
@@ -341,10 +94,9 @@ class Recurrence implements Copy<Recurrence> {
     const rruleSet = new RRuleSet();
 
     rruleSet.rrule(this._rrule);
-
     if (applyExceptions) {
-      this._rdates.forEach((d) => rruleSet.rdate(d));
-      this._exdates.forEach((d) => rruleSet.exdate(d));
+      this.rdates.forEach((d) => rruleSet.rdate(toUTCDate(d)));
+      this.exdates.forEach((d) => rruleSet.exdate(toUTCDate(d)));
     }
 
     return rruleSet;
@@ -359,15 +111,12 @@ class Recurrence implements Copy<Recurrence> {
     if (typeof json.rrule !== "string") return undefined;
 
     try {
-      const rrule: RRule = RRule.fromString(json.rrule);
-      const rdates: Date[] = parseDates(json.rdates);
-      const exdates: Date[] = parseDates(json.exdates);
-      const duration: TimeDuration | undefined = parseDateTimeDuration(json.duration);
-
       return new Recurrence({
-        rrule,
-        duration,
-        exceptions: { rdates, exdates }
+        tzid: typeof json.tzid == "string" ? json.tzid : getLocalTimeZone(),
+        rule: RRule.fromString(json.rrule),
+        duration: parseDateTimeDuration(json.duration),
+        rdates: parseDates(json.rdates),
+        exdates: parseDates(json.exdates)
       });
     } catch {
       return undefined;
@@ -380,39 +129,17 @@ class Recurrence implements Copy<Recurrence> {
    */
   toJSON(): JsonObject {
     const ans: JsonObject = {
+      tzid: this.tzid,
       rrule: this._rrule.toString(),
-      rdates: this._rdates.map((d) => d.toISOString()),
-      exdates: this._exdates.map((d) => d.toISOString())
+      rdates: this.rdates.map((d) => d.toString()),
+      exdates: this.exdates.map((d) => d.toString())
     };
 
-    if (this._duration) {
-      ans.duration = completeDuration(this._duration);
+    if (this.duration) {
+      ans.duration = completeDuration(this.duration);
     }
 
     return ans;
-  }
-
-  /**
-   * Check if this recurrence clashes with another recurrence (within a given date range).
-   * @param other Recurrence to check against
-   * @param after Start date & time of the range to check, or undefined to start from the first occurrence. Defaults to undefined.
-   * @param before End date & time of the range to check, or undefined to get all occurrences. Defaults to undefined.
-   * @param limit Positive integer representing the number of occurrences to check. If `after` and `before` are both set, this defaults to infinity (i.e. all occurrences between the two dates will be checked). Otherwise, it defaults to 100.
-   * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
-   * @returns True if there are any clashes within the given period, false otherwise
-   */
-  clashesWith(
-    other: Recurrence,
-    after: ZonedDateTime | undefined = undefined,
-    before: ZonedDateTime | undefined = undefined,
-    tzid: string = getLocalTimeZone(),
-    limit: number = -1,
-    applyExceptions: boolean = true
-  ): boolean {
-    const occ = this.getOccurrences(after, before, tzid, true, limit, applyExceptions);
-    const otherOcc = other.getOccurrences(after, before, tzid, true, limit, applyExceptions);
-
-    return occ.some((thisOcc) => otherOcc.some((otherOcc) => thisOcc.intersects(otherOcc)));
   }
 
   /**
@@ -420,16 +147,15 @@ class Recurrence implements Copy<Recurrence> {
    * @param other Recurrence to check against
    * @returns Array of `TimeSlot` objects representing the clashes
    */
-  getClashes(
+  clashes(
     other: Recurrence,
     after: ZonedDateTime | undefined = undefined,
     before: ZonedDateTime | undefined = undefined,
-    tzid: string = getLocalTimeZone(),
     limit: number = -1,
     applyExceptions: boolean = true
   ): TimeSlot[] {
-    const occ = this.getOccurrences(after, before, tzid, true, limit, applyExceptions);
-    const otherOcc = other.getOccurrences(after, before, tzid, true, limit, applyExceptions);
+    const occ = this.occurrences(after, before, true, limit, applyExceptions);
+    const otherOcc = other.occurrences(after, before, true, limit, applyExceptions);
 
     const clashes: TimeSlot[] = [];
 
@@ -453,16 +179,12 @@ class Recurrence implements Copy<Recurrence> {
    * @returns `TimeSlot` object representing the nth occurrence, or `undefined` if the event has fewer than n occurrences.
    * @see TimeSlot
    */
-  getOccurrence(
-    n: number = 0,
-    tzid: string = getLocalTimeZone(),
-    applyExceptions: boolean = true
-  ): TimeSlot | undefined {
-    const start = this.getStartDT(n, tzid, applyExceptions);
+  occurrence(n: number = 0, applyExceptions: boolean = true): TimeSlot | undefined {
+    const start = this.getStartDT(n, applyExceptions);
     if (start === undefined) return undefined;
 
-    if (this._duration) {
-      return new TimeSlot(start, start.add(this._duration));
+    if (this.duration) {
+      return new TimeSlot(start, start.add(this.duration));
     } else {
       return new TimeSlot(
         start.set({ hour: 0, minute: 0, second: 0 }),
@@ -478,15 +200,10 @@ class Recurrence implements Copy<Recurrence> {
    * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
    * @returns TimeSlot object representing the occurrence, or undefined if the event is not occurring at the given date & time.
    */
-  getOccurrenceOn(
-    date: ZonedDateTime,
-    tzid: string = getLocalTimeZone(),
-    applyExceptions: boolean = true
-  ): TimeSlot | undefined {
-    const occurrences = this.getOccurrences(
+  occurrenceOn(date: ZonedDateTime, applyExceptions: boolean = true): TimeSlot | undefined {
+    const occurrences = this.occurrences(
       date.subtract({ days: 1 }),
       date.add({ days: 1 }),
-      tzid,
       true,
       Infinity,
       applyExceptions
@@ -499,26 +216,24 @@ class Recurrence implements Copy<Recurrence> {
    * Get all occurrences of the event between two dates, in a given timezone.
    * @param after Start date & time of the range, or undefined to start from the first occurrence. Defaults to undefined.
    * @param before End date & time of the range, or undefined to get all occurrences. Defaults to undefined.
-   * @param tzid ISO 8601 timezone ID to use for the occurrences. Defaults to the local timezone.
    * @param inclusive If this is true, and the event occurs at the start or end dates, these occurrences will be included in the result. Defaults to true.
    * @param limit Positive integer representing the number of occurrences to return. If `after` and `before` are both set, this defaults to infinity (i.e. all occurrences between the two dates will be returned). Otherwise, it defaults to 100.
    * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
    * @returns Array of `TimeSlot` objects representing the occurrences
    * @see TimeSlot
    */
-  getOccurrences(
+  occurrences(
     after: ZonedDateTime | undefined = undefined,
     before: ZonedDateTime | undefined = undefined,
-    tzid: string = getLocalTimeZone(),
     inclusive: boolean = true,
     limit: number = -1,
     applyExceptions: boolean = true
   ): TimeSlot[] {
-    const startTimes = this.getStartDTs(after, before, tzid, inclusive, limit, applyExceptions);
+    const startTimes = this.getStartDTs(after, before, inclusive, limit, applyExceptions);
 
     return startTimes.map((sdt) => {
-      if (this._duration) {
-        return new TimeSlot(sdt, sdt.add(this._duration));
+      if (this.duration) {
+        return new TimeSlot(sdt, sdt.add(this.duration));
       } else {
         return new TimeSlot(
           sdt.set({ hour: 0, minute: 0, second: 0 }),
@@ -532,41 +247,30 @@ class Recurrence implements Copy<Recurrence> {
    * Get the start time of the nth occurrence of the event in a given timezone.
    * If the event has fewer than n occurrences, undefined is returned.
    * By default, the first occurrence is returned `(n = 0)`. This can still be `undefined` if the event has no occurrences.
-   * @param tzid ISO 8601 timezone ID to use for the start time. Defaults to the local timezone.
    * @param n Index of the occurrence to get. Defaults to 0. Negative values get occurrences from the end of the list, but for infinite patterns, this will always return undefined.
    * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
    * @returns `LocalDateTime` object representing the start time of the nth occurrence, or `undefined` if the event has fewer than n occurrences.
    */
-  getStartDT(
-    n: number = 0,
-    tzid: string = getLocalTimeZone(),
-    applyExceptions: boolean = true
-  ): ZonedDateTime | undefined {
+  private getStartDT(n: number = 0, applyExceptions: boolean = true): ZonedDateTime | undefined {
+    let dates: Date[] = [];
+
     if (n < 0) {
       if (!this.isFinite) return undefined;
-      const dates = this.getRRuleSet(applyExceptions).all();
-      const date = dates.at(n);
-      return date ? fromDate(date, tzid) : undefined;
+      dates = this.getRRuleSet(applyExceptions).all();
+    } else {
+      dates = this.getRRuleSet(applyExceptions).all((_, i) => i <= n + this.rdates.length);
     }
 
-    // Exceptionally included dates always come before the first occurrence.
-    // Thank you for making my job harder, `rrule` authors :)
-    const trueN = n + this._rdates.length;
-    const dates = this.getRRuleSet(applyExceptions).all((_, i) => i <= trueN);
     if (dates.length <= n) return undefined;
 
-    // Sort the dates to ensure the order is correct
     dates.sort((a, b) => a.valueOf() - b.valueOf());
-
-    // Get the actual nth occurrence
-    return fromDate(dates[n], tzid);
+    return fromDate(dates[n], this.tzid);
   }
 
   /**
    * Get the start times of all occurrences of the event between two dates, in a given timezone.
    * @param after Start date & time of the range, or undefined to start from the first occurrence. Defaults to undefined.
    * @param before End date & time of the range, or undefined to get all occurrences. Defaults to undefined.
-   * @param tzid ISO 8601 timezone ID to use for the start times. Defaults to the local timezone.
    * @param inclusive If this is true, and the event occurs at the start or end dates, these occurrences will be included in the result. Defaults to true.
    * @param limit Positive integer representing the number of occurrences to return. If `after` and `before` are both set, this defaults to infinity (i.e. all occurrences between the two dates will be returned). Otherwise, it defaults to 100.
    * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
@@ -576,10 +280,9 @@ class Recurrence implements Copy<Recurrence> {
    *
    * @returns Array of ZonedDateTime objects representing the start times of the occurrences.
    */
-  getStartDTs(
+  private getStartDTs(
     after: ZonedDateTime | undefined = undefined,
     before: ZonedDateTime | undefined = undefined,
-    tzid: string = getLocalTimeZone(),
     inclusive: boolean = true,
     limit: number = -1,
     applyExceptions: boolean = true
@@ -594,135 +297,22 @@ class Recurrence implements Copy<Recurrence> {
     if (after === undefined && before === undefined) {
       dates = rruleSet.all((_, i) => i < limit);
     } else if (after === undefined) {
-      // Safe to cast because the case of both being undefined is handled above
       const beforeUTC = toUTCDate(before as ZonedDateTime);
-      // Get all dates before the end date (respecting the `inclusive` parameter)
       dates = rruleSet.all(
         (date, i) => (inclusive ? date <= beforeUTC : date < beforeUTC) && i < limit
       );
     } else if (before === undefined) {
-      // Safe to cast because the case of both being undefined is handled above
       const afterUTC = toUTCDate(after);
-      // Get all dates after the start date (respecting the `inclusive` parameter)
       dates = rruleSet.all(
         (date, i) => (inclusive ? date >= afterUTC : date > afterUTC) && i < limit
       );
     } else {
-      // Get all dates between the start and end dates (respecting the `inclusive` parameeter)
       dates = rruleSet.between(toUTCDate(after), toUTCDate(before), inclusive, (_, i) => i < limit);
     }
 
     // The sort is necessary because the order of dates is not guaranteed when using exclusion / inclusion dates
     dates.sort((a, b) => a.valueOf() - b.valueOf());
-    return dates.map((d) => fromDate(d, tzid));
-  }
-
-  /**
-   * Check if the event will be occurring at a given date & time.
-   * @param zdt ZonedDateTime to check
-   * @returns `ProbeResult` object - see `ProbeResult` for more information
-   * @see ProbeResult
-   */
-  probe(zdt: ZonedDateTime): ProbeResult {
-    const status = this.checkException(toCalendarDate(zdt));
-    const matchesPattern = this.getOccurrenceOn(zdt, zdt.timeZone, false) !== undefined;
-    const occurrence = this.getOccurrenceOn(zdt) || undefined;
-
-    return { date: zdt, matchesPattern, occurrence, status };
-  }
-
-  /**
-   * Check if a date is explicitly excluded from the recurrence pattern or included in it, or neither.
-   * @param zdt ZonedDateTime to check
-   * @returns `DateOption` representing the status of the date
-   * @see DateOption
-   */
-  checkException(cd: CalendarDate): DateOption {
-    const date = toUTCDate(cd);
-
-    if (hasDate(date, this._rdates)) {
-      return DateOption.INCLUDED;
-    } else if (hasDate(date, this._exdates)) {
-      return DateOption.EXCLUDED;
-    } else {
-      return DateOption.ALLOWED;
-    }
-  }
-
-  /**
-   * Remove a date from the list of exceptions.
-   * @param cd CalendarDate to remove
-   */
-  removeException(cd: CalendarDate) {
-    this.setException(cd, DateOption.ALLOWED);
-  }
-
-  /**
-   * Set a date to be explicitly excluded from the recurrence pattern or included in it.
-   * @param cd CalendarDate to set the status of
-   * @param status Status to set
-   * @see DateOption
-   */
-  setException(cd: CalendarDate, status: DateOption) {
-    const date = toUTCDate(cd);
-
-    switch (status) {
-      case DateOption.ALLOWED:
-        this._rdates = this._rdates.filter((d) => d.valueOf() !== date.valueOf());
-        this._exdates = this._exdates.filter((d) => d.valueOf() !== date.valueOf());
-        break;
-      case DateOption.EXCLUDED:
-        if (!hasDate(date, this._exdates)) {
-          this._exdates.push(date);
-        }
-        this._rdates = this._rdates.filter((d) => d.valueOf() !== date.valueOf());
-        break;
-      case DateOption.INCLUDED:
-        if (!hasDate(date, this._rdates)) {
-          this._rdates.push(date);
-        }
-        this._exdates = this._exdates.filter((d) => d.valueOf() !== date.valueOf());
-        break;
-    }
-  }
-
-  /**
-   * Get the dates that are explicitly included or excluded from the recurrence pattern.
-   * @returns A map of CalendarDate objects (in the local timezone) to their status in the recurrence pattern.
-   */
-  getExceptions(tzid?: string): Map<CalendarDate, DateOption> {
-    const equals = (a: CalendarDate, b: CalendarDate) => a.compare(b) === 0;
-    const exceptions = new HashMap<CalendarDate, DateOption>(undefined, undefined, equals);
-
-    this._rdates.forEach((d) => {
-      exceptions.set(toCalendarDate(fromDate(d, tzid || getLocalTimeZone())), DateOption.INCLUDED);
-    });
-
-    this._exdates.forEach((d) => {
-      exceptions.set(toCalendarDate(fromDate(d, tzid || getLocalTimeZone())), DateOption.EXCLUDED);
-    });
-
-    return exceptions;
-  }
-
-  /**
-   * Set the duration of the event.
-   *
-   * @param duration The duration of the event. If undefined, the event is considered to last the entire day.
-   * @warning No maximum duration is enforced, but we are assuming it is less than 24 hours. This may be changed in the future.
-   *
-   * TODO: Discuss if things can last more than 24 hours.
-   */
-  setDuration(duration: TimeDuration | undefined) {
-    this._duration = duration;
-  }
-
-  /**
-   * Set the start date of the recurrence pattern.
-   * @param date ZonedDateTime object representing the start date of the recurrence pattern
-   */
-  setStartDT(date: ZonedDateTime) {
-    this._rrule.options.dtstart = toUTCDate(date);
+    return dates.map((d) => fromDate(d, this.tzid));
   }
 
   /**
@@ -731,11 +321,33 @@ class Recurrence implements Copy<Recurrence> {
    * @returns New Recurrence object with the updated properties
    */
   update(props: Partial<RecurrenceProps>): Recurrence {
+    let rule = this.recurrenceOptions;
+    if (props.rule) {
+      const { until, count, ...rest } =
+        props.rule instanceof RRule
+          ? (toRecurrenceOptions(props.rule.options) as RecurrenceOptions)
+          : props.rule;
+
+      rule = {
+        ...rule,
+        ...rest
+      };
+
+      if (count) {
+        rule.count = count;
+        rule.until = undefined;
+      } else if (until) {
+        rule.until = until;
+        rule.count = undefined;
+      }
+    }
+
     return new Recurrence({
-      dtstart: props.dtstart || this.dtStart,
-      duration: props.duration || this._duration,
-      exceptions: props.exceptions || { rdates: this._rdates, exdates: this._exdates },
-      rrule: props.rrule || this._rrule
+      tzid: props.tzid ?? this.tzid,
+      duration: props.duration ?? this.duration,
+      rdates: props.rdates ?? this.rdates,
+      exdates: props.exdates ?? this.exdates,
+      rule
     });
   }
 
@@ -754,51 +366,9 @@ class Recurrence implements Copy<Recurrence> {
   }
 
   /**
-   * Get the duration of the event as a formatted string (HH:MM)
-   */
-  formattedDuration(): string {
-    if (!this._duration) return "23:59";
-    const hours = this._duration.hours || 0;
-    const minutes = this._duration.minutes || 0;
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
-  }
-
-  /**
-   * Get the duration of the event.
-   * @returns The duration of the event, or undefined if the event lasts the entire day.
-   */
-  get duration(): TimeDuration | undefined {
-    return this._duration;
-  }
-
-  /**
-   * Set the duration of the event.
-   * @param duration Duration of the event. If undefined, the event is considered to last the entire day.
-   */
-  set duration(duration: TimeDuration | undefined) {
-    this._duration = duration;
-  }
-
-  /**
-   * Get the frequency of the recurrence pattern.
-   */
-  get frequency(): SupportedFrequency {
-    // Safe to cast because unsupported frequencies are disallowed by the `RecurrenceOptions` type
-    return this._rrule.options.freq as SupportedFrequency;
-  }
-
-  /**
-   * Get the raw RRule options of the recurrence pattern.
-   */
-  get rawOptions() {
-    return structuredClone(this._rrule.options);
-  }
-
-  /**
    * Get the options of the recurrence pattern.
    */
   get recurrenceOptions(): RecurrenceOptions {
-    // Safe to cast because the constructor takes a `RecurrenceOptions` object, so there can be no unsupported options
     return toRecurrenceOptions(this._rrule.options) as RecurrenceOptions;
   }
 
@@ -806,19 +376,7 @@ class Recurrence implements Copy<Recurrence> {
    * Update the recurrence pattern options, but keep the start date the same.
    */
   set recurrenceOptions(options: RecurrenceOptions) {
-    this._rrule = new RRule(options);
-  }
-
-  /**
-   * Get the properties of the Recurrence object.
-   */
-  get props(): RecurrenceProps {
-    return {
-      dtstart: this.dtStart,
-      duration: this._duration,
-      exceptions: this.getExceptions(),
-      rrule: this.recurrenceOptions
-    };
+    this._rrule = new RRule(fromRecurrenceOptions(options));
   }
 
   /**
@@ -836,16 +394,19 @@ class Recurrence implements Copy<Recurrence> {
   }
 
   /**
-   * Get the start date of the recurrence pattern in the local timezone.
+   * Get the start date of the recurrence pattern.
    */
   get dtStart(): ZonedDateTime {
     const dtstart = this._rrule.options.dtstart;
-    return fromDate(dtstart, getLocalTimeZone());
+    return fromDate(dtstart, this.tzid);
   }
 
+  /**
+   * Set the start date of the recurrence pattern.
+   */
   set dtStart(zdt: ZonedDateTime) {
     this._rrule.options.dtstart = toUTCDate(zdt);
   }
 }
 
-export { DateOption, Recurrence, TimeSlot, type RecurrenceOptions, type RecurrenceProps };
+export { Recurrence, TimeSlot, type RecurrenceOptions, type RecurrenceProps };

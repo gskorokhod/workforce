@@ -4,6 +4,7 @@ import {
   isSameDay,
   isSameMonth,
   isSameYear,
+  parseDate,
   startOfYear,
   toCalendar,
   toTimeZone,
@@ -347,18 +348,15 @@ export function parseDateTimeDuration(json: JsonValue): Required<DateTimeDuratio
  * @param json JSON value to parse
  * @returns Array of dates
  */
-export function parseDates(json: JsonValue): Date[] {
+export function parseDates(json: JsonValue): CalendarDate[] {
   if (!Array.isArray(json)) {
     return [];
   }
 
-  const dates: Date[] = [];
+  const dates: CalendarDate[] = [];
   for (const item of json) {
     if (typeof item === "string") {
-      const dt = new Date(item);
-      if (!isNaN(dt.valueOf())) {
-        dates.push(dt);
-      }
+      dates.push(parseDate(item));
     }
   }
   return dates;

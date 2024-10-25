@@ -1,7 +1,7 @@
 <script lang="ts" generics="T extends Base">
-  import * as Dialog from "$lib/components/ui/dialog";
   import { state as GLOBAL_STATE } from "$lib/backend";
   import { Assignment, Base, Location, Person, Shift, Skill, Task } from "$lib/backend/core";
+  import * as Dialog from "$lib/components/ui/dialog";
   import { Button } from "../button";
   import { DatePicker } from "../date-picker";
   import ImagePicker from "../image-picker/image-picker.svelte";

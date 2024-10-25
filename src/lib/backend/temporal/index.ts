@@ -1,4 +1,4 @@
-import { Recurrence, type RecurrenceOptions, TimeSlot } from "./recurrence";
-import { reschedule } from "./scheduling";
+import { Recurrence, type RecurrenceOptions } from "./recurrence";
+import { TimeSlot } from "./timeslot";
 
-export { Recurrence, reschedule, TimeSlot, type RecurrenceOptions };
+export { Recurrence, TimeSlot, type RecurrenceOptions };

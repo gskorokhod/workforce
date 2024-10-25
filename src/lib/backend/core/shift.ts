@@ -50,7 +50,7 @@ export class Shift extends Base implements IShift {
       props.pattern ||
       new Recurrence({
         dtstart: now(getLocalTimeZone()),
-        rrule: {
+        rule: {
           freq: RRule.DAILY,
           interval: 1
         }
@@ -138,10 +138,10 @@ export class Shift extends Base implements IShift {
    * @param n Index of the occurrence.
    * @param tzid Timezone ID. Defaults to local timezone.
    * @returns Occurrence object or undefined if not found.
-   * @see {@link Recurrence.getOccurrence}
+   * @see {@link Recurrence.occurrence}
    */
   getOccurrence(n: number = 0, tzid: string = getLocalTimeZone()): ShiftOccurrence | undefined {
-    const occurrence = this.pattern.getOccurrence(n, tzid);
+    const occurrence = this.pattern.occurrence(n, tzid);
     if (occurrence) {
       const { start, end } = occurrence;
       return new ShiftOccurrence(start, end, this.copy());
@@ -154,13 +154,13 @@ export class Shift extends Base implements IShift {
    * @param date Date to get the occurrence for.
    * @param tzid Timezone ID. Defaults to local timezone.
    * @returns Occurrence object or undefined if not found.
-   * @see {@link Recurrence.getOccurrenceOn}
+   * @see {@link Recurrence.occurrenceOn}
    */
   getOccurrenceOn(
     date: ZonedDateTime,
     tzid: string = getLocalTimeZone()
   ): ShiftOccurrence | undefined {
-    const occurrence = this.pattern.getOccurrenceOn(date, tzid);
+    const occurrence = this.pattern.occurrenceOn(date, tzid);
     if (occurrence) {
       const { start, end } = occurrence;
       return new ShiftOccurrence(start, end, this.copy());
@@ -177,7 +177,7 @@ export class Shift extends Base implements IShift {
    * @param limit Limit the number of occurrences returned. If `after` and `before` are both set, there is no limit by default. Otherwise, defaults to 100. Either way, you can set a custom limit.
    * @returns Array of occurrences.
    * @warning High `limit` values can cause performance issues, so it is recommended to keep the default behaviour or set a reasonable limit.
-   * @see {@link Recurrence.getOccurrences}
+   * @see {@link Recurrence.occurrences}
    */
   getOccurrences(
     after: ZonedDateTime | undefined = undefined,
@@ -186,7 +186,7 @@ export class Shift extends Base implements IShift {
     inclusive: boolean = true,
     limit: number = -1
   ): ShiftOccurrence[] {
-    const occurrences = this.pattern.getOccurrences(after, before, tzid, inclusive, limit);
+    const occurrences = this.pattern.occurrences(after, before, tzid, inclusive, limit);
     return occurrences.map(({ start, end }) => new ShiftOccurrence(start, end, this.copy()));
   }
 

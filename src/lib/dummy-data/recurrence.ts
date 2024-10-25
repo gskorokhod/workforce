@@ -76,7 +76,7 @@ export function generateRecurrence(): Recurrence {
     dtstart,
     duration: mkDuration(),
     exceptions: mkExceprions(),
-    rrule: options
+    rule: options
   };
 
   return new Recurrence(props);
