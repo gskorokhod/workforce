@@ -1,21 +1,16 @@
 import type { TimeDuration } from "@internationalized/date";
 import type { RecurrenceOptions } from "./options";
 
-import {
-  CalendarDate,
-  fromDate,
-  getLocalTimeZone,
-  ZonedDateTime
-} from "@internationalized/date";
+import { CalendarDate, fromDate, getLocalTimeZone, ZonedDateTime } from "@internationalized/date";
 import { datetime, RRule, RRuleSet } from "rrule";
 import type { JsonObject } from "type-fest";
 import { TimeSlot } from ".";
 import { type Copy } from "../utils";
 import { fromRecurrenceOptions, toRecurrenceOptions } from "./options";
-import { completeDuration, parseDates, parseDateTimeDuration, toUTCDate } from "./utils";
+import { parseDates, parseDateTimeDuration, toUTCDate } from "./utils";
 
 interface RecurrenceProps {
-  rule: RecurrenceOptions | RRule;
+  rule: Partial<RecurrenceOptions> | RRule;
   tzid?: string;
   duration?: TimeDuration;
   rdates?: CalendarDate[];
@@ -58,6 +53,8 @@ class Recurrence implements Copy<Recurrence> {
     this._rrule = this.initializeRRule(props);
     this.duration = props.duration;
     this.tzid = props.tzid || getLocalTimeZone();
+    this.rdates = props.rdates || [];
+    this.exdates = props.exdates || [];
   }
 
   /**
@@ -79,7 +76,7 @@ class Recurrence implements Copy<Recurrence> {
    */
   copy(): Recurrence {
     return new Recurrence({
-      rule: new RRule(this._rrule.options),
+      rule: this._rrule.clone(),
       duration: this.duration,
       rdates: this.rdates.map((d) => d.copy()),
       exdates: this.exdates.map((d) => d.copy())
@@ -136,7 +133,7 @@ class Recurrence implements Copy<Recurrence> {
     };
 
     if (this.duration) {
-      ans.duration = completeDuration(this.duration);
+      ans.duration = Object.fromEntries(Object.entries(this.duration).filter(([_, v]) => v !== undefined));
     }
 
     return ans;
@@ -330,7 +327,7 @@ class Recurrence implements Copy<Recurrence> {
 
       rule = {
         ...rule,
-        ...rest
+        ...Object.fromEntries(Object.entries(rest).filter(([_, v]) => v !== undefined))
       };
 
       if (count) {
@@ -356,7 +353,7 @@ class Recurrence implements Copy<Recurrence> {
    * @returns A human-readable string representing the recurrence pattern.
    */
   toText(): string {
-    const opts = this.recurrenceOptions;
+    const { dtstart, ...opts } = this._rrule.options;
     const dts = this.dtStart;
     const rrule = new RRule({
       ...opts,

@@ -325,21 +325,21 @@ export function completeDuration(dur: Partial<DateTimeDuration>): Required<DateT
  * @param json JSON object to parse
  * @returns DateTimeDuration object, or undefined if the JSON object is invalid
  */
-export function parseDateTimeDuration(json: JsonValue): Required<DateTimeDuration> | undefined {
+export function parseDateTimeDuration(json: JsonValue): DateTimeDuration | undefined {
   if (typeof json !== "object" || !json) {
     return undefined;
   }
 
   const jsn = json as JsonObject;
   return {
-    years: tryParseInt(jsn.years) ?? 0,
-    months: tryParseInt(jsn.months) ?? 0,
-    days: tryParseInt(jsn.days) ?? 0,
-    weeks: tryParseInt(jsn.weeks) ?? 0,
-    hours: tryParseInt(jsn.hours) ?? 0,
-    minutes: tryParseInt(jsn.minutes) ?? 0,
-    seconds: tryParseInt(jsn.seconds) ?? 0,
-    milliseconds: tryParseInt(jsn.milliseconds) ?? 0
+    years: tryParseInt(jsn.years),
+    months: tryParseInt(jsn.months),
+    days: tryParseInt(jsn.days),
+    weeks: tryParseInt(jsn.weeks),
+    hours: tryParseInt(jsn.hours),
+    minutes: tryParseInt(jsn.minutes),
+    seconds: tryParseInt(jsn.seconds),
+    milliseconds: tryParseInt(jsn.milliseconds)
   };
 }
 

@@ -23,7 +23,7 @@ type RecurrenceEnd =
     }
   | {
       count?: never;
-      until: Date;
+      until: ZonedDateTime;
     }
   | {
       count?: never;
@@ -97,7 +97,7 @@ export type WeeklyOptions = {
    * Note: numeric `BYDAY` values are not allowed for `WEEKLY` recurrence patterns, as per the RFC 5545 standard.
    * We still use the `Weekday` type for consistency, but the second argument shouldn't be used.
    */
-  byweekday: Weekday;
+  byweekday: Weekday[];
   /**
    * The frequency of the recurrence pattern.
    */
@@ -134,14 +134,7 @@ export type MonthlyOptions = {
 
 /**
  * A subset of RRule options that can be used to define a recurrence pattern.
- *
  * Note: frequecies other than `DAILY`, `WEEKLY`, and `MONTHLY` are not supported yet.
- *
- * @see MonthlyOptions
- * @see WeeklyOptions
- * @see DailyOptions
- * @see CoreOptions
- * @see RecurrenceEnd
  */
 export type RecurrenceOptions = DailyOptions | WeeklyOptions | MonthlyOptions;
 
@@ -180,7 +173,7 @@ export function toRecurrenceOptions(
         freq: po.freq,
         bymonth: po.bymonth,
         bysetpos: po.bysetpos,
-        byweekday: new Weekday(po.byweekday[0]),
+        byweekday: po.byweekday.map((wd) => new Weekday(wd)),
         dtstart: fromDate(po.dtstart, tzid),
         interval: po.interval,
         wkst: new Weekday(po.wkst)
@@ -207,17 +200,18 @@ export function toRecurrenceOptions(
   if (po.count) {
     ans.count = po.count;
   } else if (po.until) {
-    ans.until = po.until;
+    ans.until = fromDate(po.until, tzid);
   }
 
   return ans;
 }
 
-export function fromRecurrenceOptions(ro: Partial<RecurrenceOptions>) {
-  const { dtstart, ...rest } = ro;
+export function fromRecurrenceOptions(ro: Partial<RecurrenceOptions>): Partial<Options> {
+  const { dtstart, until, ...rest } = ro;
 
   const options: Partial<Options> = {
     dtstart: toUTCDate(dtstart ?? now(getLocalTimeZone())),
+    until: until ? toUTCDate(until) : undefined,
     ...rest
   };
 
