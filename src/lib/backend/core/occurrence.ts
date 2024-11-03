@@ -1,6 +1,8 @@
 import { TimeSlot } from "$lib/backend/temporal";
-import type { ZonedDateTime } from "@internationalized/date";
+import { isSameDay, type ZonedDateTime } from "@internationalized/date";
 import { Assignment } from "./assignment/assignment";
+import { SimpleAssignment } from "./assignment/simple_assignment";
+import { TimeOff } from "./assignment/time_off";
 import type { Shift } from "./shift";
 
 /**
@@ -22,8 +24,18 @@ export class ShiftOccurrence extends TimeSlot {
     if (!this.shift.state) {
       return [];
     }
-    return []; // TODO: Implement this
-    // const ans = Assignment.getDuring(this.shift.state, this);
-    // return ans.filter((a) => !a.shift || a.shift.eq(this.shift));
+    const ans = Assignment.getAll(this.shift.state);
+    return ans.filter((assignment) => {
+      if (assignment instanceof TimeOff) {
+        return false;
+      }
+      if (assignment instanceof SimpleAssignment) {
+        return (
+          assignment.shift?.eq(this.shift) &&
+          assignment.date &&
+          isSameDay(assignment.date, this.start)
+        );
+      }
+    });
   }
 }

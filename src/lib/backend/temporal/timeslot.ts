@@ -150,12 +150,15 @@ export class TimeSlot implements Copy<TimeSlot> {
   }
 
   /**
-   * Check if the event will be occurring at a given date & time.
-   * @param zdt Date & time to check
+   * Check if the event will be occurring at a given date & time, or if a given TimeSlot falls within the event.
+   * @param what Date & time or TimeSlot to check
    * @returns true if the event will be occurring at the given date & time, false otherwise
    */
-  includes(zdt: DateValue) {
-    return this.end.compare(zdt) >= 0 && this.start.compare(zdt) <= 0;
+  includes(what: DateValue | TimeSlot): boolean {
+    if (what instanceof TimeSlot) {
+      return this.start.compare(what.start) <= 0 && this.end.compare(what.end) >= 0;
+    }
+    return this.end.compare(what) >= 0 && this.start.compare(what) <= 0;
   }
 
   /**
@@ -165,6 +168,21 @@ export class TimeSlot implements Copy<TimeSlot> {
    */
   offset(by: TimeDuration): TimeSlot {
     return new TimeSlot(this.start.add(by), this.end.add(by));
+  }
+
+  /**
+   * Compare this time slot with another time slot or date.
+   * @param other Time slot or date to compare against
+   * @returns Negative if this timeslot starts before the other, positive if it starts after, 0 if they are the same. End times are used to break ties.
+   */
+  compareTo(other: TimeSlot | DateValue): number {
+    if (other instanceof TimeSlot) {
+      const cmp = this.start.compare(other.start);
+      return cmp !== 0 ? cmp : this.end.compare(other.end);
+    }
+
+    const cmp = this.start.compare(other);
+    return cmp !== 0 ? cmp : this.end.compare(other);
   }
 
   /**

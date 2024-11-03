@@ -1,6 +1,6 @@
 import { parseDate, type CalendarDate } from "@internationalized/date";
 import type { JsonObject } from "type-fest";
-import { Assignment, Shift, State, Location } from "..";
+import { Assignment, Location, Shift, State } from "..";
 import type { ShiftOccurrence } from "../occurrence";
 import type { IAssignment } from "./assignment";
 
@@ -77,6 +77,9 @@ export class SimpleAssignment extends Assignment implements ISimpleAssignment {
     this._shift = shift?.copy();
   }
 
+  /**
+   * Get the shift occurrence for this assignment
+   */
   get timeslot(): ShiftOccurrence | undefined {
     if (!this.shift || !this.date) {
       return undefined;
@@ -84,10 +87,16 @@ export class SimpleAssignment extends Assignment implements ISimpleAssignment {
     return this.shift.occurrenceOn(this.date);
   }
 
+  /**
+   * Get the location of the assignment
+   */
   get location(): Location | undefined {
     return this._location?.get() as Location | undefined;
   }
 
+  /**
+   * Set the location of the assignment
+   */
   set location(location: Location | undefined) {
     if (location) {
       this._location = location.copy();

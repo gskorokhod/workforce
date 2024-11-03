@@ -237,7 +237,10 @@ export class Task extends Base implements ITask {
     if (!this.state) {
       return [];
     }
-    return []; // TODO: Implement this method
+    console.error(
+      "GranularAssignment not implemented yet, so it is impossible to get assignments for a task."
+    );
+    return []; // TODO: Implement this once GranularAssignment is implemented
   }
 
   /**
