@@ -1,8 +1,8 @@
 import { parseDate, type CalendarDate } from "@internationalized/date";
 import type { JsonObject } from "type-fest";
-import { Assignment, Location, Shift, State } from "..";
+import { Assignment, AssignmentType, type IAssignment } from ".";
+import { Location, Shift, State } from "..";
 import type { ShiftOccurrence } from "../occurrence";
-import type { IAssignment } from "./assignment";
 
 /**
  * Represents an assignment of one or more Person to a Shift on a Date
@@ -22,7 +22,7 @@ export class SimpleAssignment extends Assignment implements ISimpleAssignment {
   date?: CalendarDate;
 
   constructor(props: Partial<ISimpleAssignment>, state?: State, uuid?: string) {
-    super(props, state, uuid);
+    super(AssignmentType.SIMPLE, props, state, uuid);
 
     this._shift = props.shift;
     this.date = props.date;

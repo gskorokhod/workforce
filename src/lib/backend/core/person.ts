@@ -4,7 +4,7 @@ import type { JsonObject, JsonValue } from "type-fest";
 import { fullYearsBetween } from "../temporal/utils";
 import type { Display } from "../ui";
 import { copyArr, has, misc, without } from "../utils";
-import type { Assignment } from "./assignment/assignment";
+import { Assignment } from "./assignment/assignment";
 import { Base } from "./base";
 import { revivedArr } from "./misc";
 import { Skill } from "./skill";
@@ -205,13 +205,7 @@ export class Person extends Base implements IPerson {
     if (!this.state) {
       return [];
     }
-    const assignments = [];
-    for (const assignment of get(this.state._assignments).values()) {
-      if (has(assignment.people, this)) {
-        assignments.push(assignment.copy());
-      }
-    }
-    return assignments;
+    return Assignment.getForPerson(this.state, this);
   }
 
   /**

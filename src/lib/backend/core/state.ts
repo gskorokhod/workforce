@@ -1,9 +1,9 @@
 import { persisted, type Serializer } from "svelte-persisted-store";
 import { get as _get, derived, type Writable } from "svelte/store";
-import type { JsonValue } from "type-fest";
+import type { JsonObject } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
 import { copyArr, type Copy } from "../utils";
-import { Assignment } from "./assignment/assignment";
+import { Assignment, parseAssignment } from "./assignment";
 import { Base } from "./base";
 import { Location } from "./location";
 import { Person } from "./person";
@@ -43,7 +43,7 @@ export class State {
       serializer: this.mkSerializer(Location.fromJSON)
     });
     this._assignments = persisted("assignments_" + this.stateID, new Map(), {
-      serializer: this.mkSerializer(Assignment.fromJSON)
+      serializer: this.mkSerializer(parseAssignment)
     });
     this._shifts = persisted("shifts_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Shift.fromJSON)
@@ -191,7 +191,7 @@ export class State {
    * @returns Serializer for the object type
    */
   private mkSerializer<T extends Base>(
-    fromJSON: (json: JsonValue, state?: State) => T
+    fromJSON: (json: JsonObject, state?: State) => T
   ): Serializer<Stored<T>> {
     return {
       stringify: (map: Stored<T>) => {

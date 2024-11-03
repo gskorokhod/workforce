@@ -1,10 +1,11 @@
 import type { ParsedOptions } from "rrule/dist/esm/types";
 
-import { fromDate, getLocalTimeZone, now, type ZonedDateTime } from "@internationalized/date";
-import { Frequency, Weekday, type Options } from "rrule";
+import { fromDate, getLocalTimeZone, now, type DateValue, type ZonedDateTime } from "@internationalized/date";
+import { Frequency, RRule, Weekday, type Options } from "rrule";
 import { toUTCDate } from "./utils";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
+const WEEKDAYS = [RRule.MO, RRule.TU, RRule.WE, RRule.TH, RRule.FR, RRule.SA, RRule.SU];
 
 /**
  * A subset of RRule options that define the end of a recurrence pattern.
@@ -23,7 +24,7 @@ type RecurrenceEnd =
     }
   | {
       count?: never;
-      until: ZonedDateTime;
+      until: DateValue;
     }
   | {
       count?: never;
@@ -59,14 +60,14 @@ export type DailyOptions = {
   /**
    * The days of the month when the event occurs. If null, the event occurs on every day that matches the other options.
    */
-  bymonthday: number[];
+  bymonthday: number[] | null;
   /**
    * The days of the week when the event occurs. If null, the event occurs on every day that matches the other options.
    *
    * Note: numeric `BYDAY` values are not allowed for `DAILY` recurrence patterns, as per the RFC 5545 standard.
    * We still use the `Weekday` type for consistency, but the second argument shouldn't be used.
    */
-  byweekday: Weekday[];
+  byweekday: Weekday[] | null;
   /**
    * The frequency of the recurrence pattern.
    */
@@ -90,14 +91,14 @@ export type WeeklyOptions = {
    *
    * This is consistent with RFC 5545 and `rrule` implementation, but it is not a common use case and generally not recommended.
    */
-  bysetpos: number[];
+  bysetpos: number[] | null;
   /**
    * The days of the week when the event occurs. If null, the event occurs on every day that matches the other options.
    *
    * Note: numeric `BYDAY` values are not allowed for `WEEKLY` recurrence patterns, as per the RFC 5545 standard.
    * We still use the `Weekday` type for consistency, but the second argument shouldn't be used.
    */
-  byweekday: Weekday[];
+  byweekday: Weekday[] | null;
   /**
    * The frequency of the recurrence pattern.
    */
@@ -109,7 +110,7 @@ export type MonthlyOptions = {
   /**
    * The days of the month when the event occurs. If null, the event occurs on every day that matches the other options.
    */
-  bymonthday: number[];
+  bymonthday: number[] | null;
   /**
    * If given, the event will occur only on the i-th occurrences within its "frequency period".
    *
@@ -117,14 +118,14 @@ export type MonthlyOptions = {
    * A common use case is to select the i-th occurrence of some day of the week within the month.
    * For example: if `byweekday` is set to all weekdays and `bysetpos` to 1, the event will occur on the first weekday of the month.
    */
-  bysetpos: number[];
+  bysetpos: number[] | null;
   /**
    * The days of the week when the event occurs. If null, the event occurs on every day that matches the other options.
    *
    * Note: this allows numeric `BYDAY` values, which are represented by `Weekday(weekday, n)`
    * For example: `Weekday(1, 2)` means `2MO`, aka the second Monday of the month.
    */
-  byweekday: Weekday[];
+  byweekday: Weekday[] | null;
   /**
    * The frequency of the recurrence pattern.
    */
@@ -159,37 +160,37 @@ export function toRecurrenceOptions(
     case Frequency.DAILY: {
       ans = {
         freq: po.freq,
-        bymonth: po.bymonth,
+        bymonth: po.bymonth ?? MONTHS,
         bymonthday: po.bymonthday,
-        byweekday: po.byweekday.map((wd) => new Weekday(wd)),
+        byweekday: po.byweekday ? po.byweekday.map((wd) => new Weekday(wd)) : null,
         dtstart: fromDate(po.dtstart, tzid),
-        interval: po.interval,
-        wkst: new Weekday(po.wkst)
+        interval: po.interval ?? 1,
+        wkst: po.wkst ? new Weekday(po.wkst) : RRule.MO
       };
       break;
     }
     case Frequency.WEEKLY: {
       ans = {
         freq: po.freq,
-        bymonth: po.bymonth,
+        bymonth: po.bymonth ?? MONTHS,
         bysetpos: po.bysetpos,
-        byweekday: po.byweekday.map((wd) => new Weekday(wd)),
+        byweekday: po.byweekday ? po.byweekday.map((wd) => new Weekday(wd)) : WEEKDAYS,
         dtstart: fromDate(po.dtstart, tzid),
-        interval: po.interval,
-        wkst: new Weekday(po.wkst)
+        interval: po.interval ?? 1,
+        wkst: po.wkst ? new Weekday(po.wkst) : RRule.MO
       };
       break;
     }
     case Frequency.MONTHLY: {
       ans = {
         freq: po.freq,
-        bymonth: po.bymonth,
+        bymonth: po.bymonth ?? MONTHS,
         bymonthday: po.bymonthday,
         bysetpos: po.bysetpos,
-        byweekday: po.byweekday.map((wd) => new Weekday(wd)),
+        byweekday: po.byweekday ? po.byweekday.map((wd) => new Weekday(wd)) : WEEKDAYS,
         dtstart: fromDate(po.dtstart, tzid),
-        interval: po.interval,
-        wkst: new Weekday(po.wkst)
+        interval: po.interval ?? 1,
+        wkst: po.wkst ? new Weekday(po.wkst) : RRule.MO
       };
       break;
     }
@@ -207,10 +208,11 @@ export function toRecurrenceOptions(
 }
 
 export function fromRecurrenceOptions(ro: Partial<RecurrenceOptions>): Partial<Options> {
-  const { dtstart, until, ...rest } = ro;
+  const { dtstart, bymonth, until, ...rest } = ro;
 
   const options: Partial<Options> = {
     dtstart: toUTCDate(dtstart ?? now(getLocalTimeZone())),
+    bymonth: bymonth && bymonth.length < 12 ? bymonth : undefined,
     until: until ? toUTCDate(until) : undefined,
     ...rest
   };

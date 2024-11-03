@@ -2,7 +2,13 @@
 import { Recurrence } from "$lib/backend/temporal";
 import type { RecurrenceOptions, RecurrenceProps } from "$lib/backend/temporal/recurrence";
 import { faker } from "@faker-js/faker";
-import { fromDate, type TimeDuration } from "@internationalized/date";
+import {
+  CalendarDate,
+  fromDate,
+  isSameDay,
+  toCalendarDate,
+  type TimeDuration
+} from "@internationalized/date";
 import { RRule, Weekday } from "rrule";
 import { select, weighedSelect } from "./misc";
 
@@ -28,11 +34,20 @@ function mkFreq(): number {
   return weighedSelect(FREQS, [50, 25, 1]);
 }
 
-function mkEnd(): { count: number } | { until: Date } {
+function mkEnd(): { count: number } | { until: CalendarDate } {
   if (Math.random() < 0.5) {
     return { count: Math.floor(Math.random() * 50) };
   } else {
-    return { until: faker.date.future() };
+    return {
+      until: toCalendarDate(
+        fromDate(
+          faker.date.soon({
+            days: Math.floor(Math.random() * 100)
+          }),
+          "UTC"
+        )
+      )
+    };
   }
 }
 
@@ -43,39 +58,41 @@ function mkDuration(): TimeDuration {
   };
 }
 
-function mkExDates(): Date[] {
+function mkExDates(): CalendarDate[] {
   const n = Math.floor(Math.random() * 5);
-  return Array.from({ length: n }, () =>
-    faker.date.between({
+  return Array.from({ length: n }, () => {
+    const dt = faker.date.between({
       from: faker.date.recent({ days: 14 }),
       to: faker.date.future()
-    })
-  );
+    });
+    return toCalendarDate(fromDate(dt, "UTC"));
+  });
 }
 
 function mkExceprions(): {
-  rdates: Date[];
-  exdates: Date[];
+  rdates: CalendarDate[];
+  exdates: CalendarDate[];
 } {
   const exdates = mkExDates();
-  const rdates = mkExDates().filter((d) => !exdates.some((e) => e.valueOf() === d.valueOf()));
+  const rdates = mkExDates().filter((d) => !exdates.some((e) => isSameDay(d, e)));
   return { rdates, exdates };
 }
 
 export function generateRecurrence(): Recurrence {
   const freq = mkFreq();
-  const options: RecurrenceOptions = {
+  const options: Partial<RecurrenceOptions> = {
     ...mkEnd(),
     freq,
     interval: mkInterval(),
-    byweekday: freq === RRule.DAILY ? [] : mkWeekdays()
+    byweekday: freq === RRule.DAILY ? [] : mkWeekdays(),
+    dtstart: fromDate(faker.date.recent({ days: 14 }), "UTC")
   };
 
-  const dtstart = fromDate(faker.date.recent({ days: 14 }), "UTC");
+  const { rdates, exdates } = mkExceprions();
   const props: RecurrenceProps = {
-    dtstart,
     duration: mkDuration(),
-    exceptions: mkExceprions(),
+    rdates,
+    exdates,
     rule: options
   };
 

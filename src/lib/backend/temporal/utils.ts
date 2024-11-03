@@ -1,11 +1,14 @@
 import {
   CalendarDate,
+  CalendarDateTime,
   isSameDay,
   isSameMonth,
   isSameYear,
   parseDate,
   startOfYear,
+  Time,
   toCalendar,
+  toCalendarDate,
   toTimeZone,
   toZoned,
   ZonedDateTime,
@@ -76,7 +79,7 @@ export function divMod(a: number, b: number): [number, number] {
  *
  * Note: the duration is calculated by absolute value
  */
-export function durationBetween(a: DateValue, b: DateValue) {
+export function dtDurationBetween(a: DateValue, b: DateValue) {
   const aDate = a instanceof ZonedDateTime ? a.toDate() : a.toDate("UTC");
   const bDate = b instanceof ZonedDateTime ? b.toDate() : b.toDate("UTC");
   const totalMillis = Math.abs(aDate.valueOf() - bDate.valueOf());
@@ -119,7 +122,7 @@ export function calendarDaysBetween(start: DateValue, end: DateValue): number {
   const stMidnight = startZDT.set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
   const endMidnight = endZDT.set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
 
-  const days = durationBetween(stMidnight, endMidnight).days;
+  const days = dtDurationBetween(stMidnight, endMidnight).days;
   return start.compare(end) < 0 ? days : -days;
 }
 
@@ -250,9 +253,112 @@ export function dtMin<T extends DateValue>(a: T, b: T): T {
  * @param dur TimeDuration object
  * @returns number of milliseconds
  */
-export function toMillis(dur: TimeDuration): number {
+export function toMillis(dur: TimeDuration | Time): number {
+  if (dur instanceof Time) {
+    return dur.hour * 60 * 60 * 1000 + dur.minute * 60 * 1000 + dur.second * 1000 + dur.millisecond;
+  }
   const d = completeDuration(dur);
   return d.milliseconds + d.seconds * 1000 + d.minutes * 60 * 1000 + d.hours * 60 * 60 * 1000;
+}
+
+/**
+ * Convert a TimeDuration object to minutes.
+ * @param dur TimeDuration object
+ * @returns number of minutes
+ */
+export function toMinutes(dur: TimeDuration | Time): number {
+  return toMillis(dur) / 60000;
+}
+
+/**
+ * Get the duration between two Time objects or two DateValue objects.
+ * @param a Start date or time
+ * @param b End date or time
+ * @returns TimeDuration object representing the absolute duration between the two dates or times
+ */
+export function timeDurationBetween<T extends DateValue | Time>(a: T, b: T): TimeDuration {
+  if (a instanceof Time && b instanceof Time) {
+    const mins = Math.abs(toMinutes(b as Time) - toMinutes(a as Time));
+    const [hours, minutes] = divMod(mins, 60);
+    return { hours, minutes, seconds: 0, milliseconds: 0 };
+  }
+  if (!(a instanceof Time) && !(b instanceof Time)) {
+    const dtd = dtDurationBetween(a, b);
+    return {
+      hours: Math.abs(dtd.days * 24 + dtd.hours),
+      minutes: Math.abs(dtd.minutes),
+      seconds: Math.abs(dtd.seconds),
+      milliseconds: Math.abs(dtd.milliseconds)
+    };
+  }
+  throw new Error("Cannot mix Time and ZonedDateTime objects");
+}
+
+/**
+ * Get the number of minutes between two Time objects or two DateValue objects.
+ * @param a Start date or time
+ * @param b End date or time
+ * @returns Absolute number of minutes between the two dates or times
+ */
+export function minutesBetween<T extends DateValue | Time>(a: T, b: T): number {
+  return toMinutes(timeDurationBetween(a, b));
+}
+
+/**
+ * Convert a number of minutes to a Time object.
+ * @param minutes number of minutes
+ * @returns Time object
+ */
+export function timeFromMinutes(minutes: number): Time {
+  const [hours, mins] = divMod(minutes, 60);
+  return new Time(hours, mins);
+}
+
+type WithTime = ZonedDateTime | CalendarDateTime | Time | Date | TimeDuration;
+
+/**
+ * Extract the time component from a ZonedDateTime, CalendarDateTime, Time, Date, or TimeDuration object.
+ * @param time Object to extract time from
+ * @returns Time object
+ */
+export function timeComponent(time: WithTime | undefined | null): Time {
+  if (!time) {
+    return new Time(0, 0);
+  }
+  if (time instanceof Time) {
+    return time;
+  }
+  if (time instanceof Date) {
+    return new Time(time.getHours(), time.getMinutes(), time.getSeconds(), time.getMilliseconds());
+  }
+  if (time instanceof ZonedDateTime || time instanceof CalendarDateTime) {
+    return new Time(time.hour, time.minute, time.second, time.millisecond);
+  }
+  return new Time(time.hours, time.minutes, time.seconds, time.milliseconds);
+}
+
+/**
+ * Format a Time object as a string.
+ * @param time Time object to format
+ * @param options Intl.DateTimeFormatOptions overrides
+ * @param locale Locale to use. Defaults to the user's preferred languages, or "en" as a fallback.
+ * @returns Formatted time string
+ */
+export function fmtTime(
+  time: WithTime | undefined | null,
+  options: Intl.DateTimeFormatOptions = {},
+  locale = navigator.languages || "en"
+): string {
+  const tc = timeComponent(time);
+  const dt = new Date();
+  dt.setHours(tc.hour);
+  dt.setMinutes(tc.minute);
+
+  return dt.toLocaleTimeString(locale, {
+    hour: "numeric",
+    minute: "numeric",
+    ...options
+  });
 }
 
 /**
@@ -278,7 +384,7 @@ export function fromMillis(ms: number): TimeDuration {
  * @param b TimeDuration object
  * @returns Negative if `a` is less than `b`, positive if `a` is greater than `b`, and 0 if they are equal
  */
-export function cmpTimeDurations(a: TimeDuration, b: TimeDuration): number {
+export function cmpTime(a: TimeDuration | Time, b: TimeDuration | Time): number {
   return toMillis(a) - toMillis(b);
 }
 
@@ -288,7 +394,7 @@ export function cmpTimeDurations(a: TimeDuration, b: TimeDuration): number {
  * @param b TimeDuration object
  * @returns TimeDuration object representing the sum of `a` and `b`
  */
-export function addTimeDurations(a: TimeDuration, b: TimeDuration): TimeDuration {
+export function addTime(a: TimeDuration | Time, b: TimeDuration | Time): TimeDuration {
   return fromMillis(toMillis(a) + toMillis(b));
 }
 
@@ -298,8 +404,22 @@ export function addTimeDurations(a: TimeDuration, b: TimeDuration): TimeDuration
  * @param b TimeDuration object
  * @returns TimeDuration object representing the absolute difference between `a` and `b`
  */
-export function diffTimeDurations(a: TimeDuration, b: TimeDuration): TimeDuration {
+export function diffTime(a: TimeDuration | Time, b: TimeDuration | Time): TimeDuration {
   return fromMillis(Math.abs(toMillis(a) - toMillis(b)));
+}
+
+/**
+ * Return the latest of two Time objects or the longest of two TimeDuration objects.
+ */
+export function tMax(a: TimeDuration | Time, b: TimeDuration | Time): TimeDuration | Time {
+  return cmpTime(a, b) >= 0 ? a : b;
+}
+
+/**
+ * Return the earliest of two Time objects or the shortest of two TimeDuration objects.
+ */
+export function tMin(a: TimeDuration | Time, b: TimeDuration | Time): TimeDuration | Time {
+  return cmpTime(a, b) <= 0 ? a : b;
 }
 
 /**
@@ -367,7 +487,7 @@ export function parseDates(json: JsonValue): CalendarDate[] {
  * @param value JSON value to parse
  * @returns number, or undefined if the value is not a number or a string that can be parsed as a number
  */
-function tryParseInt(value: unknown): number | undefined {
+export function tryParseInt(value: unknown): number | undefined {
   if (typeof value === "number") {
     return value;
   }
@@ -380,4 +500,42 @@ function tryParseInt(value: unknown): number | undefined {
   }
 
   return undefined;
+}
+
+/**
+ * Get a list of all days between two dates.
+ * @param start Range start (inclusive)
+ * @param end Range end (inclusive)
+ * @returns Array of CalendarDate objects
+ */
+export function allDaysBetween(start: DateValue, end: DateValue): CalendarDate[] {
+  const dates: CalendarDate[] = [];
+  let current = start.copy();
+  while (current.compare(end) <= 0) {
+    dates.push(toCalendarDate(current));
+    current = current.add({ days: 1 });
+  }
+  return dates;
+}
+
+type Event = {
+  start: Time;
+  end: Time;
+};
+
+/**
+ * Get the overlap between two events.
+ * @param a Event with start and end times
+ * @param b Event with start and end times
+ * @returns Overlapping time period, or undefined if the events do not overlap
+ */
+export function getClash(a: Event, b: Event): Event | null {
+  const start = tMax(a.start, b.start) as Time;
+  const end = tMin(a.end, b.end) as Time;
+
+  if (cmpTime(start, end) >= 0) {
+    return null;
+  }
+
+  return { start, end };
 }

@@ -372,6 +372,13 @@ class Recurrence implements Copy<Recurrence> {
     return rrule.toText();
   }
 
+  formattedDuration(): string {
+    if (!this.duration) return "All day";
+    const fmtHours = (this.duration.hours || 0).toString().padStart(2, "0");
+    const fmtMinutes = (this.duration.minutes || 0).toString().padStart(2, "0");
+    return `${fmtHours}h ${fmtMinutes}m`;
+  }
+
   /**
    * Get the options of the recurrence pattern.
    */

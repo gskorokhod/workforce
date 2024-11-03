@@ -1,14 +1,15 @@
 <script lang="ts">
+  import { type RecurrenceOptions } from "$lib/backend/temporal";
   import * as Select from "$lib/components/ui/select";
   import * as ToggleGroup from "$lib/components/ui/toggle-group";
-  import { type RecurrenceOptions } from "$lib/backend/temporal";
-  import { fromDate, getLocalTimeZone, type DateValue } from "@internationalized/date";
+  import { type DateValue, getLocalTimeZone, toZoned } from "@internationalized/date";
   import type { Selected } from "bits-ui";
-  import { Frequency, RRule, type ByWeekday } from "rrule";
+  import { Frequency, RRule, Weekday } from "rrule";
   import { DatePicker } from "../date-picker";
   import { Input } from "../input";
   import { Label } from "../label";
   import TimePicker from "../time-picker/time-picker.svelte";
+  import { fromRecurrenceOptions } from "$lib/backend/temporal/options";
 
   type SupportedFrequency = Frequency.DAILY | Frequency.WEEKLY | Frequency.MONTHLY;
   const WEEKDAYS = [RRule.MO, RRule.TU, RRule.WE, RRule.TH, RRule.FR, RRule.SA, RRule.SU];
@@ -23,23 +24,24 @@
     ["infinite", "Never"]
   ]);
 
-  export let value: RecurrenceOptions;
+  export let value: Partial<RecurrenceOptions>;
 
-  let prevByweekday: ByWeekday[] | undefined = undefined;
-  let until = value.until
-    ? fromDate(value.until, getLocalTimeZone())
-    : fromDate(new Date(), getLocalTimeZone());
+  let prevByweekday: Weekday[] | undefined = undefined;
+  let until = value.until || undefined;
   let count = value.count || 1;
-  $: freqSelected = { value: value.freq, label: mkFreqLabel(value.freq, value.interval) };
+  $: freqSelected = { value: value.freq, label: mkFreqLabel(value.freq!, value.interval) };
   $: endVal = value.count ? "count" : value.until ? "until" : "infinite";
   $: endSelected = { value: endVal, label: END_OPTIONS.get(endVal) || "Never" };
   $: byweekday = (value.byweekday || WEEKDAYS).map((day) => day.toString());
-  $: dtstart = fromDate(value.dtstart || new Date(), getLocalTimeZone());
-  $: rrule = new RRule(value);
+  $: dtstart = value.dtstart;
+  $: rrule = new RRule(fromRecurrenceOptions(value));
 
-  function onFreqChange(val: Selected<SupportedFrequency> | undefined) {
+  function onFreqChange(val?: Selected<SupportedFrequency | undefined>) {
     if (val) {
       const fval = val.value;
+      if (!fval) {
+        return;
+      }
 
       if (fval === RRule.DAILY && value.byweekday && value.byweekday.length !== 7) {
         prevByweekday = value.byweekday;
@@ -71,7 +73,13 @@
   }
 
   function onDtstartChange(val: DateValue | undefined) {
-    value.dtstart = val?.toDate("UTC");
+    if (!val) return;
+
+    if (value.dtstart) {
+      value.dtstart = value.dtstart.set(val);
+    } else {
+      value.dtstart = toZoned(val, getLocalTimeZone());
+    }
   }
 
   function pluralise(unit: string, n?: number | string) {
@@ -93,7 +101,7 @@
         value.until = undefined;
         value.count = undefined;
       } else if (end === "until") {
-        value.until = until?.toDate("UTC");
+        value.until = until;
         value.count = undefined;
       } else if (end === "count") {
         value.count = count;

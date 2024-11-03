@@ -1,9 +1,9 @@
-import { parseDate, type CalendarDate, type DateValue } from "@internationalized/date";
-import { Assignment, type IAssignment } from "./assignment";
-import type { JsonObject } from "type-fest";
-import { Person, State } from "..";
-import { Icon } from "$lib/backend/ui";
 import { TimeSlot } from "$lib/backend/temporal";
+import { Icon } from "$lib/backend/ui";
+import { parseDate, type CalendarDate, type DateValue } from "@internationalized/date";
+import type { JsonObject } from "type-fest";
+import { Assignment, AssignmentType, type IAssignment } from ".";
+import { Person, State } from "..";
 
 interface ITimeOff extends IAssignment {
   date: CalendarDate;
@@ -18,12 +18,17 @@ export class TimeOff extends Assignment implements ITimeOff {
   date: CalendarDate;
 
   constructor(props: TimeOffProps, state?: State, uuid?: string) {
-    super({
-      name: "Time Off",
-      description: "This person has time off on this day.",
-      icon: Icon.fromString("lucide:calendar-off"),
-      person: props.person,
-    }, state, uuid);
+    super(
+      AssignmentType.DAY_OFF,
+      {
+        name: "Time Off",
+        description: "This person has time off on this day.",
+        icon: Icon.fromString("lucide:calendar-off"),
+        person: props.person
+      },
+      state,
+      uuid
+    );
     this.date = props.date;
   }
 
@@ -54,7 +59,9 @@ export class TimeOff extends Assignment implements ITimeOff {
    * @returns Array of TimeOff for the given person
    */
   static getForPerson(from: State | Assignment[], person: Person): TimeOff[] {
-    return Assignment.getForPerson(from, person).filter((assignment) => assignment instanceof TimeOff) as TimeOff[];
+    return Assignment.getForPerson(from, person).filter(
+      (assignment) => assignment instanceof TimeOff
+    ) as TimeOff[];
   }
 
   /**
@@ -65,7 +72,9 @@ export class TimeOff extends Assignment implements ITimeOff {
    * @returns Array of TimeOff between the two dates.
    */
   static getBetween(from: State | Assignment[], after?: DateValue, before?: DateValue): TimeOff[] {
-    return Assignment.getBetween(from, after, before).filter((assignment) => assignment instanceof TimeOff);
+    return Assignment.getBetween(from, after, before).filter(
+      (assignment) => assignment instanceof TimeOff
+    );
   }
 
   /**
@@ -83,7 +92,7 @@ export class TimeOff extends Assignment implements ITimeOff {
     return new TimeOff(
       {
         date: parseDate(date as string),
-        person: Person.fromJSON(person as JsonObject, state),
+        person: Person.fromJSON(person as JsonObject, state)
       },
       state,
       typeof uuid === "string" ? uuid : undefined
@@ -93,15 +102,19 @@ export class TimeOff extends Assignment implements ITimeOff {
   toJSON(): JsonObject {
     return {
       ...super.toJSON(),
-      date: this.date.toString(),
+      date: this.date.toString()
     };
   }
 
   copy(): TimeOff {
-    return new TimeOff({
-      date: this.date,
-      person: this.person
-    }, this.state, this.uuid);
+    return new TimeOff(
+      {
+        date: this.date,
+        person: this.person
+      },
+      this.state,
+      this.uuid
+    );
   }
 
   get timeslot(): TimeSlot {

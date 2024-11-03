@@ -221,7 +221,7 @@ export class Location extends Base implements ILocation {
     if (!this.state) {
       return [];
     }
-    return Assignment.getWith(this.state, this);
+    return Assignment.getByLocation(this.state, this);
   }
 
   get address(): string {

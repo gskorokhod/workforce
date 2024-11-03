@@ -56,14 +56,14 @@ test("hasDate with an equivalent local date", () => {
 test("durationBetween with same dates", () => {
   const zdt1 = parseZonedDateTime("2024-01-01T00:00[UTC]");
   const zdt2 = parseZonedDateTime("2024-01-01T00:00[UTC]");
-  const duration = Util.durationBetween(zdt1, zdt2);
+  const duration = Util.dtDurationBetween(zdt1, zdt2);
   expect(duration).toEqual({ days: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0 });
 });
 
 test("durationBetween with different dates", () => {
   const zdt1 = parseZonedDateTime("2024-01-01T00:00[UTC]");
   const zdt2 = parseZonedDateTime("2024-01-02T01:01[UTC]");
-  const duration = Util.durationBetween(zdt1, zdt2);
+  const duration = Util.dtDurationBetween(zdt1, zdt2);
   expect(duration).toEqual({ days: 1, hours: 1, minutes: 1, seconds: 0, milliseconds: 0 });
 });
 

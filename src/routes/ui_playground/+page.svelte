@@ -1,5 +1,6 @@
 <script lang="ts">
   import { state } from "$lib/backend";
+  import { fmtTime } from "$lib/backend/temporal/utils";
   import { Icon, type Display } from "$lib/backend/ui";
   import { Button } from "$lib/components/ui/button";
   import Chip from "$lib/components/ui/chip/chip.svelte";
@@ -8,6 +9,8 @@
   import PersonDataTable from "$lib/components/ui/data-table/person-data-table.svelte";
   import ShiftDataTable from "$lib/components/ui/data-table/shift-data-table.svelte";
   import EditDialog from "$lib/components/ui/edit-dialog/edit-dialog.svelte";
+  import TimeGridItem from "$lib/components/ui/event-calendar/time-grid-item.svelte";
+  import TimeGrid from "$lib/components/ui/event-calendar/time-grid.svelte";
   import IconPicker from "$lib/components/ui/image-picker/icon-picker.svelte";
   import ImagePicker from "$lib/components/ui/image-picker/image-picker.svelte";
   import { Profile } from "$lib/components/ui/profile-picture";
@@ -17,8 +20,10 @@
   import SelectorMany from "$lib/components/ui/selector/selector-many.svelte";
   import TimePicker from "$lib/components/ui/time-picker/time-picker.svelte";
   import { faker } from "@faker-js/faker";
-  import { getLocalTimeZone, now, ZonedDateTime, type TimeDuration } from "@internationalized/date";
+  import { getLocalTimeZone, now, Time, ZonedDateTime, type TimeDuration } from "@internationalized/date";
+  import Color from "color";
   import { GraduationCapIcon, XIcon } from "lucide-svelte";
+  import { v4 as uuid } from "uuid";
 
   const schedules: ComboboxItem[] = [
     { label: "Schedule 1", value: "schedule1" },
@@ -56,6 +61,45 @@
     hours: 10,
     minutes: 30
   };
+
+  type Event = {
+    start: Time,
+    end: Time,
+    color: Color,
+    id: string
+  };
+
+  function randomColor(): Color {
+    return Color.rgb(Math.random() * 255, Math.random() * 255, Math.random() * 255);
+  }
+
+  let start: Time = new Time(9, 0);
+  let end: Time = new Time(17, 0);
+  let evStart: Time = new Time(9, 0);
+  let evEnd: Time = new Time(17, 0);
+  let step: number = 30;
+  let precision: number = 5;
+  let showTime: boolean = true;
+  let events: Event[] = [
+    {
+      start: new Time(10, 0),
+      end: new Time(13, 0),
+      color: randomColor(),
+      id: uuid()
+    },
+    {
+      start: new Time(9, 0),
+      end: new Time(15, 0),
+      color: randomColor(),
+      id: uuid()
+    },
+    {
+      start: new Time(15, 0),
+      end: new Time(17, 0),
+      color: randomColor(),
+      id: uuid()
+    }
+  ]
 </script>
 
 <div class="h-dvh w-full overflow-y-scroll bg-gray-50">
@@ -173,6 +217,43 @@
       <h2 class="mb-1.5 text-xl">Recurrence Editor</h2>
       <div class="flex w-max flex-col gap-6 rounded-lg bg-card p-6">
         <RecurrenceOptionsEdit value={$shifts[0].pattern.recurrenceOptions} />
+      </div>
+    </section>
+    <section>
+      <h2 class="mb-1.5 text-xl">Time Grid Example</h2>
+      <div class="flex flex-col gap-6">
+        <div class="flex flex-col w-24 gap-2">
+          Start time:
+          <TimePicker bind:value={start} />
+          End time:
+          <TimePicker bind:value={end} />
+          Step:
+          <input type="number" bind:value={step} />
+          Precision:
+          <input type="number" bind:value={precision} />
+          Show time:
+          <input type="checkbox" bind:checked={showTime} />
+        </div>
+        <TimeGrid let:context {start} {end} {precision} {step} {showTime} class="h-[600px] w-[350px] bg-white">
+          {#each events as event (event)}
+            <TimeGridItem {context} start={event.start} end={event.end}>
+              <button class="w-full h-full"
+              style="background-color: {event.color.hex()}"
+              on:click={() => {
+                events = events.filter((e) => e !== event);
+              }}>Event:<br /> {fmtTime(event.start)} - {fmtTime(event.end)}</button>
+            </TimeGridItem>
+          {/each}
+        </TimeGrid>
+        <div class="flex flex-col w-24 gap-2">
+          Event start:
+          <TimePicker bind:value={evStart} />
+          Event end:
+          <TimePicker bind:value={evEnd} />
+          <Button on:click={() => {
+            events = [...events, { start: evStart, end: evEnd, color: randomColor(), id: uuid() }];
+          }}>Add event</Button>
+        </div>
       </div>
     </section>
   </main>

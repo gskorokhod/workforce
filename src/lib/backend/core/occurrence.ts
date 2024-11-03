@@ -4,11 +4,12 @@ import { Assignment } from "./assignment/assignment";
 import { SimpleAssignment } from "./assignment/simple_assignment";
 import { TimeOff } from "./assignment/time_off";
 import type { Shift } from "./shift";
+import type { Display, Icon } from "../ui";
 
 /**
  * A timeslot representing an individual occurrence of a shift.
  */
-export class ShiftOccurrence extends TimeSlot {
+export class ShiftOccurrence extends TimeSlot implements Display {
   readonly shift: Shift;
 
   constructor(start: ZonedDateTime, end: ZonedDateTime, shift: Shift) {
@@ -37,5 +38,17 @@ export class ShiftOccurrence extends TimeSlot {
         );
       }
     });
+  }
+
+  get name(): string {
+    return this.shift.name;
+  }
+
+  get description(): string {
+    return this.shift.description || "";
+  }
+
+  get icon(): Icon | undefined {
+    return this.shift.icon;
   }
 }

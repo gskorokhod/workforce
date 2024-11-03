@@ -186,6 +186,15 @@ export class TimeSlot implements Copy<TimeSlot> {
   }
 
   /**
+   * Create a new TimeSlot object with the start and end times set to the given values.
+   * @param other { start?: ZonedDateTime, end?: ZonedDateTime }
+   * @returns new TimeSlot object with the start and end times set to the given values
+   */
+  set(other: Partial<TimeSlot>): TimeSlot {
+    return new TimeSlot(other.start ?? this.start, other.end ?? this.end);
+  }
+
+  /**
    * Get the duration of the time slot.
    * @returns Duration of the time slot.
    */

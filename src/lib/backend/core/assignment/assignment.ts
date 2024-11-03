@@ -2,9 +2,16 @@ import { copyArr } from "$lib/backend/utils";
 import type { DateValue } from "@internationalized/date";
 import { get as _get } from "svelte/store";
 import type { JsonObject } from "type-fest";
-import { Base, Person, State } from "..";
+import { SimpleAssignment } from ".";
+import { Location, Person, State } from "..";
 import { TimeSlot } from "../../temporal";
 import type { Display, Icon } from "../../ui";
+import { Base } from "../base";
+
+export enum AssignmentType {
+  SIMPLE = "simple",
+  DAY_OFF = "day_off"
+}
 
 export interface IAssignment extends Display {
   person?: Person;
@@ -12,18 +19,20 @@ export interface IAssignment extends Display {
 }
 
 export abstract class Assignment extends Base implements IAssignment {
+  readonly type: AssignmentType;
   name: string;
   description: string;
   icon?: Icon;
   private _person?: Person;
 
-  constructor(props: Partial<IAssignment>, state?: State, uuid?: string) {
+  constructor(type: AssignmentType, props: Partial<IAssignment>, state?: State, uuid?: string) {
     super(state, uuid);
 
     this.name = props.name || "";
     this.description = props.description || "";
     this.icon = props.icon;
     this._person = props.person?.copy();
+    this.type = type;
   }
 
   /**
@@ -59,6 +68,15 @@ export abstract class Assignment extends Base implements IAssignment {
    */
   static getForPerson(from: State | Assignment[], person: Person): Assignment[] {
     return Assignment.getAll(from).filter((a) => a.person?.eq(person));
+  }
+
+  static getByLocation(from: State | Assignment[], location: Location): Assignment[] {
+    return Assignment.getAll(from).filter((assignment) => {
+      if (assignment instanceof SimpleAssignment) {
+        return assignment.location?.eq(location);
+      }
+      return false;
+    });
   }
 
   /**
@@ -133,7 +151,8 @@ export abstract class Assignment extends Base implements IAssignment {
       name: this.name,
       description: this.description || "",
       icon: this.icon?.toJSON() || null,
-      person: this._person?.toJSON() || null
+      person: this._person?.toJSON() || null,
+      type: this.type
     };
   }
 
