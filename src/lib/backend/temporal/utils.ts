@@ -1,6 +1,5 @@
 import {
   CalendarDate,
-  CalendarDateTime,
   isSameDay,
   isSameMonth,
   isSameYear,
@@ -11,25 +10,24 @@ import {
   toZoned,
   ZonedDateTime,
   type DateTimeDuration,
+  type DateValue,
   type TimeDuration
 } from "@internationalized/date";
 
 import { datetime } from "rrule";
 import type { JsonObject, JsonValue } from "type-fest";
 
-type DateType = ZonedDateTime | CalendarDateTime | CalendarDate;
-
 /**
  * Converts a ZonedDateTime or CalendarDate to a Date object in UTC.
  * @param zdt ZonedDateTime or CalendarDate to convert
  * @returns Date object in UTC
  */
-export function toUTCDate(dt: ZonedDateTime | CalendarDate): Date {
+export function toUTCDate(dt: DateValue): Date {
   if (dt instanceof CalendarDate) {
     return datetime(dt.year, dt.month, dt.day);
   }
 
-  const d = toTimeZone(dt, "UTC");
+  const d = dt instanceof ZonedDateTime ? toTimeZone(dt, "UTC") : toZoned(dt, "UTC");
   return datetime(d.year, d.month, d.day, d.hour, d.minute, d.second);
 }
 
@@ -78,8 +76,10 @@ export function divMod(a: number, b: number): [number, number] {
  *
  * Note: the duration is calculated by absolute value
  */
-export function durationBetween(a: ZonedDateTime, b: ZonedDateTime) {
-  const totalMillis = Math.abs(a.toDate().valueOf() - b.toDate().valueOf());
+export function durationBetween(a: DateValue, b: DateValue) {
+  const aDate = a instanceof ZonedDateTime ? a.toDate() : a.toDate("UTC");
+  const bDate = b instanceof ZonedDateTime ? b.toDate() : b.toDate("UTC");
+  const totalMillis = Math.abs(aDate.valueOf() - bDate.valueOf());
 
   const [totalSeconds, millis] = divMod(totalMillis, 1000);
   const [totalMinutes, seconds] = divMod(totalSeconds, 60);
@@ -107,7 +107,7 @@ export function durationBetween(a: ZonedDateTime, b: ZonedDateTime) {
  * @example `calendarDaysBetween('2024-01-01T10:30', '2024-01-01T23:59')` -> `0`
  * @example `calendarDaysBetween('2024-01-01T23:59', '2024-01-02T00:01')` -> `1`
  */
-export function calendarDaysBetween(start: DateType, end: DateType): number {
+export function calendarDaysBetween(start: DateValue, end: DateValue): number {
   if (isSameDay(start, end)) {
     return 0;
   }
@@ -140,7 +140,7 @@ export function calendarDaysBetween(start: DateType, end: DateType): number {
  * @example `calendarMonthsBetween('2024-01-01', '2024-02-29')` -> `1`
  * @example `calendarMonthsBetween('2024-01-01', '2024-03-01')` -> `2`
  */
-export function calendarMonthsBetween(start: DateType, end: DateType): number {
+export function calendarMonthsBetween(start: DateValue, end: DateValue): number {
   start = start.copy();
   end = toCalendar(end, start.calendar);
 
@@ -175,7 +175,7 @@ export function calendarMonthsBetween(start: DateType, end: DateType): number {
  * @example `getDaysInMonth('2024-01-01')` -> `31`
  * @example `getDaysInMonth('2024-02-01')` -> `29`
  */
-export function getDaysInMonth(dt: DateType): number {
+export function getDaysInMonth(dt: DateValue): number {
   return dt.calendar.getDaysInMonth(dt);
 }
 
@@ -188,7 +188,7 @@ export function getDaysInMonth(dt: DateType): number {
  * @example `fullYearsBetween('2024-01-01', '2024-12-31')` -> `0`
  * @example `fullYearsBetween('2024-01-01', '2025-01-01')` -> `1`
  */
-export function fullYearsBetween(start: DateType, end: DateType): number {
+export function fullYearsBetween(start: DateValue, end: DateValue): number {
   start = start.copy();
   end = toCalendar(end, start.calendar);
 
@@ -231,7 +231,7 @@ export function cycle(value: number, d: number, min: number, max: number): numbe
  * @param b Second object
  * @returns The later of the two datetimes
  */
-export function dtMax<T extends DateType>(a: T, b: T): T {
+export function dtMax<T extends DateValue>(a: T, b: T): T {
   return a.compare(b) >= 0 ? a : b;
 }
 
@@ -241,7 +241,7 @@ export function dtMax<T extends DateType>(a: T, b: T): T {
  * @param b Second object
  * @returns The earlier of the two datetimes
  */
-export function dtMin<T extends DateType>(a: T, b: T): T {
+export function dtMin<T extends DateValue>(a: T, b: T): T {
   return a.compare(b) <= 0 ? a : b;
 }
 

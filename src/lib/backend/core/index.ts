@@ -1,4 +1,4 @@
-import { Assignment } from "./assignment";
+import { Assignment } from "./assignment/assignment";
 import { Base } from "./base";
 import { Location } from "./location";
 import { Person } from "./person";

@@ -4,7 +4,7 @@ import type { JsonObject, JsonValue } from "type-fest";
 import { fullYearsBetween } from "../temporal/utils";
 import type { Display } from "../ui";
 import { copyArr, has, misc, without } from "../utils";
-import type { Assignment } from "./assignment";
+import type { Assignment } from "./assignment/assignment";
 import { Base } from "./base";
 import { revivedArr } from "./misc";
 import { Skill } from "./skill";
@@ -221,7 +221,6 @@ export class Person extends Base implements IPerson {
     if (!this.state) {
       return copyArr(this._skills);
     }
-    this._skills.forEach((skill) => (skill.state = this.state));
     return this._skills.map((s) => s.get()).filter((s) => s !== undefined) as Skill[];
   }
 

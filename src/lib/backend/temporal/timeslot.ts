@@ -1,11 +1,11 @@
 import {
   CalendarDate,
-  CalendarDateTime,
   getLocalTimeZone,
   parseZonedDateTime,
   toCalendarDate,
   toZoned,
   ZonedDateTime,
+  type DateValue,
   type TimeDuration
 } from "@internationalized/date";
 import type { JsonObject } from "type-fest";
@@ -41,7 +41,7 @@ export class TimeSlot implements Copy<TimeSlot> {
    * @param tzid For `CalendarDate` objects, the timezone ID to use. Defaults to the local timezone.
    * @returns TimeSlot object representing the entire day of the given date.
    */
-  static allDay(date: CalendarDate | CalendarDateTime | ZonedDateTime, tzid?: string): TimeSlot {
+  static allDay(date: DateValue, tzid?: string): TimeSlot {
     if (date instanceof ZonedDateTime) {
       return new TimeSlot(
         date.set({ hour: 0, minute: 0, second: 0 }),
@@ -154,7 +154,7 @@ export class TimeSlot implements Copy<TimeSlot> {
    * @param zdt Date & time to check
    * @returns true if the event will be occurring at the given date & time, false otherwise
    */
-  includes(zdt: ZonedDateTime) {
+  includes(zdt: DateValue) {
     return this.end.compare(zdt) >= 0 && this.start.compare(zdt) <= 0;
   }
 

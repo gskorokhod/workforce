@@ -3,7 +3,7 @@ import { get as _get, derived, type Writable } from "svelte/store";
 import type { JsonValue } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
 import { copyArr, type Copy } from "../utils";
-import { Assignment } from "./assignment";
+import { Assignment } from "./assignment/assignment";
 import { Base } from "./base";
 import { Location } from "./location";
 import { Person } from "./person";

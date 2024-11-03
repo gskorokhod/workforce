@@ -1,7 +1,13 @@
 import type { TimeDuration } from "@internationalized/date";
 import type { RecurrenceOptions } from "./options";
 
-import { CalendarDate, fromDate, getLocalTimeZone, ZonedDateTime } from "@internationalized/date";
+import {
+  CalendarDate,
+  fromDate,
+  getLocalTimeZone,
+  ZonedDateTime,
+  type DateValue
+} from "@internationalized/date";
 import { datetime, RRule, RRuleSet } from "rrule";
 import type { JsonObject } from "type-fest";
 import { TimeSlot } from ".";
@@ -133,7 +139,10 @@ class Recurrence implements Copy<Recurrence> {
     };
 
     if (this.duration) {
-      ans.duration = Object.fromEntries(Object.entries(this.duration).filter(([_, v]) => v !== undefined));
+      ans.duration = Object.fromEntries(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        Object.entries(this.duration).filter(([_, v]) => v !== undefined)
+      );
     }
 
     return ans;
@@ -197,7 +206,7 @@ class Recurrence implements Copy<Recurrence> {
    * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
    * @returns TimeSlot object representing the occurrence, or undefined if the event is not occurring at the given date & time.
    */
-  occurrenceOn(date: ZonedDateTime, applyExceptions: boolean = true): TimeSlot | undefined {
+  occurrenceOn(date: DateValue, applyExceptions: boolean = true): TimeSlot | undefined {
     const occurrences = this.occurrences(
       date.subtract({ days: 1 }),
       date.add({ days: 1 }),
@@ -220,8 +229,8 @@ class Recurrence implements Copy<Recurrence> {
    * @see TimeSlot
    */
   occurrences(
-    after: ZonedDateTime | undefined = undefined,
-    before: ZonedDateTime | undefined = undefined,
+    after: DateValue | undefined = undefined,
+    before: DateValue | undefined = undefined,
     inclusive: boolean = true,
     limit: number = -1,
     applyExceptions: boolean = true
@@ -258,7 +267,7 @@ class Recurrence implements Copy<Recurrence> {
       dates = this.getRRuleSet(applyExceptions).all((_, i) => i <= n + this.rdates.length);
     }
 
-    if (dates.length <= n) return undefined;
+    if (dates.length <= Math.abs(n)) return undefined;
 
     dates.sort((a, b) => a.valueOf() - b.valueOf());
     return fromDate(dates[n], this.tzid);
@@ -278,8 +287,8 @@ class Recurrence implements Copy<Recurrence> {
    * @returns Array of ZonedDateTime objects representing the start times of the occurrences.
    */
   private getStartDTs(
-    after: ZonedDateTime | undefined = undefined,
-    before: ZonedDateTime | undefined = undefined,
+    after: DateValue | undefined = undefined,
+    before: DateValue | undefined = undefined,
     inclusive: boolean = true,
     limit: number = -1,
     applyExceptions: boolean = true
@@ -294,7 +303,7 @@ class Recurrence implements Copy<Recurrence> {
     if (after === undefined && before === undefined) {
       dates = rruleSet.all((_, i) => i < limit);
     } else if (after === undefined) {
-      const beforeUTC = toUTCDate(before as ZonedDateTime);
+      const beforeUTC = toUTCDate(before!);
       dates = rruleSet.all(
         (date, i) => (inclusive ? date <= beforeUTC : date < beforeUTC) && i < limit
       );
@@ -327,6 +336,7 @@ class Recurrence implements Copy<Recurrence> {
 
       rule = {
         ...rule,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         ...Object.fromEntries(Object.entries(rest).filter(([_, v]) => v !== undefined))
       };
 
@@ -353,10 +363,10 @@ class Recurrence implements Copy<Recurrence> {
    * @returns A human-readable string representing the recurrence pattern.
    */
   toText(): string {
-    const { dtstart, ...opts } = this._rrule.options;
     const dts = this.dtStart;
     const rrule = new RRule({
-      ...opts,
+      ...this._rrule.options,
+      // This is a hack: RRule does not handle timezones correctly in its `toText` method, so we make a "UTC" date which is actually in the correct timezone.
       dtstart: datetime(dts.year, dts.month, dts.day, dts.hour, dts.minute)
     });
     return rrule.toText();

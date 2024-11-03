@@ -3,7 +3,7 @@ import type { JsonObject, JsonValue } from "type-fest";
 import { Geopoint, type LngLat } from "../geocoding";
 import { type Display } from "../ui";
 import { copyArr } from "../utils";
-import { Assignment } from "./assignment";
+import { Assignment } from "./assignment/assignment";
 import { Base } from "./base";
 import { State } from "./state";
 

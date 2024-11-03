@@ -2,7 +2,7 @@ import { get } from "svelte/store";
 import type { JsonObject, JsonValue } from "type-fest";
 import { Icon, type Display } from "../ui";
 import { copyArr, has, hasAll, without } from "../utils";
-import { Assignment } from "./assignment";
+import { Assignment } from "./assignment/assignment";
 import { Base } from "./base";
 import { revivedArr } from "./misc";
 import { Person } from "./person";
@@ -237,7 +237,7 @@ export class Task extends Base implements ITask {
     if (!this.state) {
       return [];
     }
-    return Assignment.getWith(this.state, this);
+    return []; // TODO: Implement this method
   }
 
   /**
