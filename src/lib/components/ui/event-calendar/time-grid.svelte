@@ -4,7 +4,7 @@
   import { Time } from "@internationalized/date";
   import { onDestroy, onMount } from "svelte";
   import { writable } from "svelte/store";
-  import type { TimeGridContext, TimeGridProps } from "./types";
+  import type { TimeGridContext, TimeGridItem, TimeGridProps } from "./types";
 
   export let start: Time = new Time(0, 0);
   export let end: Time = new Time(23, 59);
@@ -45,20 +45,43 @@
   context.intervals.subscribe((tree) => {
     console.log("Intervals updated");
 
+    type Event = { key: string; start: number; end: number };
+
     const startCols = new Map<string, number>();
+    const events: Event[] = [];
+
     tree.forEach((interval, key) => {
-      const si: [number, number] = [interval.low + 1, interval.high - 1];
-      const overlap = tree.search(si, (oKey, oInterval) => {
-        return {
-          key: oKey,
-          start: timeFromMinutes(oInterval.low),
-          end: timeFromMinutes(oInterval.high),
-          slot: oInterval
-        }
+      events.push({
+        key,
+        start: interval.low,
+        end: interval.high
       });
-      overlap.sort((a, b) => cmpTime(a.start, b.start) || -cmpTime(a.end, b.end));
-      const idx = overlap.findIndex((o) => o.key === key);
-      startCols.set(key, idx + 1);
+    });
+
+    // Should not be necessary since the intervals are already sorted
+    // events.sort((a, b) => a.start - b.start);
+
+    const columns: number[] = [];
+
+    events.forEach(event => {
+      const { key, start, end } = event;
+      let assigned = false;
+
+      for (let i = 0; i < columns.length; i++) {
+        if (columns[i] <= start) {
+          columns[i] = end;
+          startCols.set(key, i + 1);
+          console.log(`Assigned event ${key} to existing column ${i + 1}`);
+          assigned = true;
+          break;
+        }
+      }
+
+      if (!assigned) {
+        columns.push(end);
+        startCols.set(key, columns.length);
+        console.log(`Assigned event ${key} to new column ${columns.length}`);
+      }
     });
 
     console.log("Start cols:", startCols);
