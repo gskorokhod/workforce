@@ -19,8 +19,8 @@
   export { className as class };
 </script>
 
-<span class="{className}" style="{style}">
+<div class="{className}" style="{style}">
   <slot {formatted}>
     {formatted}
   </slot>
-</span>
+</div>

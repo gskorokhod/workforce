@@ -1,6 +1,24 @@
-import IntervalTree from "@flatten-js/interval-tree";
-import type { Time } from "@internationalized/date";
+//import IntervalTree from "@flatten-js/interval-tree";
+import type { CalendarDate, Time } from "@internationalized/date";
 import type { Writable } from "svelte/store";
+
+export type CalendarProps = {
+  startDate: CalendarDate;
+  endDate: CalendarDate;
+  startTime: Time;
+  endTime: Time;
+  step: number;
+  precision: number;
+  line: string;
+  columnGap: string;
+  innerGap?: string;
+}
+
+export type CalendarContext = {
+  props: Writable<CalendarProps>;
+  cols: Writable<Map<string, number>>;
+  dates: Writable<Map<string, CalendarDate>>;
+};
 
 export type TimeGridProps = {
   start: Time;
@@ -20,6 +38,9 @@ export type TimeGridItem = {
 
 export type TimeGridContext = {
   startCols: Writable<Map<string, number>>;
-  intervals: Writable<IntervalTree<string>>;
+  intervals: Writable<Map<string, {
+    start: Time;
+    end: Time;
+  }>>;
   props: Writable<TimeGridProps>;
 };

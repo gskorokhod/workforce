@@ -9,6 +9,7 @@
   import PersonDataTable from "$lib/components/ui/data-table/person-data-table.svelte";
   import ShiftDataTable from "$lib/components/ui/data-table/shift-data-table.svelte";
   import EditDialog from "$lib/components/ui/edit-dialog/edit-dialog.svelte";
+  import CalendarExample from "$lib/components/ui/event-calendar/calendar-example.svelte";
   import TimeGridItem from "$lib/components/ui/event-calendar/time-grid-item.svelte";
   import TimeGrid from "$lib/components/ui/event-calendar/time-grid.svelte";
   import IconPicker from "$lib/components/ui/image-picker/icon-picker.svelte";
@@ -234,9 +235,9 @@
           Show time:
           <input type="checkbox" bind:checked={showTime} />
         </div>
-        <TimeGrid let:context {start} {end} {precision} {step} {showTime} class="h-[600px] w-[350px] bg-white">
+        <TimeGrid let:tgContext {start} {end} {precision} {step} {showTime} class="h-[600px] w-[350px] bg-white">
           {#each events as event (event)}
-            <TimeGridItem {context} start={event.start} end={event.end}>
+            <TimeGridItem {tgContext} start={event.start} end={event.end}>
               <button class="w-full h-full"
               style="background-color: {event.color.hex()}"
               on:click={() => {
@@ -255,6 +256,10 @@
           }}>Add event</Button>
         </div>
       </div>
+    </section>
+    <section>
+      <h2>Event Calendar Example</h2>
+      <CalendarExample />
     </section>
   </main>
 </div>
