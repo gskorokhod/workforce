@@ -32,10 +32,15 @@
   const dates: Writable<Map<string, CalendarDate>> = writable(new Map());
   const context: CalendarContext = { props, cols, dates };
 
-  $: props.set({ startDate, endDate, startTime, endTime, step, precision, columnGap, innerGap, line });
   $: days = calendarDaysBetween(startDate, endDate);
+  $: props.set({ startDate, endDate, startTime, endTime, step, precision, columnGap, innerGap, line });
 
-  context.dates.subscribe((dates) => {
+  // "Window" dates changed, update the columns
+  $: startDate, endDate, updateDates($dates);
+  // Content changed, update the columns
+  context.dates.subscribe(updateDates);
+
+  function updateDates(dates: Map<string, CalendarDate>) {
     console.log("Dates updated");
     const entries = Array.from(dates.entries());
     const toShow: [string, CalendarDate][]= [];
@@ -61,7 +66,21 @@
     console.log(newCols);
 
     context.cols.set(newCols);
-  });
+  }
+
+  function shiftLeft() {
+    console.log("Shifting left");
+    startDate = startDate.subtract({ days: 1 });
+    endDate = endDate.subtract({ days: 1 });
+    console.log(startDate, endDate);
+  }
+
+  function shiftRight() {
+    console.log("Shifting right");
+    startDate = startDate.add({ days: 1 });
+    endDate = endDate.add({ days: 1 });
+    console.log(startDate, endDate);
+  }
   
   export { className as class };
 </script>
@@ -69,11 +88,11 @@
 <div class="{className}">
   <div class="flex flex-row w-full h-fit justify-between">
     <slot name="header" {context} />
-    <div class="flex flex-row h-fit w-fit gap-2">
-      <Button size="icon-xl" variant="ghost" on:click={() => props.update((p) => ({ ...p, startDate: startDate.subtract({days: 1}) }))}>
+    <div class="flex flex-row h-fit w-fit gap-2 ml-auto mb-2">
+      <Button size="icon-xl" variant="ghost" on:click={shiftLeft}>
         <ChevronLeft />
       </Button>
-      <Button size="icon-xl" variant="ghost" on:click={() => props.update((p) => ({ ...p, startDate: startDate.add({days: 1}) }))}>
+      <Button size="icon-xl" variant="ghost" on:click={shiftRight}>
         <ChevronRight />
       </Button>
     </div>

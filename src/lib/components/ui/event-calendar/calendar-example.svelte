@@ -41,7 +41,7 @@
   });
 </script>
 
-<EventCalendar let:context bind:startDate bind:endDate {startTime} {endTime} {step} {precision} class="h-[900px]">
+<EventCalendar let:context {startDate} {endDate} {startTime} {endTime} {step} {precision} class="h-[900px]">
   {#each events as [day, dayEvents]}
     <DayColumn let:tgContext {context} {day} class="h-full">
       {#each dayEvents as { start, end, name }}
