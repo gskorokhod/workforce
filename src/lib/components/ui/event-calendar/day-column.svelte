@@ -35,7 +35,7 @@
       border-right: ${line} solid hsl(var(--muted-foreground) / 0.3); \
       border-bottom: ${line} solid hsl(var(--muted-foreground) / 0.3); \
       border-top: ${line} solid hsl(var(--muted-foreground) / 0.3); \
-      padding-bottom: ${step}px; \
+      padding-bottom: ${step + precision}px; \
       overflow: hidden; \
       ${extraStyle}
     `;
