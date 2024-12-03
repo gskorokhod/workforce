@@ -10,7 +10,7 @@
   export let startDate: CalendarDate = today(getLocalTimeZone());
   export let endDate: CalendarDate = startDate.add({ days: 7 });
   export let startTime: Time = new Time(8, 0);
-  export let endTime: Time = new Time(20, 0);
+  export let endTime: Time = new Time(21, 0);
   export let step: number = 30;
   export let precision: number = 5;
 
@@ -43,7 +43,7 @@
 
 <EventCalendar let:context {startDate} {endDate} {startTime} {endTime} {step} {precision} class="h-[900px]">
   {#each events as [day, dayEvents]}
-    <DayColumn let:tgContext {context} {day} class="h-full">
+    <DayColumn let:tgContext {context} {day}>
       {#each dayEvents as { start, end, name }}
         <TimeGridItem {tgContext} {start} {end} class="bg-yellow-500 bg-opacity-30">
           <div>{name}</div>

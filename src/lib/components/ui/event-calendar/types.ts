@@ -16,8 +16,6 @@ export type CalendarProps = {
 
 export type CalendarContext = {
   props: Writable<CalendarProps>;
-  cols: Writable<Map<string, number>>;
-  dates: Writable<Map<string, CalendarDate>>;
 };
 
 export type TimeGridProps = {
@@ -25,7 +23,6 @@ export type TimeGridProps = {
   end: Time;
   step: number;
   precision: number;
-  columns: number;
   columnGap: string;
   showTime: boolean;
 };

@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { calendarDaysBetween } from "$lib/backend/temporal/utils";
   import { CalendarDate, Time } from "@internationalized/date";
   import { ChevronLeft, ChevronRight } from "lucide-svelte";
   import { writable, type Writable } from "svelte/store";
   import Button from "../button/button.svelte";
+  import TimeGrid from "./time-grid.svelte";
   import type { CalendarContext, CalendarProps } from "./types";
 
   export let startDate: CalendarDate;
@@ -28,45 +28,9 @@
     innerGap,
     line,
   });
-  const cols: Writable<Map<string, number>> = writable(new Map());
-  const dates: Writable<Map<string, CalendarDate>> = writable(new Map());
-  const context: CalendarContext = { props, cols, dates };
+  const context: CalendarContext = { props };
 
-  $: days = calendarDaysBetween(startDate, endDate);
   $: props.set({ startDate, endDate, startTime, endTime, step, precision, columnGap, innerGap, line });
-
-  // "Window" dates changed, update the columns
-  $: startDate, endDate, updateDates($dates);
-  // Content changed, update the columns
-  context.dates.subscribe(updateDates);
-
-  function updateDates(dates: Map<string, CalendarDate>) {
-    console.log("Dates updated");
-    const entries = Array.from(dates.entries());
-    const toShow: [string, CalendarDate][]= [];
-    const toHide: string[] = [];
-
-    for (const [key, date] of entries) {
-      if (date.compare(startDate) >= 0 && date.compare(endDate) <= 0) {
-        toShow.push([key, date]);
-      } else {
-        toHide.push(key);
-      }
-    }
-    toShow.sort((a, b) => a[1].compare(b[1]));
-
-    const newCols = new Map<string, number>();
-    toShow.forEach(([key], index) => {
-      newCols.set(key, index + 1);
-    });
-    toHide.forEach((key) => {
-      newCols.set(key, 0);
-    });
-
-    console.log(newCols);
-
-    context.cols.set(newCols);
-  }
 
   function shiftLeft() {
     console.log("Shifting left");
@@ -85,7 +49,7 @@
   export { className as class };
 </script>
 
-<div class="{className}">
+<div class="{className}" style="--line: {line}">
   <div class="flex flex-row w-full h-fit justify-between">
     <slot name="header" {context} />
     <div class="flex flex-row h-fit w-fit gap-2 ml-auto mb-2">
@@ -97,17 +61,17 @@
       </Button>
     </div>
   </div>
-  <div class="calendar-grid" style="--cols: {days}">
+  <div class="main-container flex flex-row w-wull h-full">
+    <!-- Yes, there is a weird magic value for the bottom padding. Yes, this is *bad*. Please ignore for now :) -->
+    <!-- The grid doesn't always fit its container exactly (especially inside flex and such) so we have to add extra padding at the bottom so it doesnt look borked -->
+    <!-- By trial and error I have found a value that seems to do the trick -->
+    <TimeGrid start={startTime} end={endTime} {precision} {step} hLineWidth={line} showTime={true} vLineWidth="0px" class="time-col h-full mt-10 w-14" style="padding-bottom: calc(2.5rem - {line})"/>
     <slot {context} />
   </div>
 </div>
 
 <style>
-  .calendar-grid {
-    height: 100%;
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1.2fr repeat(var(--cols), 1fr);
-    grid-template-rows: 100%;
+  .main-container {
+    border: var(--line) solid hsl(var(--muted-foreground) / 0.3);
   }
 </style>

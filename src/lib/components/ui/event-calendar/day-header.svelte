@@ -19,7 +19,7 @@
   export { className as class };
 </script>
 
-<div class="{className}" style="{style}">
+<div class="w-max text-center {className}" style="{style}">
   <slot {formatted}>
     {formatted}
   </slot>

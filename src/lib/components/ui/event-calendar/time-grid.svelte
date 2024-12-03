@@ -1,7 +1,6 @@
 <script lang="ts">
   import { fmtTime, minutesBetween, toMinutes } from "$lib/backend/temporal/utils";
   import { Time } from "@internationalized/date";
-  import { onDestroy, onMount } from "svelte";
   import { writable } from "svelte/store";
   import type { TimeGridContext, TimeGridProps } from "./types";
 
@@ -9,44 +8,28 @@
   export let end: Time = new Time(23, 59);
   export let step: number = 30;
   export let precision: number = 5;
-  export let columns = 1;
   export let showTime = true;
   export let columnGap = "0.5rem";
-  export let line = "1px";
+  export let hLineWidth = "1px";
+  export let vLineWidth: string | undefined = undefined;
   export let padLeft = "0px";
   export let padRight = "0px";
   export let style: string = "";
   let className: string = "";
 
-  const props = writable<TimeGridProps>({ start, end, step, precision, columns, columnGap, showTime });
-  //const intervals = writable(new IntervalTree<string>());
+  const props = writable<TimeGridProps>({ start, end, step, precision, columnGap, showTime });
   const intervals = writable(new Map<string, { start: Time, end: Time }>());
   const startCols = writable(new Map<string, number>());
   export const tgContext: TimeGridContext = { props, intervals, startCols };
 
-  $: tgContext.props.set({ start, end, step, precision, columns, columnGap, showTime });
+  $: tgContext.props.set({ start, end, step, precision, columnGap, showTime });
   $: rows = Math.floor(minutesBetween(start, end) / precision);
   $: visibleRows = Math.floor(minutesBetween(start, end) / step);
-  $: cols = $props.columns;
   $: colGap = $props.columnGap;
-
-  onMount(() => {
-    console.log("TimeGrid mounted");
-  });
-
-  onDestroy(() => {
-    console.log("TimeGrid unmounted");
-  });
-
-  tgContext.startCols.subscribe((cols) => {
-    const maxCol = Math.max(...Array.from(cols.values()));
-    tgContext.props.update((p) => ({ ...p, columns: maxCol }));
-    columns = maxCol;
-  });
+  $: colVals = Array.from($startCols.values());
+  $: cols = Math.max(...colVals, 0);
 
   tgContext.intervals.subscribe((tree) => {
-    console.log("Intervals updated");
-
     type Event = { key: string; start: number; end: number };
 
     const startCols = new Map<string, number>();
@@ -93,14 +76,14 @@
 </script>
   
 <div class={className} style="{style}">
-  <div class="time-grid" style="--rows: {rows}; --cols: {cols}; --colGap: {colGap}; --line: {line}; --padRight: {padRight}">
+  <div class="time-grid" style="--rows: {rows}; --cols: {cols}; --colGap: {colGap}; --hLineWidth: {hLineWidth}; --vLineWidth: {vLineWidth ?? hLineWidth}; --padRight: {padRight}">
     {#each Array.from({ length: visibleRows }) as _, i}
       {@const rw = Math.floor((i * $props.step) / $props.precision)}
-      <div class="line-container" style="grid-row: {rw + 1}; grid-column: 1 / span all">
-        <div class="line"></div>
+      <div class="hline-container" style="grid-row: {rw + 1}; grid-column: 1 / span all">
+        <div class="hline"></div>
       </div>
       <div class="time-container" style="grid-row: {rw + 1}; grid-column: 1; width: {showTime ? 'fit-content' : padLeft}">
-        <span class={showTime ? 'text-muted-foreground mt-1 ml-1 mr-2' : 'invisible'}>
+        <span class={showTime ? 'text-muted-foreground mt-1 ml-1' : 'invisible'}>
           {fmtTime($props.start.add({ minutes: i * $props.step }))}
         </span>
       </div>
@@ -119,7 +102,7 @@
     display: grid;
     grid-template-rows: repeat(var(--rows), 1fr);
     grid-template-columns: min-content repeat(var(--cols), 1fr) var(--padRight);
-    row-gap: var(--line);
+    row-gap: var(--hLineWidth);
     width: 100%;
     height: 100%;
   }
@@ -129,11 +112,10 @@
     height: fit-content;
   }
 
-  .line-container {
+  .hline-container {
     position: relative;
     display: flex;
     align-items: center;
-    margin-top: calc(var(--line) * -1);
   }
 
   .vline-container {
@@ -147,16 +129,17 @@
     top: 0;
     right: 0;
     bottom: 0;
-    width: var(--line);
+    width: var(--vLineWidth);
     background-color: hsl(var(--muted-foreground) / 0.3);
   }
 
-  .line {
+  .hline {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: var(--line);
+    height: var(--hLineWidth);
+    margin-top: calc(var(--hLineWidth) * -1);
     background-color: hsl(var(--muted-foreground) / 0.3);
   }
 </style>
