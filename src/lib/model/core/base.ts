@@ -66,6 +66,7 @@ export abstract class Base implements Copy<Base>, Eq<Base> {
    * @returns That object, or undefined if it doesn't exist
    */
   get(): Base | undefined {
+    if (!this.state) return this;
     return this.state?.get(this.uuid);
   }
 }

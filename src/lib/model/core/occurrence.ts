@@ -1,9 +1,7 @@
 import { TimeSlot } from "$lib/model/temporal";
 import type { Display, Icon } from "$lib/ui";
 import { isSameDay, type ZonedDateTime } from "@internationalized/date";
-import { Assignment } from "./assignment/assignment";
-import { SimpleAssignment } from "./assignment/simple_assignment";
-import { TimeOff } from "./assignment/time_off";
+import { Assignment } from "./assignment";
 import type { Shift } from "./shift";
 
 /**
@@ -27,16 +25,11 @@ export class ShiftOccurrence extends TimeSlot implements Display {
     }
     const ans = Assignment.getAll(this.shift.state);
     return ans.filter((assignment) => {
-      if (assignment instanceof TimeOff) {
-        return false;
-      }
-      if (assignment instanceof SimpleAssignment) {
-        return (
-          assignment.shift?.eq(this.shift) &&
-          assignment.date &&
-          isSameDay(assignment.date, this.start)
-        );
-      }
+      return (
+        assignment.shift?.eq(this.shift) &&
+        assignment.date &&
+        isSameDay(assignment.date, this.start)
+      );
     });
   }
 

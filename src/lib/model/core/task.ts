@@ -2,7 +2,7 @@ import { Icon, type Display } from "$lib/ui";
 import { copyArr, has, hasAll, without } from "$lib/utils";
 import { get } from "svelte/store";
 import type { JsonObject, JsonValue } from "type-fest";
-import { Assignment } from "./assignment/assignment";
+import { Assignment } from "./assignment";
 import { Base } from "./base";
 import { revivedArr } from "./misc";
 import { Person } from "./person";

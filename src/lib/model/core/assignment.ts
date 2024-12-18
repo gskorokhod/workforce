@@ -1,14 +1,15 @@
-import type { Display, Icon } from "$lib/ui";
-import { copyArr } from "$lib/utils";
-import type { DateValue } from "@internationalized/date";
-import { get as _get } from "svelte/store";
-import type { JsonObject } from "type-fest";
-import { SimpleAssignment } from "./simple_assignment";
-import { Location } from "../location";
-import { Person } from "../person";
-import { State } from "../state";
 import { TimeSlot } from "$lib/model/temporal";
-import { Base } from "../base";
+import { Icon, type Display } from "$lib/ui";
+import { copyArr } from "$lib/utils";
+import { CalendarDate, parseDate, type DateValue } from "@internationalized/date";
+import { get as _get } from "svelte/store";
+import type { JsonObject, JsonValue } from "type-fest";
+import { Base } from "./base";
+import { Location } from "./location";
+import { Person } from "./person";
+import { Shift } from "./shift";
+import { State } from "./state";
+import { Task } from "./task";
 
 export enum AssignmentType {
   SIMPLE = "simple",
@@ -16,25 +17,44 @@ export enum AssignmentType {
 }
 
 export interface IAssignment extends Display {
+  type: AssignmentType;
   person?: Person;
   timeslot?: TimeSlot;
+  shift?: Shift;
+  date?: CalendarDate;
+  location?: Location;
+  task?: Task;
 }
 
-export abstract class Assignment extends Base implements IAssignment {
+export class Assignment extends Base implements IAssignment {
   readonly type: AssignmentType;
   name: string;
   description: string;
   icon?: Icon;
   private _person?: Person;
+  private _timeslot?: TimeSlot;
+  private _shift?: Shift;
+  private _date?: CalendarDate;
+  private _location?: Location;
+  private _task?: Task;
 
-  constructor(type: AssignmentType, props: Partial<IAssignment>, state?: State, uuid?: string) {
+  constructor(
+    props: Partial<IAssignment> & { type: AssignmentType },
+    state?: State,
+    uuid?: string,
+  ) {
     super(state, uuid);
 
+    this.type = props.type;
     this.name = props.name || "";
     this.description = props.description || "";
     this.icon = props.icon;
     this._person = props.person?.copy();
-    this.type = type;
+    this._timeslot = props.timeslot?.copy();
+    this._shift = props.shift?.copy();
+    this._date = props.date?.copy();
+    this._location = props.location?.copy();
+    this._task = props.task?.copy();
   }
 
   /**
@@ -74,10 +94,7 @@ export abstract class Assignment extends Base implements IAssignment {
 
   static getByLocation(from: State | Assignment[], location: Location): Assignment[] {
     return Assignment.getAll(from).filter((assignment) => {
-      if (assignment instanceof SimpleAssignment) {
-        return assignment.location?.eq(location);
-      }
-      return false;
+      return assignment.location?.eq(location);
     });
   }
 
@@ -140,22 +157,50 @@ export abstract class Assignment extends Base implements IAssignment {
   /**
    * Create a copy of this assignment.
    */
-  abstract copy(): Assignment;
+  copy(): Assignment {
+    return new Assignment(
+      {
+        type: this.type,
+        name: this.name,
+        description: this.description,
+        icon: this.icon?.copy(),
+        person: this._person?.copy(),
+        timeslot: this._timeslot?.copy(),
+        date: this._date?.copy(),
+        shift: this._shift?.copy(),
+        location: this.location?.copy(),
+        task: this._task?.copy(),
+      },
+      this.state,
+      this.uuid,
+    );
+  }
 
   /**
    * Get the time slot that this assignment covers.
    */
-  abstract get timeslot(): TimeSlot | undefined;
+  get timeslot(): TimeSlot | undefined {
+    return this._timeslot;
+  }
 
-  toJSON(): JsonObject {
-    return {
-      uuid: this.uuid,
-      name: this.name,
-      description: this.description || "",
-      icon: this.icon?.toJSON() || null,
-      person: this._person?.toJSON() || null,
-      type: this.type,
-    };
+  set timeslot(timeslot: TimeSlot | undefined) {
+    this._timeslot = timeslot?.copy();
+  }
+
+  get date(): CalendarDate | undefined {
+    return this._date;
+  }
+
+  set date(date: CalendarDate | undefined) {
+    this._date = date?.copy();
+  }
+
+  get location(): Location | undefined {
+    return this._location?.get() as Location | undefined;
+  }
+
+  set location(location: Location | undefined) {
+    this._location = location?.copy();
   }
 
   get person(): Person | undefined {
@@ -164,5 +209,57 @@ export abstract class Assignment extends Base implements IAssignment {
 
   set person(person: Person | undefined) {
     this._person = person?.copy();
+  }
+
+  get task(): Task | undefined {
+    return this._task?.get() as Task | undefined;
+  }
+
+  set task(task: Task | undefined) {
+    this._task = task?.copy();
+  }
+
+  get shift(): Shift | undefined {
+    return this._shift?.get() as Shift | undefined;
+  }
+
+  set shift(shift: Shift | undefined) {
+    this._shift = shift?.copy();
+  }
+
+  toJSON(): JsonObject {
+    return {
+      uuid: this.uuid,
+      name: this.name,
+      description: this.description || "",
+      icon: this.icon?.toJSON() || null,
+      person: this._person?.toJSON() || null,
+      date: this._date?.toString() || null,
+      location: this._location?.toJSON() || null,
+      shift: this._shift?.toJSON() || null,
+      task: this._task?.toJSON() || null,
+      timeslot: this._timeslot?.toJSON() || null,
+      type: this.type,
+    };
+  }
+
+  static fromJSON(json: JsonValue, state?: State): Assignment {
+    const obj = json as JsonObject;
+    return new Assignment(
+      {
+        type: obj["type"] as AssignmentType,
+        name: obj["name"] as string,
+        description: obj["description"] as string,
+        icon: obj["icon"] ? Icon.fromJSON(obj["icon"] as JsonObject) : undefined,
+        person: obj["person"] ? Person.fromJSON(obj["person"] as JsonObject) : undefined,
+        location: obj["location"] ? Location.fromJSON(obj["location"] as JsonObject) : undefined,
+        shift: obj["shift"] ? Shift.fromJSON(obj["shift"] as JsonObject) : undefined,
+        timeslot: obj["timeslot"] ? TimeSlot.fromJSON(obj["timeslot"] as JsonObject) : undefined,
+        task: obj["task"] ? Task.fromJSON(obj["task"] as JsonObject) : undefined,
+        date: obj["date"] ? parseDate(obj["date"] as string) : undefined,
+      },
+      state,
+      obj["uuid"] ? (obj["uuid"] as string) : undefined,
+    );
   }
 }

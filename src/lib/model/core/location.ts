@@ -3,7 +3,7 @@ import { copyArr } from "$lib/utils";
 import { get } from "svelte/store";
 import type { JsonObject, JsonValue } from "type-fest";
 import { Geopoint, type LngLat } from "../geocoding";
-import { Assignment } from "./assignment/assignment";
+import { Assignment } from "./assignment";
 import { Base } from "./base";
 import { State } from "./state";
 
