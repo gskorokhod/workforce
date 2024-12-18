@@ -1,3 +1,4 @@
+import { noUndefined } from "$lib/utils/misc";
 import {
   CalendarDate,
   CalendarDateTime,
@@ -449,7 +450,7 @@ export function parseDateTimeDuration(json: JsonValue): DateTimeDuration | undef
   }
 
   const jsn = json as JsonObject;
-  return {
+  const ans = {
     years: tryParseInt(jsn.years),
     months: tryParseInt(jsn.months),
     days: tryParseInt(jsn.days),
@@ -459,6 +460,7 @@ export function parseDateTimeDuration(json: JsonValue): DateTimeDuration | undef
     seconds: tryParseInt(jsn.seconds),
     milliseconds: tryParseInt(jsn.milliseconds),
   };
+  return noUndefined(ans);
 }
 
 /**

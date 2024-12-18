@@ -39,3 +39,7 @@ export function debounce<T extends (...args: unknown[]) => void>(callback: T, wa
     }, wait);
   };
 }
+
+export function noUndefined<T extends object>(obj: T): T {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as T;
+}

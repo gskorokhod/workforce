@@ -12,6 +12,7 @@ import type { JsonObject } from "type-fest";
 import { fromRecurrenceOptions, toRecurrenceOptions, type RecurrenceOptions } from "./options";
 import { TimeSlot } from "./timeslot";
 import { parseDates, parseDateTimeDuration, toUTCDate } from "./utils";
+import { noUndefined } from "$lib/utils/misc";
 
 interface RecurrenceProps {
   rule: Partial<RecurrenceOptions> | RRule;
@@ -328,7 +329,7 @@ class Recurrence implements Copy<Recurrence> {
    * @returns New Recurrence object with the updated properties
    */
   update(props: Partial<RecurrenceProps>): Recurrence {
-    let rule = this.recurrenceOptions;
+    let rule = this.recurrenceOptions as Partial<RecurrenceOptions>;
     if (props.rule) {
       const { until, count, ...rest } =
         props.rule instanceof RRule
@@ -337,8 +338,7 @@ class Recurrence implements Copy<Recurrence> {
 
       rule = {
         ...rule,
-
-        ...Object.fromEntries(Object.entries(rest).filter(([_, v]) => v !== undefined)),
+        ...noUndefined(rest),
       };
 
       if (count) {
