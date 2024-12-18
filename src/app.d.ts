@@ -1,5 +1,3 @@
-/* eslint-disable sonarjs/no-commented-code */
-
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
 declare global {

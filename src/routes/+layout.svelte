@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { NavMenu } from "$lib/components/ui/nav-menu";
+  import { NavMenu } from "$lib/components/nav-menu";
   import "../app.css";
 </script>
 

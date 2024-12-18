@@ -1,4 +1,4 @@
-import { Person, State } from "$lib/backend";
+import { Person, State } from "$lib/model";
 import { faker } from "@faker-js/faker";
 import { CalendarDate, fromDate, toCalendarDate } from "@internationalized/date";
 import { get } from "svelte/store";
@@ -24,9 +24,9 @@ export function generatePerson(state?: State): Person {
       birthday,
       job,
       skills,
-      avatar
+      avatar,
     },
-    state
+    state,
   );
 }
 

@@ -1,8 +1,6 @@
-/* eslint-disable sonarjs/pseudo-random */
-
-import { Location, State } from "$lib/backend";
-import { Geopoint, type LngLat } from "$lib/backend/geocoding";
-import { Address } from "$lib/backend/geocoding/types/address";
+import { Location, State } from "$lib/model";
+import { Geopoint, type LngLat } from "$lib/model/geocoding";
+import { Address } from "$lib/model/geocoding/types/address";
 import { faker } from "@faker-js/faker";
 import { get } from "svelte/store";
 import { sample, select } from "./misc";
@@ -14,9 +12,6 @@ const LONDON: [number, number] = [51.5074, -0.1278];
 function mkSuffix(): string {
   if (Math.random() < 0.5) {
     return "";
-    // eslint-disable-next-line no-dupe-else-if, sonarjs/no-identical-conditions  -- It's not actually the same as random() gets called again
-  } else if (Math.random() < 0.5) {
-    return Math.floor(Math.random() * 10).toString();
   } else {
     return select(["A", "B", "C", "D", "E"]);
   }
@@ -29,7 +24,7 @@ function mkName(): string {
 function mkCoords(): LngLat {
   const [lat, lon] = faker.location.nearbyGPSCoordinate({
     origin: LONDON,
-    radius: 10
+    radius: 10,
   });
   return [lon, lat];
 }
@@ -40,16 +35,16 @@ export async function generateTrueLocation(state?: State): Promise<Location> {
   const avatar = new URL(faker.image.avatar());
   const max = {
     people: faker.number.int({ min: 2, max: 10 }),
-    tasks: faker.number.int({ min: 1, max: 3 })
+    tasks: faker.number.int({ min: 1, max: 3 }),
   };
   return new Location(
     {
       name,
       point,
       max,
-      avatar
+      avatar,
     },
-    state
+    state,
   );
 }
 
@@ -61,24 +56,24 @@ export function generateLocation(state?: State): Location {
       country: "United Kingdom",
       street: faker.location.street(),
       building: mkName(),
-      postalCode: faker.location.zipCode()
-    })
+      postalCode: faker.location.zipCode(),
+    }),
   );
 
   const name = mkName();
   const avatar = new URL(faker.image.avatar());
   const max = {
     people: faker.number.int({ min: 2, max: 10 }),
-    tasks: faker.number.int({ min: 1, max: 3 })
+    tasks: faker.number.int({ min: 1, max: 3 }),
   };
   return new Location(
     {
       name,
       point,
       max,
-      avatar
+      avatar,
     },
-    state
+    state,
   );
 }
 
@@ -108,7 +103,7 @@ export function generateLocations(n: number, max?: number, state?: State): Locat
 export async function generateTrueLocations(
   n: number,
   max?: number,
-  state?: State
+  state?: State,
 ): Promise<Location[]> {
   if (max && max > n) {
     n = faker.number.int({ min: n, max: max });

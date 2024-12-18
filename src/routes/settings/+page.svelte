@@ -1,28 +1,30 @@
 <script lang="ts">
-  import { Button } from "$lib/components/ui/button";
-  import * as Card from "$lib/components/ui/card";
-  import { Label } from "$lib/components/ui/label";
-  import * as RadioGroup from "$lib/components/ui/radio-group";
-  import { Switch } from "$lib/components/ui/switch";
+  import { Button } from "$lib/components/button";
+  import * as Card from "$lib/components/card";
+  import { Label } from "$lib/components/label";
+  import * as RadioGroup from "$lib/components/radio-group";
+  import { Switch } from "$lib/components/switch";
   import { populateState } from "$lib/dummy-data";
-  import { state } from "$lib/backend";
-  import { type Settings } from "$lib/backend/core";
+  import { state } from "$lib/model";
+  import { type Settings } from "$lib/model/core";
   import { RefreshCwIcon, TrashIcon } from "lucide-svelte";
 
   const settings = state.settings;
 
-  const assignmentOptions: Map<Settings["assignmentMode"], { name: string; description: string }> =
-    new Map([
-      [
-        "granular",
-        {
-          name: "Granular",
-          description:
-            "Shifts consist of multiple tasks which can be assigned to individual employees"
-        }
-      ],
-      ["simple", { name: "Simple", description: "Employees are assigned to shifts as a whole" }]
-    ]);
+  const assignmentOptions = new Map<
+    Settings["assignmentMode"],
+    { name: string; description: string }
+  >([
+    [
+      "granular",
+      {
+        name: "Granular",
+        description:
+          "Shifts consist of multiple tasks which can be assigned to individual employees",
+      },
+    ],
+    ["simple", { name: "Simple", description: "Employees are assigned to shifts as a whole" }],
+  ]);
 </script>
 
 <div class="flex flex-col gap-8 px-6 pt-4">

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import SkillDataTable from "$lib/components/ui/data-table/skill-data-table.svelte";
-  import { state } from "$lib/backend";
+  import SkillDataTable from "$lib/components/data-table/skill-data-table.svelte";
+  import { state } from "$lib/model";
 
   const skills = state.skills;
 </script>

@@ -1,5 +1,5 @@
-import { State, Task } from "$lib/backend";
-import { Icon } from "$lib/backend/ui";
+import { State, Task } from "$lib/model";
+import { Icon } from "$lib/ui";
 import { faker } from "@faker-js/faker";
 import { get } from "svelte/store";
 import { sample, select } from "./misc";
@@ -16,7 +16,7 @@ const ICONS = [
   Icon.fromString("mdi:heart"),
   Icon.fromString("mdi:teach"),
   Icon.fromString("mdi:account-group"),
-  Icon.fromString("mdi:cog")
+  Icon.fromString("mdi:cog"),
 ];
 
 const NAMES = [
@@ -30,7 +30,7 @@ const NAMES = [
   "Nurse",
   "Nurse",
   "Therapist",
-  "Training"
+  "Training",
 ];
 
 const PREFIXES = ["", "Floor 1 -", "Team B -", "Staff", "Lead"];
@@ -49,10 +49,10 @@ export function generateTask(state?: State): Task {
   const description = faker.lorem.sentence();
   const icon = select(ICONS);
   const min = {
-    people: faker.number.int({ min: 0, max: 3 })
+    people: faker.number.int({ min: 0, max: 3 }),
   };
   const max = {
-    people: faker.number.int({ min: min.people, max: 10 })
+    people: faker.number.int({ min: min.people, max: 10 }),
   };
 
   const skills = state ? sampleSkills(state, 0, 3) : generateSkills(0, 3);
@@ -64,9 +64,9 @@ export function generateTask(state?: State): Task {
       icon,
       min,
       max,
-      skills
+      skills,
     },
-    state
+    state,
   );
 }
 

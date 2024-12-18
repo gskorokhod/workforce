@@ -1,5 +1,3 @@
-/* eslint-disable sonarjs/pseudo-random */
-
 export function select<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }

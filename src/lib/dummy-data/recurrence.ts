@@ -1,13 +1,12 @@
-/* eslint-disable sonarjs/pseudo-random */
-import { Recurrence } from "$lib/backend/temporal";
-import type { RecurrenceOptions, RecurrenceProps } from "$lib/backend/temporal/recurrence";
+import { Recurrence } from "$lib/model/temporal";
+import type { RecurrenceOptions, RecurrenceProps } from "$lib/model/temporal/recurrence";
 import { faker } from "@faker-js/faker";
 import {
   CalendarDate,
   fromDate,
   isSameDay,
   toCalendarDate,
-  type TimeDuration
+  type TimeDuration,
 } from "@internationalized/date";
 import { RRule, Weekday } from "rrule";
 import { select, weighedSelect } from "./misc";
@@ -42,11 +41,11 @@ function mkEnd(): { count: number } | { until: CalendarDate } {
       until: toCalendarDate(
         fromDate(
           faker.date.soon({
-            days: Math.floor(Math.random() * 100)
+            days: Math.floor(Math.random() * 100),
           }),
-          "UTC"
-        )
-      )
+          "UTC",
+        ),
+      ),
     };
   }
 }
@@ -54,7 +53,7 @@ function mkEnd(): { count: number } | { until: CalendarDate } {
 function mkDuration(): TimeDuration {
   return {
     hours: Math.floor(Math.random() * 22) + 1,
-    minutes: select([0, 15, 30, 45])
+    minutes: select([0, 15, 30, 45]),
   };
 }
 
@@ -63,7 +62,7 @@ function mkExDates(): CalendarDate[] {
   return Array.from({ length: n }, () => {
     const dt = faker.date.between({
       from: faker.date.recent({ days: 14 }),
-      to: faker.date.future()
+      to: faker.date.future(),
     });
     return toCalendarDate(fromDate(dt, "UTC"));
   });
@@ -85,7 +84,7 @@ export function generateRecurrence(): Recurrence {
     freq,
     interval: mkInterval(),
     byweekday: freq === RRule.DAILY ? [] : mkWeekdays(),
-    dtstart: fromDate(faker.date.recent({ days: 14 }), "UTC")
+    dtstart: fromDate(faker.date.recent({ days: 14 }), "UTC"),
   };
 
   const { rdates, exdates } = mkExceprions();
@@ -93,7 +92,7 @@ export function generateRecurrence(): Recurrence {
     duration: mkDuration(),
     rdates,
     exdates,
-    rule: options
+    rule: options,
   };
 
   return new Recurrence(props);

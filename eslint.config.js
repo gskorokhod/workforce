@@ -1,41 +1,64 @@
-import js from "@eslint/js";
-import prettier from "eslint-config-prettier";
-import sonarjs from "eslint-plugin-sonarjs";
-import svelte from "eslint-plugin-svelte";
+import eslint from "@eslint/js";
+import tsParser from "@typescript-eslint/parser";
+import eslintPluginSvelte from "eslint-plugin-svelte";
 import globals from "globals";
-import ts from "typescript-eslint";
+import svelteParser from "svelte-eslint-parser";
+import tseslint from "typescript-eslint";
 
 /** @type {import('eslint').Linter.FlatConfig[]} */
 export default [
-  js.configs.recommended,
-  ...ts.configs.recommended,
-  ...svelte.configs["flat/recommended"],
-  prettier,
-  ...svelte.configs["flat/prettier"],
-  sonarjs.configs.recommended,
-  {
-    rules: {
-      "sonarjs/no-duplicate-string": "warn",
-      "sonarjs/todo-tag": "warn"
-    }
-  },
+  eslint.configs.recommended,
+  ...tseslint.configs.strict,
+  ...tseslint.configs.stylistic,
+  ...eslintPluginSvelte.configs["flat/base"],
+  ...eslintPluginSvelte.configs["flat/recommended"],
+  ...eslintPluginSvelte.configs["flat/prettier"],
   {
     languageOptions: {
       globals: {
         ...globals.browser,
-        ...globals.node
-      }
-    }
+        ...globals.node,
+      },
+    },
   },
   {
     files: ["**/*.svelte"],
     languageOptions: {
+      parser: svelteParser,
       parserOptions: {
-        parser: ts.parser
-      }
-    }
+        parser: tsParser,
+        project: "tsconfig.json",
+        extraFileExtensions: [".svelte"],
+        svelteFeatures: {
+          experimentalGenerics: true,
+        },
+      },
+    },
   },
   {
-    ignores: ["build/", ".svelte-kit/", "dist/", "src/lib/components/ui"]
-  }
+    ignores: ["build/", ".svelte-kit/", "dist/"],
+  },
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          args: "all",
+          argsIgnorePattern: "^_|^\\$\\$",
+          caughtErrors: "all",
+          caughtErrorsIgnorePattern: "^_|^\\$\\$",
+          destructuredArrayIgnorePattern: "^_|^\\$\\$",
+          varsIgnorePattern: "^_|^\\$\\$",
+          ignoreRestSiblings: true,
+        },
+      ],
+      "@typescript-eslint/no-empty-function": [
+        "error",
+        {
+          allow: ["arrowFunctions"],
+        },
+      ],
+      "@typescript-eslint/no-non-null-assertion": ["warn"],
+    },
+  },
 ];

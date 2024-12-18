@@ -1,34 +1,40 @@
 <script lang="ts">
-  import { state } from "$lib/backend";
-  import { fmtTime } from "$lib/backend/temporal/utils";
-  import { Icon, type Display } from "$lib/backend/ui";
-  import { Button } from "$lib/components/ui/button";
-  import Chip from "$lib/components/ui/chip/chip.svelte";
-  import type { ComboboxItem } from "$lib/components/ui/combobox";
-  import Combobox from "$lib/components/ui/combobox/combobox.svelte";
-  import PersonDataTable from "$lib/components/ui/data-table/person-data-table.svelte";
-  import ShiftDataTable from "$lib/components/ui/data-table/shift-data-table.svelte";
-  import EditDialog from "$lib/components/ui/edit-dialog/edit-dialog.svelte";
-  import CalendarExample from "$lib/components/ui/event-calendar/calendar-example.svelte";
-  import TimeGridItem from "$lib/components/ui/event-calendar/time-grid-item.svelte";
-  import TimeGrid from "$lib/components/ui/event-calendar/time-grid.svelte";
-  import IconPicker from "$lib/components/ui/image-picker/icon-picker.svelte";
-  import ImagePicker from "$lib/components/ui/image-picker/image-picker.svelte";
-  import { Profile } from "$lib/components/ui/profile-picture";
-  import RecurrenceOptionsEdit from "$lib/components/ui/recurrence/recurrence_options_edit.svelte";
-  import Search from "$lib/components/ui/search/search.svelte";
-  import { Selector } from "$lib/components/ui/selector";
-  import SelectorMany from "$lib/components/ui/selector/selector-many.svelte";
-  import TimePicker from "$lib/components/ui/time-picker/time-picker.svelte";
+  import { Button } from "$lib/components/button";
+  import Chip from "$lib/components/chip/chip.svelte";
+  import type { ComboboxItem } from "$lib/components/combobox";
+  import Combobox from "$lib/components/combobox/combobox.svelte";
+  import PersonDataTable from "$lib/components/data-table/person-data-table.svelte";
+  import ShiftDataTable from "$lib/components/data-table/shift-data-table.svelte";
+  import EditDialog from "$lib/components/edit-dialog/edit-dialog.svelte";
+  import CalendarExample from "$lib/components/event-calendar/calendar-example.svelte";
+  import TimeGridItem from "$lib/components/event-calendar/time-grid-item.svelte";
+  import TimeGrid from "$lib/components/event-calendar/time-grid.svelte";
+  import IconPicker from "$lib/components/image-picker/icon-picker.svelte";
+  import ImagePicker from "$lib/components/image-picker/image-picker.svelte";
+  import { Profile } from "$lib/components/profile-picture";
+  import RecurrenceOptionsEdit from "$lib/components/recurrence/recurrence_options_edit.svelte";
+  import Search from "$lib/components/search/search.svelte";
+  import { Selector } from "$lib/components/selector";
+  import SelectorMany from "$lib/components/selector/selector-many.svelte";
+  import TimePicker from "$lib/components/time-picker/time-picker.svelte";
+  import { state } from "$lib/model";
+  import { fmtTime } from "$lib/model/temporal/utils";
+  import { Icon, type Display } from "$lib/ui";
   import { faker } from "@faker-js/faker";
-  import { getLocalTimeZone, now, Time, ZonedDateTime, type TimeDuration } from "@internationalized/date";
+  import {
+    getLocalTimeZone,
+    now,
+    Time,
+    ZonedDateTime,
+    type TimeDuration,
+  } from "@internationalized/date";
   import Color from "color";
   import { GraduationCapIcon, XIcon } from "lucide-svelte";
   import { v4 as uuid } from "uuid";
 
   const schedules: ComboboxItem[] = [
     { label: "Schedule 1", value: "schedule1" },
-    { label: "Schedule 2", value: "schedule2" }
+    { label: "Schedule 2", value: "schedule2" },
   ];
 
   function getSuggestions(value: string): Promise<string[]> {
@@ -39,7 +45,7 @@
       "Elephant & Castle",
       "Waterloo",
       "London Bridge",
-      "A very long station name that is very long to test the overflow"
+      "A very long station name that is very long to test the overflow",
     ].filter((s) => s.toLowerCase().includes(value.toLowerCase()));
     console.log(ans);
     return Promise.resolve(ans);
@@ -49,7 +55,7 @@
   let dummyDisplay: Display = {
     name: "John Doe",
     icon: Icon.fromString("lucide:user"),
-    avatar: new URL(faker.image.avatar())
+    avatar: new URL(faker.image.avatar()),
   };
   let people = state.people;
   let skills = state.skills;
@@ -60,15 +66,15 @@
   let time2 = new Date();
   let time3: TimeDuration = {
     hours: 10,
-    minutes: 30
+    minutes: 30,
   };
 
-  type Event = {
-    start: Time,
-    end: Time,
-    color: Color,
-    id: string
-  };
+  interface Event {
+    start: Time;
+    end: Time;
+    color: Color;
+    id: string;
+  }
 
   function randomColor(): Color {
     return Color.rgb(Math.random() * 255, Math.random() * 255, Math.random() * 255);
@@ -78,29 +84,29 @@
   let end: Time = new Time(17, 0);
   let evStart: Time = new Time(9, 0);
   let evEnd: Time = new Time(17, 0);
-  let step: number = 30;
-  let precision: number = 5;
-  let showTime: boolean = true;
+  let step = 30;
+  let precision = 5;
+  let showTime = true;
   let events: Event[] = [
     {
       start: new Time(10, 0),
       end: new Time(13, 0),
       color: randomColor(),
-      id: uuid()
+      id: uuid(),
     },
     {
       start: new Time(9, 0),
       end: new Time(15, 0),
       color: randomColor(),
-      id: uuid()
+      id: uuid(),
     },
     {
       start: new Time(15, 0),
       end: new Time(17, 0),
       color: randomColor(),
-      id: uuid()
-    }
-  ]
+      id: uuid(),
+    },
+  ];
 </script>
 
 <div class="h-dvh w-full overflow-y-scroll bg-gray-50">
@@ -223,7 +229,7 @@
     <section>
       <h2 class="mb-1.5 text-xl">Time Grid Example</h2>
       <div class="flex flex-col gap-6">
-        <div class="flex flex-col w-24 gap-2">
+        <div class="flex w-24 flex-col gap-2">
           Start time:
           <TimePicker bind:value={start} />
           End time:
@@ -235,25 +241,40 @@
           Show time:
           <input type="checkbox" bind:checked={showTime} />
         </div>
-        <TimeGrid let:tgContext {start} {end} {precision} {step} {showTime} class="h-[600px] w-[350px] bg-white">
+        <TimeGrid
+          let:tgContext
+          {start}
+          {end}
+          {precision}
+          {step}
+          {showTime}
+          class="h-[600px] w-[350px] bg-white"
+        >
           {#each events as event (event)}
             <TimeGridItem {tgContext} start={event.start} end={event.end}>
-              <button class="w-full h-full"
-              style="background-color: {event.color.hex()}"
-              on:click={() => {
-                events = events.filter((e) => e !== event);
-              }}>Event:<br /> {fmtTime(event.start)} - {fmtTime(event.end)}</button>
+              <button
+                class="h-full w-full"
+                style="background-color: {event.color.hex()}"
+                on:click={() => {
+                  events = events.filter((e) => e !== event);
+                }}>Event:<br /> {fmtTime(event.start)} - {fmtTime(event.end)}</button
+              >
             </TimeGridItem>
           {/each}
         </TimeGrid>
-        <div class="flex flex-col w-24 gap-2">
+        <div class="flex w-24 flex-col gap-2">
           Event start:
           <TimePicker bind:value={evStart} />
           Event end:
           <TimePicker bind:value={evEnd} />
-          <Button on:click={() => {
-            events = [...events, { start: evStart, end: evEnd, color: randomColor(), id: uuid() }];
-          }}>Add event</Button>
+          <Button
+            on:click={() => {
+              events = [
+                ...events,
+                { start: evStart, end: evEnd, color: randomColor(), id: uuid() },
+              ];
+            }}>Add event</Button
+          >
         </div>
       </div>
     </section>

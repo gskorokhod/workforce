@@ -1,16 +1,17 @@
-import { Shift, State } from "$lib/backend";
-import { Icon } from "$lib/backend/ui";
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { Shift, State } from "$lib/model";
+import { Icon } from "$lib/ui";
 import { faker } from "@faker-js/faker";
 import { get } from "svelte/store";
 import { sample, select } from "./misc";
 import { generateRecurrence } from "./recurrence";
 import { generateTasks, sampleTasks } from "./task";
 
-const SHIFTS: Map<string, Icon> = new Map([
+const SHIFTS = new Map<string, Icon>([
   ["Morning", Icon.fromString("mdi:sunrise")],
   ["Day", Icon.fromString("mdi:weather-sunny")],
   ["Afternoon", Icon.fromString("mdi:weather-sunset")],
-  ["Night", Icon.fromString("mdi:weather-night")]
+  ["Night", Icon.fromString("mdi:weather-night")],
 ]);
 
 function randomShift(): [string, Icon] {
@@ -31,9 +32,9 @@ export function generateShift(state?: State): Shift {
       tasks,
       name,
       description,
-      icon
+      icon,
     },
-    state
+    state,
   );
 }
 

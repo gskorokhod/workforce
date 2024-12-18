@@ -1,18 +1,19 @@
-import { Skill, State } from "$lib/backend";
-import { Icon } from "$lib/backend/ui";
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { Skill, State } from "$lib/model";
+import { Icon } from "$lib/ui";
 import { faker } from "@faker-js/faker";
 import Color from "color";
 import { get } from "svelte/store";
 import { sample, select } from "./misc";
 
-const SKILLS: Map<string, Icon> = new Map([
+const SKILLS = new Map<string, Icon>([
   ["Nurse", Icon.fromString("lucide:pill-bottle")],
   ["Doctor", Icon.fromString("lucide:stethoscope")],
   ["Driver", Icon.fromString("lucide:car")],
   ["Engineer", Icon.fromString("lucide:wrench")],
   ["Cook", Icon.fromString("lucide:chef-hat")],
   ["Care Worker", Icon.fromString("lucide:heart")],
-  ["Front Desk", Icon.fromString("lucide:user")]
+  ["Front Desk", Icon.fromString("lucide:user")],
 ]);
 
 const PREFIXES = ["Junior", "Senior", "Assistant", "Lead", ""];
@@ -41,9 +42,9 @@ export function generateSkill(state?: State): Skill {
     {
       name,
       description,
-      icon
+      icon,
     },
-    state
+    state,
   );
 }
 
