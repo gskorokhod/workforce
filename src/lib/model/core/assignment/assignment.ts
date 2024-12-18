@@ -3,9 +3,11 @@ import { copyArr } from "$lib/utils";
 import type { DateValue } from "@internationalized/date";
 import { get as _get } from "svelte/store";
 import type { JsonObject } from "type-fest";
-import { SimpleAssignment } from ".";
-import { Location, Person, State } from "..";
-import { TimeSlot } from "../../temporal";
+import { SimpleAssignment } from "./simple_assignment";
+import { Location } from "../location";
+import { Person } from "../person";
+import { State } from "../state";
+import { TimeSlot } from "$lib/model/temporal";
 import { Base } from "../base";
 
 export enum AssignmentType {

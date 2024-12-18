@@ -1,7 +1,9 @@
 import { parseDate, type CalendarDate } from "@internationalized/date";
 import type { JsonObject } from "type-fest";
-import { Assignment, AssignmentType, type IAssignment } from ".";
-import { Location, Shift, State } from "..";
+import { Assignment, AssignmentType, type IAssignment } from "./assignment";
+import { Shift } from "../shift";
+import { Location } from "../location";
+import { State } from "../state";
 import type { ShiftOccurrence } from "../occurrence";
 
 /**

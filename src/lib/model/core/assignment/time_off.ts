@@ -3,7 +3,8 @@ import { Icon } from "$lib/ui";
 import { parseDate, type CalendarDate, type DateValue } from "@internationalized/date";
 import type { JsonObject } from "type-fest";
 import { Assignment, AssignmentType, type IAssignment } from ".";
-import { Person, State } from "..";
+import { Person } from "$lib/model/core/person";
+import { State } from "$lib/model/core/state";
 
 interface ITimeOff extends IAssignment {
   date: CalendarDate;

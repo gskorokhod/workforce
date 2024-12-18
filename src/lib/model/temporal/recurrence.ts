@@ -1,6 +1,3 @@
-import type { TimeDuration } from "@internationalized/date";
-import type { RecurrenceOptions } from "./options";
-
 import { type Copy } from "$lib/utils";
 import {
   CalendarDate,
@@ -8,11 +5,12 @@ import {
   getLocalTimeZone,
   ZonedDateTime,
   type DateValue,
+  type TimeDuration,
 } from "@internationalized/date";
 import { datetime, RRule, RRuleSet } from "rrule";
 import type { JsonObject } from "type-fest";
-import { TimeSlot } from ".";
-import { fromRecurrenceOptions, toRecurrenceOptions } from "./options";
+import { fromRecurrenceOptions, toRecurrenceOptions, type RecurrenceOptions } from "./options";
+import { TimeSlot } from "./timeslot";
 import { parseDates, parseDateTimeDuration, toUTCDate } from "./utils";
 
 interface RecurrenceProps {
