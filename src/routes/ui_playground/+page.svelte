@@ -20,6 +20,7 @@
   import { state } from "$lib/model";
   import { fmtTime } from "$lib/model/temporal/utils";
   import { Icon, type Display } from "$lib/ui";
+  import { randomColor } from "$lib/utils/misc";
   import { faker } from "@faker-js/faker";
   import {
     getLocalTimeZone,
@@ -74,10 +75,6 @@
     end: Time;
     color: Color;
     id: string;
-  }
-
-  function randomColor(): Color {
-    return Color.rgb(Math.random() * 255, Math.random() * 255, Math.random() * 255);
   }
 
   let start: Time = new Time(9, 0);

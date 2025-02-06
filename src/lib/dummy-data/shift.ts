@@ -10,7 +10,7 @@ import { generateTasks, sampleTasks } from "./task";
 const SHIFTS = new Map<string, Icon>([
   ["Morning", Icon.fromString("mdi:sunrise")],
   ["Day", Icon.fromString("mdi:weather-sunny")],
-  ["Afternoon", Icon.fromString("mdi:weather-sunset")],
+  ["Evening", Icon.fromString("mdi:weather-sunset")],
   ["Night", Icon.fromString("mdi:weather-night")],
 ]);
 
@@ -28,7 +28,7 @@ export function generateShift(state?: State): Shift {
 
   return new Shift(
     {
-      pattern: generateRecurrence(),
+      pattern: generateRecurrence({ whenStart: name as "Morning" | "Day" | "Evening" | "Night" }),
       tasks,
       name,
       description,

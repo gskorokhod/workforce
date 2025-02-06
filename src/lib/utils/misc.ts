@@ -1,3 +1,5 @@
+import Color from "color";
+
 export function getInitials(name: string): string {
   if (name.length === 0) return "N/A";
 
@@ -42,4 +44,8 @@ export function debounce<T extends (...args: unknown[]) => void>(callback: T, wa
 
 export function noUndefined<T extends object>(obj: T): T {
   return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as T;
+}
+
+export function randomColor(): Color {
+  return Color.rgb(Math.random() * 255, Math.random() * 255, Math.random() * 255);
 }

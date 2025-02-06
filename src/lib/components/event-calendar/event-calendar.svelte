@@ -71,10 +71,7 @@
       </Button>
     </div>
   </div>
-  <div class="main-container w-wull flex h-full flex-row">
-    <!-- Yes, there is a weird magic value for the bottom padding. Yes, this is *bad*. Please ignore for now :) -->
-    <!-- The grid doesn't always fit its container exactly (especially inside flex and such) so we have to add extra padding at the bottom so it doesnt look borked -->
-    <!-- By trial and error I have found a value that seems to do the trick -->
+  <div class="main-container w-full flex h-full flex-row">
     <TimeGrid
       start={startTime}
       end={endTime}
@@ -83,8 +80,7 @@
       hLineWidth={line}
       showTime={true}
       vLineWidth="0px"
-      class="time-col mt-10 h-full w-14"
-      style="padding-bottom: calc(2.5rem - {line})"
+      class="h-full w-14"
     />
     <slot {context} />
   </div>

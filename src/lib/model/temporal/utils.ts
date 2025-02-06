@@ -233,8 +233,13 @@ export function cycle(value: number, d: number, min: number, max: number): numbe
  * @param b Second object
  * @returns The later of the two datetimes
  */
-export function dtMax<T extends DateValue>(a: T, b: T): T {
-  return a.compare(b) >= 0 ? a : b;
+export function dtMax<T extends DateValue | Time>(a: T, b: T): T {
+  if (a instanceof Time && b instanceof Time) {
+    return a.compare(b) >= 0 ? a : b;
+  } else if (!(a instanceof Time) && !(b instanceof Time)) {
+    return a.compare(b) >= 0 ? a : b;
+  }
+  throw new Error("Cannot mix Time and ZonedDateTime objects");
 }
 
 /**
@@ -243,8 +248,13 @@ export function dtMax<T extends DateValue>(a: T, b: T): T {
  * @param b Second object
  * @returns The earlier of the two datetimes
  */
-export function dtMin<T extends DateValue>(a: T, b: T): T {
-  return a.compare(b) <= 0 ? a : b;
+export function dtMin<T extends DateValue | Time>(a: T, b: T): T {
+  if (a instanceof Time && b instanceof Time) {
+    return a.compare(b) <= 0 ? a : b;
+  } else if (!(a instanceof Time) && !(b instanceof Time)) {
+    return a.compare(b) <= 0 ? a : b;
+  }
+  throw new Error("Cannot mix Time and ZonedDateTime objects");
 }
 
 /**

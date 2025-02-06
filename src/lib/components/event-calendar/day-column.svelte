@@ -24,15 +24,16 @@
     ? "display: none;"
     : `
     border-left: ${line} solid hsl(var(--muted-foreground) / 0.3); \
-    overflow: hidden; \
     ${extraStyle}
   `;
 
   export { className as class, extraStyle as style };
 </script>
 
-<div class="flex flex-1 flex-col items-center pb-[2.5rem] {className}" {style}>
-  <DayHeader {day} class="pb-2 pt-2" />
+<div class="flex flex-1 flex-col items-center {className}" {style}>
+  <div class="w-full h-0 overflow-visible z-20">
+    <DayHeader {day} class="w-full bg-secondary p-1" />
+  </div>
   <TimeGrid
     let:tgContext
     {start}

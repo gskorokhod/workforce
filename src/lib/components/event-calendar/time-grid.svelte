@@ -23,8 +23,8 @@
   export const tgContext: TimeGridContext = { props, intervals, startCols };
 
   $: tgContext.props.set({ start, end, step, precision, columnGap, showTime });
-  $: rows = Math.floor(minutesBetween(start, end) / precision);
-  $: visibleRows = Math.floor(minutesBetween(start, end) / step);
+  $: rows = Math.ceil(minutesBetween(start, end) / precision);
+  $: visibleRows = Math.ceil(minutesBetween(start, end) / step);
   $: colGap = $props.columnGap;
   $: colVals = Array.from($startCols.values());
   $: cols = Math.max(...colVals, 0);

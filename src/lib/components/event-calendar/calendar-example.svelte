@@ -1,14 +1,4 @@
 <script lang="ts">
-  import { timeFromMinutes, toMinutes } from "$lib/model/temporal/utils";
-  import { HashMap } from "$lib/utils";
-  import {
-    getLocalTimeZone,
-    isSameDay,
-    Time,
-    today,
-    type CalendarDate,
-  } from "@internationalized/date";
-  import { onMount } from "svelte";
   import DayColumn from "./day-column.svelte";
   import EventCalendar from "./event-calendar.svelte";
   import TimeGridItem from "./time-grid-item.svelte";

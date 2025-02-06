@@ -1,4 +1,5 @@
 import { type Copy } from "$lib/utils";
+import { noUndefined } from "$lib/utils/misc";
 import {
   CalendarDate,
   fromDate,
@@ -12,7 +13,6 @@ import type { JsonObject } from "type-fest";
 import { fromRecurrenceOptions, toRecurrenceOptions, type RecurrenceOptions } from "./options";
 import { TimeSlot } from "./timeslot";
 import { parseDates, parseDateTimeDuration, toUTCDate } from "./utils";
-import { noUndefined } from "$lib/utils/misc";
 
 interface RecurrenceProps {
   rule: Partial<RecurrenceOptions> | RRule;
@@ -204,7 +204,8 @@ class Recurrence implements Copy<Recurrence> {
    * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
    * @returns TimeSlot object representing the occurrence, or undefined if the event is not occurring at the given date & time.
    */
-  occurrenceOn(date: DateValue, applyExceptions = true): TimeSlot | undefined {
+  occurrencesOn(date: DateValue, applyExceptions = true): TimeSlot[] {
+    const allDay = TimeSlot.allDay(date);
     const occurrences = this.occurrences(
       date.subtract({ days: 1 }),
       date.add({ days: 1 }),
@@ -213,7 +214,7 @@ class Recurrence implements Copy<Recurrence> {
       applyExceptions,
     );
 
-    return occurrences.find((occ) => occ.includes(date)) || undefined;
+    return occurrences.filter((occ) => occ.intersects(allDay));
   }
 
   /**

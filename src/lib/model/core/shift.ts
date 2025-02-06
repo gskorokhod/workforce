@@ -134,15 +134,11 @@ export class Shift extends Base implements IShift {
    * @param date Date to get the occurrence for.
    * @param tzid Timezone ID. Defaults to local timezone.
    * @returns Occurrence object or undefined if not found.
-   * @see {@link Recurrence.occurrenceOn}
+   * @see {@link Recurrence.occurrencesOn}
    */
-  occurrenceOn(date: DateValue): ShiftOccurrence | undefined {
-    const occurrence = this.pattern.occurrenceOn(date);
-    if (occurrence) {
-      const { start, end } = occurrence;
-      return new ShiftOccurrence(start, end, this.copy());
-    }
-    return undefined;
+  occurrencesOn(date: DateValue): ShiftOccurrence[] {
+    const occurrences = this.pattern.occurrencesOn(date);
+    return occurrences.map(({ start, end }) => new ShiftOccurrence(start, end, this.copy()));
   }
 
   /**

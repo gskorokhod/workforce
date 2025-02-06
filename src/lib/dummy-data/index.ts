@@ -10,7 +10,7 @@ export function populateState(state: State): void {
   state.putAll(generateSkills(5, 10, state));
   state.putAll(generateLocations(5, 10, state));
   state.putAll(generateTasks(5, 10, state));
-  state.putAll(generateShifts(1, 3, state));
+  state.putAll(generateShifts(2, 3, state));
   state.putAll(generatePeople(5, 10, state));
 }
 
@@ -22,3 +22,4 @@ export {
   generateTask,
   generateTrueLocation,
 };
+
