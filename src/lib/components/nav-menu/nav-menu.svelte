@@ -37,7 +37,7 @@
 <Sidebar {collapsedWidth} {expandedWidth} {isExpanded} {position}>
   <h1 class="w-[200px] py-1 pl-3 text-3xl font-bold" slot="expanded_top">Workforce Planning</h1>
 
-  <ul class="list-none" slot="expanded_main">
+  <ul class="flex list-none flex-col gap-1" slot="expanded_main">
     <li>
       <Button
         class="w-full justify-start"
@@ -119,18 +119,9 @@
         </Button>
       </li>
     {/if}
-    <!-- <Button
-      class="w-full justify-start"
-      href="{base}/dashboard/"
-      size="xl"
-      variant={isActive("/dashboard/") ? "default" : "ghost"}
-    >
-      <LayoutDashboardIcon />
-      Dashboard
-    </Button> -->
   </ul>
 
-  <ul class="list-none" slot="collapsed_main">
+  <ul class="flex list-none flex-col gap-1" slot="collapsed_main">
     <li>
       <Button href="{base}/" size="icon-xl" variant={isActive("/") ? "default" : "ghost"}>
         <HomeIcon />
@@ -194,13 +185,6 @@
         </Button>
       </li>
     {/if}
-    <!-- <Button
-      href="{base}/dashboard/"
-      size="icon-xl"
-      variant={isActive("/dashboard/") ? "default" : "ghost"}
-    >
-      <LayoutDashboardIcon />
-    </Button> -->
   </ul>
 
   <Button
