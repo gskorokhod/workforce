@@ -37,7 +37,7 @@
 <Sidebar {collapsedWidth} {expandedWidth} {isExpanded} {position}>
   <h1 class="w-[200px] py-1 pl-3 text-3xl font-bold" slot="expanded_top">Workforce Planning</h1>
 
-  <ul class="m-0 w-full list-none p-0" slot="expanded_main">
+  <ul class="list-none" slot="expanded_main">
     <li>
       <Button
         class="w-full justify-start"
@@ -130,7 +130,7 @@
     </Button> -->
   </ul>
 
-  <ul class="m-0 w-full list-none p-0" slot="collapsed_main">
+  <ul class="list-none" slot="collapsed_main">
     <li>
       <Button href="{base}/" size="icon-xl" variant={isActive("/") ? "default" : "ghost"}>
         <HomeIcon />
@@ -203,25 +203,23 @@
     </Button> -->
   </ul>
 
-  <div class="flex w-full" slot="collapsed_bottom">
-    <Button
-      href="{base}/settings/"
-      size="icon-xl"
-      variant={isActive("/settings/") ? "default" : "ghost"}
-    >
-      <SettingsIcon />
-    </Button>
-  </div>
+  <Button
+    slot="collapsed_bottom"
+    href="{base}/settings/"
+    size="icon-xl"
+    variant={isActive("/settings/") ? "default" : "ghost"}
+  >
+    <SettingsIcon />
+  </Button>
 
-  <div class="flex w-full" slot="expanded_bottom">
-    <Button
-      class="w-full justify-start"
-      href="{base}/settings/"
-      size="xl"
-      variant={isActive("/settings/") ? "default" : "ghost"}
-    >
-      <SettingsIcon />
-      Settings
-    </Button>
-  </div>
+  <Button
+    class="w-full justify-start"
+    href="{base}/settings/"
+    size="xl"
+    variant={isActive("/settings/") ? "default" : "ghost"}
+    slot="expanded_bottom"
+  >
+    <SettingsIcon />
+    Settings
+  </Button>
 </Sidebar>
