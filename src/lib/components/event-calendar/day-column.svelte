@@ -31,7 +31,7 @@
 </script>
 
 <div class="flex flex-1 flex-col items-center {className}" {style}>
-  <div class="w-full h-0 overflow-visible z-20">
+  <div class="w-full h-0 overflow-visible z-10">
     <DayHeader {day} class="w-full bg-secondary p-1" />
   </div>
   <TimeGrid

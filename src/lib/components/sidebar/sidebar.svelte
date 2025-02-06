@@ -5,27 +5,16 @@
 
   let isExpanded = false;
   let position: SidebarPosition;
-  let expandedWidth = "250px";
-  let collapsedWidth = "72px";
   let className = "";
 
-  export { isExpanded, position, expandedWidth, collapsedWidth, className as class };
+  export { isExpanded, position, className as class };
 </script>
 
 <nav
-  class="z-20 flex h-full shrink-0 grow-0 flex-col items-center justify-between overflow-hidden bg-gray-300 p-2 transition-all duration-200 ease-out {className}"
-  style={isExpanded ? `width: ${expandedWidth}` : `width: ${collapsedWidth}`}
+  class="z-20 flex h-dvh fixed top-0 bottom-0 shrink-0 grow-0 flex-col items-center justify-between overflow-hidden bg-gray-300 p-2 transition-all duration-300 ease-in-out {className}"
 >
-  <div class="flex w-full justify-around">
-    {#if isExpanded}
-      {#if $$slots.expanded_top}
-        <slot name="expanded_top" />
-      {:else}
-        <slot name="collapsed_top" />
-      {/if}
-    {:else}
-      <slot name="collapsed_top" />
-    {/if}
+  <div class="flex w-full justify-start">
+    <slot name="top" />
 
     <Button
       on:click={() => {
@@ -48,25 +37,11 @@
     </Button>
   </div>
 
-  {#if isExpanded}
-    {#if $$slots.expanded_main}
-      <slot name="expanded_main" />
-    {:else}
-      <slot name="collapsed_main" />
-    {/if}
-  {:else}
-    <slot name="collapsed_main" />
-  {/if}
+  <ul class="flex w-full flex-col items-center gap-1 list-none">
+    <slot name="main" />
+  </ul>
 
-  <div class="flex w-full justify-around">
-    {#if isExpanded}
-      {#if $$slots.expanded_bottom}
-        <slot name="expanded_bottom" />
-      {:else}
-        <slot name="collapsed_bottom" />
-      {/if}
-    {:else}
-      <slot name="collapsed_bottom" />
-    {/if}
+  <div class="flex w-full justify-start">
+    <slot name="bottom" />
   </div>
 </nav>
