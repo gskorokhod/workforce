@@ -86,13 +86,13 @@
       hLineWidth}; --padRight: {padRight}"
   >
     {#each Array.from({ length: visibleRows }) as _, i}
-      {@const rw = Math.floor((i * $props.step) / $props.precision)}
-      <div class="hline-container" style="grid-row: {rw + 1}; grid-column: 1 / span all">
+      {@const rw = Math.ceil((i * $props.step) / $props.precision) + 2}
+      <div class="hline-container" style="grid-row: {rw}; grid-column: 1 / span all">
         <div class="hline"></div>
       </div>
       <div
         class="time-container"
-        style="grid-row: {rw + 1}; grid-column: 1; width: {showTime ? 'fit-content' : padLeft}"
+        style="grid-row: {rw}; grid-column: 1; width: {showTime ? 'fit-content' : padLeft}"
       >
         <span class={showTime ? "ml-1 mt-1 text-muted-foreground" : "invisible"}>
           {fmtTime($props.start.add({ minutes: i * $props.step }))}
@@ -111,7 +111,7 @@
 <style>
   .time-grid {
     display: grid;
-    grid-template-rows: repeat(var(--rows), 1fr);
+    grid-template-rows: 2rem repeat(var(--rows), 1fr);
     grid-template-columns: min-content repeat(var(--cols), 1fr) var(--padRight);
     row-gap: var(--hLineWidth);
     width: 100%;

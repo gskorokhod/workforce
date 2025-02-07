@@ -23,7 +23,7 @@
   const shifts: Writable<Shift[]> = GLOBAL_STATE.shifts;
   
   $: days = allDaysBetween(startDate, endDate);
-  $: colors = new Map($shifts.map(s => [s.uuid, randomColor()]));
+  $: colors = new Map($shifts.map(s => [s.uuid, randomColor().lighten(0.4).hex()]));
 </script>
 
 <EventCalendar
@@ -32,7 +32,7 @@
   bind:endDate
   bind:startTime
   bind:endTime
-  class="h-[1200px]"
+  class="h-dvh w-full"
 >
   {#each days as day}
     <DayColumn let:tgContext {context} {day}>
@@ -40,25 +40,15 @@
         {#each shift.occurrencesOn(day) as occurrence }
           {@const start = isSameDay(occurrence.start, day) ? toTime(occurrence.start) : startTime}
           {@const end = isSameDay(occurrence.end, day) ? toTime(occurrence.end) : endTime}
-          <TimeGridItem {tgContext} {start} {end} class="bg-opacity-30" style="background-color: {colors.get(shift.uuid)};">
+          <TimeGridItem {tgContext} {start} {end} style="background-color: {colors.get(shift.uuid)};">
             <p>{shift.name}</p>
             <p>
               {occurrence.start.toDate().toLocaleString()} - {occurrence.end.toDate().toLocaleString()}
             </p>
           </TimeGridItem>
         {/each}
-        <!-- {#if occurrence}
-          
-          {@const start = isSameDay(occurrence.start, day) ? occurrence.start : startTime}
-          {@const end = isSameDay(occurrence.end, day) ? occurrence.end : endTime}
-          <TimeGridItem {tgContext} start={toTime(start)} end={toTime(end)} class="bg-opacity-30" style="background-color: {colors.get(shift.uuid)};">
-            <p>{shift.name}</p>
-            <p>
-              {occurrence.start.toDate().toLocaleString()} - {occurrence.end.toDate().toLocaleString()}
-            </p>
-          </TimeGridItem>
-        {/if} -->
       {/each}
     </DayColumn>
   {/each}
 </EventCalendar>
+

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CalendarDate, Time } from "@internationalized/date";
+  import { CalendarDate, getLocalTimeZone, isSameMonth, Time } from "@internationalized/date";
   import { ChevronLeft, ChevronRight } from "lucide-svelte";
   import { writable, type Writable } from "svelte/store";
   import Button from "../button/button.svelte";
@@ -15,6 +15,7 @@
   export let columnGap = "0.5rem";
   export let innerGap: string | undefined = undefined;
   export let line = "1px";
+  export let calendarHeight = "1800px";
   let className = "";
 
   const props: Writable<CalendarProps> = writable({
@@ -56,22 +57,31 @@
     console.log(startDate, endDate);
   }
 
+  function displayRange(from: CalendarDate, to: CalendarDate) {
+    const head =  `${from.year}, ${from.toDate(getLocalTimeZone()).toLocaleDateString(navigator.language || "en", { month: "long" })} ` + `${from.day}`.padStart(2, "0") + " - ";
+    if (isSameMonth(from, to)) {
+      return head + `${to.day}`.padStart(2, "0");
+    } else {
+      return head + `${to.toDate(getLocalTimeZone()).toLocaleDateString(navigator.language || "en", { month: "long" })} ` + `${to.day}`.padStart(2, "0");
+    }
+  }
+
   export { className as class };
 </script>
 
-<div class={className} style="--line: {line}">
-  <div class="flex h-fit w-full flex-row justify-between">
-    <slot name="header" {context} />
-    <div class="mb-2 ml-auto flex h-fit w-fit flex-row gap-2">
-      <Button size="icon-xl" variant="ghost" on:click={shiftLeft}>
-        <ChevronLeft />
-      </Button>
-      <Button size="icon-xl" variant="ghost" on:click={shiftRight}>
-        <ChevronRight />
-      </Button>
-    </div>
+<div class="flex flex-col overflow-y-scroll {className}" style="--line: {line}">
+  <div class="flex flex-row items-center gap-4 p-2">
+    <Button on:click={shiftLeft} size="icon" variant="ghost">
+      <ChevronLeft />
+    </Button>
+    <Button on:click={shiftRight} size="icon" variant="ghost">
+      <ChevronRight />
+    </Button>
+    <h2 class="text-lg text-primary font-semibold">
+      {displayRange(startDate, endDate)}
+    </h2>
   </div>
-  <div class="main-container w-full flex h-full flex-row">
+  <div class="main-container flex flex-row w-full" style="height: {calendarHeight}">
     <TimeGrid
       start={startTime}
       end={endTime}
@@ -80,8 +90,10 @@
       hLineWidth={line}
       showTime={true}
       vLineWidth="0px"
-      class="h-full w-14"
-    />
+      class="w-14 bg-secondary"
+    >
+    <div class="bg-secondary" style="grid-row: 1; grid-column: 1 / span all" />
+    </TimeGrid>
     <slot {context} />
   </div>
 </div>

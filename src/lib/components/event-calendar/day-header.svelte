@@ -9,9 +9,8 @@
   let className = "";
 
   $: formatter = new Intl.DateTimeFormat(locale, {
-    weekday: "short",
+    weekday: "long",
     day: "numeric",
-    month: "short",
     ...options,
   });
   $: formatted = formatter.format(day.toDate(tzid));

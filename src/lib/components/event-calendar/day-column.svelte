@@ -6,7 +6,6 @@
 
   export let day: CalendarDate;
   export let context: CalendarContext;
-  export let innerGap: string | undefined = undefined;
   let extraStyle = "";
   let className = "";
 
@@ -18,7 +17,6 @@
   $: precision = $props.precision;
   $: line = $props.line;
   $: columnGap = $props.columnGap;
-  $: inGap = innerGap ?? $props.innerGap ?? columnGap;
   $: hidden = day.compare($props.startDate) < 0 || day.compare($props.endDate) > 0;
   $: style = hidden
     ? "display: none;"
@@ -31,9 +29,6 @@
 </script>
 
 <div class="flex flex-1 flex-col items-center {className}" {style}>
-  <div class="w-full h-0 overflow-visible z-10">
-    <DayHeader {day} class="w-full bg-secondary p-1" />
-  </div>
   <TimeGrid
     let:tgContext
     {start}
@@ -42,10 +37,12 @@
     {step}
     hLineWidth={line}
     showTime={false}
-    columnGap={inGap}
     padRight={columnGap}
     class="h-full w-full"
   >
+    <div class="flex justify-center items-center bg-secondary" style="grid-row: 1; grid-column: 1 / span all">
+      <DayHeader {day} class=""/>
+    </div>
     <slot {tgContext} />
   </TimeGrid>
 </div>

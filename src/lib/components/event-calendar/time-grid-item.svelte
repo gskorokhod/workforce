@@ -23,8 +23,8 @@
   $: tEnd = dtMin($gridProps.end, end);
   $: offset = minutesBetween($gridProps.start, tStart);
   $: duration = minutesBetween(tStart, tEnd);
-  $: startRow = Math.floor(offset / $gridProps.precision);
-  $: endRow = Math.ceil((offset + duration) / $gridProps.precision);
+  $: startRow = Math.floor(offset / $gridProps.precision) + 1;
+  $: endRow = Math.ceil((offset + duration) / $gridProps.precision) + 1;
 
   // Subscribe to the startCols map and set our column accordingly
   $: col = $startCols.get(strKey) || 1;
