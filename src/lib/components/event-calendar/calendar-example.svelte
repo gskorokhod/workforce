@@ -63,6 +63,7 @@
   {endTime}
   {step}
   {precision}
+  calendarHeight="1500px"
   class="h-[900px]"
 >
   {#each events as [day, dayEvents]}

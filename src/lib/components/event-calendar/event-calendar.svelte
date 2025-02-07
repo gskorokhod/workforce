@@ -69,8 +69,8 @@
   export { className as class };
 </script>
 
-<div class="flex flex-col overflow-y-scroll {className}" style="--line: {line}">
-  <div class="flex flex-row items-center gap-4 p-2">
+<div class="flex flex-col overflow-y-scroll py-2 {className}" style="--line: {line}">
+  <div class="flex flex-row items-center gap-4 px-2 pb-2">
     <Button on:click={shiftLeft} size="icon" variant="ghost">
       <ChevronLeft />
     </Button>

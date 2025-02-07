@@ -43,7 +43,7 @@
           {@const start = isSameDay(occurrence.start, day) ? toTime(occurrence.start) : startTime}
           {@const end = isSameDay(occurrence.end, day) ? toTime(occurrence.end) : endTime}
           <TimeGridItem {tgContext} {start} {end} class="pl-1 pr-1 {overflowsStart ? 'pt-0' : 'pt-1'} {overflowsEnd ? 'pb-0' : 'pb-1'}">
-            <div style="background-color: {colors.get(shift.uuid)}" class="w-full h-full {overflowsStart ? '' : 'rounded-t-lg'} {overflowsEnd ? '' : 'rounded-b-lg'}">
+            <div style="background-color: {colors.get(shift.uuid)}" class="w-full h-full shadow {overflowsStart ? '' : 'rounded-t-lg'} {overflowsEnd ? '' : 'rounded-b-lg'}">
             <p>{shift.name}</p>
             <p>
               {occurrence.start.toDate().toLocaleString()} - {occurrence.end.toDate().toLocaleString()}
