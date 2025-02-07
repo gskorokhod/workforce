@@ -16,6 +16,7 @@
   const gridProps = tgContext.props;
   const intervals = tgContext.intervals;
   const startCols = tgContext.startCols;
+  const endCols = tgContext.endCols;
 
   // Calculate values for positioning
   $: visible = end.compare($gridProps.start) >= 0 && start.compare($gridProps.end) <= 0;
@@ -28,12 +29,13 @@
 
   // Subscribe to the startCols map and set our column accordingly
   $: col = $startCols.get(strKey) || 1;
+  $: endCol = $endCols.get(strKey) || col;
   $: ml = col > 1 ? $gridProps.columnGap : "0";
   $: style = `\
       grid-row-start: ${startRow + 1}; \
       grid-row-end: ${endRow + 1}; \
       grid-column-start: ${col + 1}; \
-      grid-column-end: ${col + 1}; \
+      grid-column-end: ${endCol + 2}; \
       margin-left: ${ml}; \
       z-index: 1; \
       height: 100%; \

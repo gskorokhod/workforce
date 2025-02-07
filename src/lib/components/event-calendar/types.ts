@@ -35,6 +35,7 @@ export interface TimeGridItem {
 
 export interface TimeGridContext {
   startCols: Writable<Map<string, number>>;
+  endCols: Writable<Map<string, number>>;
   intervals: Writable<
     Map<
       string,
