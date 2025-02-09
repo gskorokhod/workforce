@@ -40,7 +40,7 @@
       <ProfilePicture {item} {size} {defaultIcon} />
     </Button>
   </Popover.Trigger>
-  <Popover.Content class="w-[310px] p-0">
+  <Popover.Content class="w-80 p-1">
     <div class="rounded bg-destructive p-3 text-destructive-foreground">
       File upload is not supported yet.
     </div>
