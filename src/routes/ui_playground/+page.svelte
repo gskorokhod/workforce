@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Button } from "$lib/components/ui/button";
   import Chip from "$lib/components/chip/chip.svelte";
   import type { ComboboxItem } from "$lib/components/combobox";
   import Combobox from "$lib/components/combobox/combobox.svelte";
@@ -16,7 +15,9 @@
   import Search from "$lib/components/search/search.svelte";
   import { Selector } from "$lib/components/selector";
   import SelectorMany from "$lib/components/selector/selector-many.svelte";
+  import * as TabsVertical from "$lib/components/tabs-vertical";
   import TimePicker from "$lib/components/time-picker/time-picker.svelte";
+  import { Button } from "$lib/components/ui/button";
   import { state } from "$lib/model";
   import { fmtTime } from "$lib/model/temporal/utils";
   import { Icon, type Display } from "$lib/ui";
@@ -196,6 +197,23 @@
       <h3 class="text-lg">Compact</h3>
       <SelectorMany value={$people.slice(0, 2)} options={$people} variant="compact" />
       <SelectorMany value={$qualifications.slice(0, 2)} options={$qualifications} variant="compact" />
+    </section>
+    <section>
+      <h2 class="text-xl">Tabs (Vertical)</h2>
+      <script lang="ts">
+        import * as Tabs from "$lib/components/ui/tabs";
+       </script>
+        
+       <TabsVertical.Root value="account" class="w-[400px]">
+        <TabsVertical.List>
+         <TabsVertical.Trigger value="account">Account</TabsVertical.Trigger>
+         <TabsVertical.Trigger value="password">Password</TabsVertical.Trigger>
+        </TabsVertical.List>
+        <TabsVertical.Content value="account">
+         Make changes to your account here.
+        </TabsVertical.Content>
+        <TabsVertical.Content value="password">Change your password here.</TabsVertical.Content>
+       </TabsVertical.Root>
     </section>
     <section>
       <h2 class="mb-1.5 text-xl">Edit Dialog</h2>
