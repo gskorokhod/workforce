@@ -33,7 +33,7 @@
     <Button
       aria-expanded={open}
       builders={[builder]}
-      class="aspect-square h-fit w-fit rounded-full p-0 outline-none"
+      class="aspect-square h-fit w-fit rounded-full !bg-transparent p-0 !outline-none"
       role="combobox"
       variant="ghost"
     >
