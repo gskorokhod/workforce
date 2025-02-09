@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { Button } from "$lib/components/button";
-  import * as Card from "$lib/components/card";
-  import { Label } from "$lib/components/label";
-  import * as RadioGroup from "$lib/components/radio-group";
-  import { Switch } from "$lib/components/switch";
+  import { Button } from "$lib/components/ui/button";
+  import * as Card from "$lib/components/ui/card";
+  import { Label } from "$lib/components/ui/label";
+  import * as RadioGroup from "$lib/components/ui/radio-group";
+  import { Switch } from "$lib/components/ui/switch";
   import { populateState } from "$lib/dummy-data";
   import { state } from "$lib/model";
   import { type Settings } from "$lib/model/core";

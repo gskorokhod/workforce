@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { buttonVariants } from "$lib/components/button/index.js";
+  import { buttonVariants } from "$lib/components/ui/button/index.js";
   import { cn } from "$lib/utils/ui.js";
   import { Calendar as CalendarPrimitive } from "bits-ui";
-  import ChevronRight from "lucide-svelte/icons/chevron-right";
+  import ChevronLeft from "lucide-svelte/icons/chevron-left";
 
-  type $$Props = CalendarPrimitive.NextButtonProps;
+  type $$Props = CalendarPrimitive.PrevButtonProps;
 
-  type $$Events = CalendarPrimitive.NextButtonEvents;
+  type $$Events = CalendarPrimitive.PrevButtonEvents;
 
   let className: $$Props["class"] = undefined;
 
@@ -14,7 +14,7 @@
   export { className as class };
 </script>
 
-<CalendarPrimitive.NextButton
+<CalendarPrimitive.PrevButton
   on:click
   class={cn(
     buttonVariants({ variant: "outline" }),
@@ -25,6 +25,6 @@
   let:builder
 >
   <slot {builder}>
-    <ChevronRight class="h-4 w-4" />
+    <ChevronLeft class="h-4 w-4" />
   </slot>
-</CalendarPrimitive.NextButton>
+</CalendarPrimitive.PrevButton>

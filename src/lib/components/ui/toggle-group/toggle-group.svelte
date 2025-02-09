@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { toggleVariants } from "$lib/components/toggle/index.js";
+  import type { toggleVariants } from "$lib/components/ui/toggle/index.js";
   import { cn } from "$lib/utils/ui.js";
   import { ToggleGroup as ToggleGroupPrimitive } from "bits-ui";
   import type { VariantProps } from "tailwind-variants";

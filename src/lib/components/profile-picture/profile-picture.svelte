@@ -1,7 +1,7 @@
 <script lang="ts" generics="T extends Display">
   import { Chip } from "../chip";
 
-  import * as Avatar from "$lib/components/avatar";
+  import * as Avatar from "$lib/components/ui/avatar";
   import IconElement from "$lib/components/icon/icon.svelte";
   import { Icon, type Display } from "$lib/ui";
   import { misc } from "$lib/utils";

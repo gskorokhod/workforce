@@ -1,13 +1,13 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import { Button } from "$lib/components/button";
-  import { Calendar } from "$lib/components/calendar";
-  import * as Popover from "$lib/components/popover";
+  import { Button } from "$lib/components/ui/button";
+  import { Calendar } from "$lib/components/ui/calendar";
+  import * as Popover from "$lib/components/ui/popover";
   import { cn } from "$lib/utils/ui.js";
   import { type DateValue, DateFormatter, getLocalTimeZone } from "@internationalized/date";
   import CalendarIcon from "lucide-svelte/icons/calendar";
 
-  const df = new DateFormatter("en-US", {
+  const df = new DateFormatter(navigator.language || "en", {
     dateStyle: "long",
   });
 

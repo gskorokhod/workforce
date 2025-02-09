@@ -1,7 +1,7 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts" generics="T">
-  import { Button } from "$lib/components/button";
-  import * as DropdownMenu from "$lib/components/dropdown-menu";
+  import { Button } from "$lib/components/ui/button";
+  import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
   import Ellipsis from "lucide-svelte/icons/ellipsis";
   import type { RowActions } from ".";
 

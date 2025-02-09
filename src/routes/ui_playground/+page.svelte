@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button } from "$lib/components/button";
+  import { Button } from "$lib/components/ui/button";
   import Chip from "$lib/components/chip/chip.svelte";
   import type { ComboboxItem } from "$lib/components/combobox";
   import Combobox from "$lib/components/combobox/combobox.svelte";

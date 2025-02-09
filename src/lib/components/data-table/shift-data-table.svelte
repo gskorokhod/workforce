@@ -7,7 +7,7 @@
   import { createRender, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
   import { type Writable, writable } from "svelte/store";
-  import { Button } from "../button";
+  import { Button } from "../ui/button";
   import { EditDialog } from "../edit-dialog";
   import { ProfilePicture, ProfilesList } from "../profile-picture";
   import { Search } from "../search";

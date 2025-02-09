@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button } from "$lib/components/button";
+  import { Button } from "$lib/components/ui/button";
   import { SidebarPosition } from "$lib/components/sidebar/index.ts";
   import { PanelLeftCloseIcon, PanelLeftOpenIcon, PanelRightCloseIcon } from "lucide-svelte";
 

@@ -2,7 +2,7 @@
   import { CalendarDate, getLocalTimeZone, isSameMonth, Time } from "@internationalized/date";
   import { ChevronLeft, ChevronRight } from "lucide-svelte";
   import { writable, type Writable } from "svelte/store";
-  import Button from "../button/button.svelte";
+  import Button from "../ui/button/button.svelte";
   import TimeGrid from "./time-grid.svelte";
   import type { CalendarContext, CalendarProps } from "./types";
 

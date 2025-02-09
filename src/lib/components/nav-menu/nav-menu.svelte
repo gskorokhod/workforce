@@ -13,7 +13,7 @@
     SettingsIcon,
     UsersRoundIcon,
   } from "lucide-svelte";
-  import { Button } from "../button";
+  import { Button } from "../ui/button";
   import { Sidebar, SidebarPosition } from "../sidebar";
 
   const settings = state.settings;

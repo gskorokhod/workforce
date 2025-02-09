@@ -1,14 +1,14 @@
 <script lang="ts">
-  import * as Select from "$lib/components/select";
-  import * as ToggleGroup from "$lib/components/toggle-group";
+  import * as Select from "$lib/components/ui/select";
+  import * as ToggleGroup from "$lib/components/ui/toggle-group";
   import { type RecurrenceOptions } from "$lib/model/temporal";
   import { fromRecurrenceOptions } from "$lib/model/temporal/options";
   import { type DateValue, getLocalTimeZone, toZoned } from "@internationalized/date";
   import type { Selected } from "bits-ui";
   import { Frequency, RRule, Weekday } from "rrule";
   import { DatePicker } from "../date-picker";
-  import { Input } from "../input";
-  import { Label } from "../label";
+  import { Input } from "../ui/input";
+  import { Label } from "../ui/label";
   import TimePicker from "../time-picker/time-picker.svelte";
 
   type SupportedFrequency = Frequency.DAILY | Frequency.WEEKLY | Frequency.MONTHLY;

@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { Button } from "$lib/components/button";
+  import { Button } from "$lib/components/ui/button";
   import { ColorPicker } from "$lib/components/color-picker";
   import { Icon } from "$lib/components/icon";
   import { Search } from "$lib/components/search";
-  import { Separator } from "$lib/components/separator";
-  import * as Tooltip from "$lib/components/tooltip";
+  import { Separator } from "$lib/components/ui/separator";
+  import * as Tooltip from "$lib/components/ui/tooltip";
   import { Icon as TIcon } from "$lib/ui";
   import { capitalize } from "$lib/utils/misc";
   import type Color from "color";

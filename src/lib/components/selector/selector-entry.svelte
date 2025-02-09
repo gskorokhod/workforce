@@ -1,5 +1,5 @@
 <script lang="ts" generics="T extends Base & Display">
-  import * as Command from "$lib/components/command";
+  import * as Command from "$lib/components/ui/command";
   import { Base } from "$lib/model/core";
   import type { Display, Icon } from "$lib/ui";
   import { Check } from "lucide-svelte";

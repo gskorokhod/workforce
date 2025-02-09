@@ -1,6 +1,6 @@
 <script lang="ts" generics="T extends Base & Display">
-  import { Button } from "$lib/components/button";
-  import * as Popover from "$lib/components/popover";
+  import { Button } from "$lib/components/ui/button";
+  import * as Popover from "$lib/components/ui/popover";
   import { Base } from "$lib/model/core";
   import { Icon, type Display } from "$lib/ui";
   import { has, without } from "$lib/utils";

@@ -1,8 +1,8 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import { Button } from "$lib/components/button";
-  import { Input } from "$lib/components/input";
-  import * as Popover from "$lib/components/popover";
+  import { Button } from "$lib/components/ui/button";
+  import { Input } from "$lib/components/ui/input";
+  import * as Popover from "$lib/components/ui/popover";
   import { debounce } from "$lib/utils/misc";
   import { SearchIcon } from "lucide-svelte";
 

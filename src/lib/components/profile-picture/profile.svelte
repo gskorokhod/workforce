@@ -1,5 +1,5 @@
 <script lang="ts" generics="T extends Display">
-  import * as Tooltip from "$lib/components/tooltip";
+  import * as Tooltip from "$lib/components/ui/tooltip";
   import { Icon, type Display } from "$lib/ui";
   import { ProfilePicture, type Size } from ".";
   import ProfileTooltip from "./profile-tooltip.svelte";

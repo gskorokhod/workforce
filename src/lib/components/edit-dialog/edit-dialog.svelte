@@ -1,16 +1,16 @@
 <script lang="ts" generics="T extends Base">
-  import * as Dialog from "$lib/components/dialog";
+  import * as Dialog from "$lib/components/ui/dialog";
   import { state as GLOBAL_STATE } from "$lib/model";
   import { Assignment, Base, Location, Person, Shift, Task } from "$lib/model/core";
   import { isDisplay } from "$lib/ui";
-  import { Button } from "../button";
+  import { Button } from "../ui/button";
   import { DatePicker } from "../date-picker";
   import ImagePicker from "../image-picker/image-picker.svelte";
-  import { Input } from "../input";
-  import { Label } from "../label";
+  import { Input } from "../ui/input";
+  import { Label } from "../ui/label";
   import RecurrenceOptionsEdit from "../recurrence/recurrence_options_edit.svelte";
   import { SelectorMany } from "../selector";
-  import { Textarea } from "../textarea";
+  import { Textarea } from "../ui/textarea";
   import TimePicker from "../time-picker/time-picker.svelte";
   import EditLocation from "./edit-location.svelte";
 
