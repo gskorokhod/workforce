@@ -68,6 +68,10 @@
         {/if}
         {#if item instanceof Person}
           <div class="flex w-full flex-col gap-1.5">
+            <Label class="font-semibold" for="role">Role</Label>
+            <Input bind:value={item.role} id="role" placeholder="Role" type="text" />
+          </div>
+          <div class="flex w-full flex-col gap-1.5">
             <Label class="font-semibold" for="birthday">Date of Birth</Label>
             <DatePicker id="birthday" class="w-full" bind:value={item.birthday} />
           </div>
