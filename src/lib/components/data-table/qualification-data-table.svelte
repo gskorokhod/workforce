@@ -4,7 +4,7 @@
   import { PlusIcon } from "lucide-svelte";
   import { createRender, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
-  import { type Writable, writable } from "svelte/store";
+  import { get, type Writable, writable } from "svelte/store";
   import { Button } from "../button";
   import { EditDialog } from "../edit-dialog";
   import { ProfilePicture, ProfilesList } from "../profile-picture";
@@ -59,7 +59,11 @@
         },
       },
     },
-    {
+  ];
+
+  const settings = state.settings;
+  if (get(settings).assignmentMode === "granular") {
+    columnInitializers.push({
       accessor: (row: Qualification) => row.getTasks(),
       cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No Tasks" }),
       header: "Tasks requiring Qualification",
@@ -72,8 +76,8 @@
           getFilterValue: (value: Task[]) => value.map((t) => t.name).join(" "),
         },
       },
-    },
-  ];
+    })
+  }
 
   let actions = new Map([
     ...rowActions,
