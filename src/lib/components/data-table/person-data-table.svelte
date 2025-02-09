@@ -57,7 +57,8 @@
     },
     {
       accessor: (row: Person) => row.qualifications,
-      cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No Qualifications" }),
+      cell: (cell) =>
+        createRender(ProfilesList, { items: cell.value, placeholder: "No Qualifications" }),
       header: "Qualifications",
       id: "qualifications",
       plugins: {
@@ -79,7 +80,7 @@
 
   function rowClick(item: Person) {
     dialogTitle = "Edit Person";
-    selected = item;
+    selected = item.get() as Person;
     dialogOpen = true;
   }
 

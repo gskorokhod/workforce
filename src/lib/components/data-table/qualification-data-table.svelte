@@ -76,7 +76,7 @@
           getFilterValue: (value: Task[]) => value.map((t) => t.name).join(" "),
         },
       },
-    })
+    });
   }
 
   let actions = new Map([
@@ -87,7 +87,7 @@
 
   function rowClick(item: Qualification) {
     dialogTitle = "Edit Qualification";
-    selected = item;
+    selected = item.get() as Qualification;
     dialogOpen = true;
   }
 

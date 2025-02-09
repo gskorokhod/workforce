@@ -51,6 +51,7 @@
     onSelect,
     isChecked,
     className,
+    closeOnSelect: false,
   }}
   bind:open
 >
@@ -61,7 +62,8 @@
       builders={[builder]}
       class="group/selector !h-max w-max px-2 py-2 {BTN_SIZE[
         size
-      ]} overflow-visible rounded-full outline-none hover:outline-accent-foreground"
+      ]} overflow-visible rounded-full outline-none transition-all hover:outline-accent-foreground {open &&
+        'outline-accent-foreground'}"
       role="combobox"
       variant="ghost"
     >

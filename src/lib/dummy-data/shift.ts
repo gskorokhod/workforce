@@ -8,10 +8,10 @@ import { generateRecurrence } from "./recurrence";
 import { generateTasks, sampleTasks } from "./task";
 
 const SHIFTS = new Map<string, Icon>([
-  ["Morning", Icon.fromString("mdi:sunrise")],
-  ["Day", Icon.fromString("mdi:weather-sunny")],
-  ["Evening", Icon.fromString("mdi:weather-sunset")],
-  ["Night", Icon.fromString("mdi:weather-night")],
+  ["Morning", Icon.fromString("mdi:sunrise", "#FFE135")],
+  ["Day", Icon.fromString("mdi:weather-sunny", "#FFAE3D")],
+  ["Evening", Icon.fromString("mdi:weather-sunset", "#D9663D")],
+  ["Night", Icon.fromString("mdi:weather-night", "#2F2D5D")],
 ]);
 
 function randomShift(): [string, Icon] {

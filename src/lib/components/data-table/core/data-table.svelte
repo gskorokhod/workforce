@@ -83,6 +83,7 @@
   }
 
   function rowClicked(row: BodyRow<T>) {
+    console.log("row clicked", row);
     if (row.isData()) {
       const drow = row as DataBodyRow<T>;
       defaultAction(drow.original);

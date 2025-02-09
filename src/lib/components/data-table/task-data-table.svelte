@@ -52,7 +52,8 @@
     },
     {
       accessor: (row: Task) => row.qualifications,
-      cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No Qualifications" }),
+      cell: (cell) =>
+        createRender(ProfilesList, { items: cell.value, placeholder: "No Qualifications" }),
       header: "Required Qualifications",
       id: "qualifications",
       plugins: {
@@ -74,7 +75,7 @@
 
   function rowClick(item: Task) {
     dialogTitle = "Edit Task";
-    selected = item;
+    selected = item.get() as Task;
     dialogOpen = true;
   }
 

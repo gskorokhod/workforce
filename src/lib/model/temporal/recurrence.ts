@@ -8,7 +8,7 @@ import {
   type DateValue,
   type TimeDuration,
 } from "@internationalized/date";
-import { datetime, RRule, RRuleSet } from "rrule";
+import { RRule, RRuleSet } from "rrule";
 import type { JsonObject } from "type-fest";
 import { fromRecurrenceOptions, toRecurrenceOptions, type RecurrenceOptions } from "./options";
 import { TimeSlot } from "./timeslot";
@@ -365,12 +365,7 @@ class Recurrence implements Copy<Recurrence> {
    * @returns A human-readable string representing the recurrence pattern.
    */
   toText(): string {
-    const dts = this.dtStart;
-    const rrule = new RRule({
-      ...this._rrule.options,
-      // This is a hack: RRule does not handle timezones correctly in its `toText` method, so we make a "UTC" date which is actually in the correct timezone.
-      dtstart: datetime(dts.year, dts.month, dts.day, dts.hour, dts.minute),
-    });
+    const rrule = new RRule(fromRecurrenceOptions(this.recurrenceOptions));
     return rrule.toText();
   }
 

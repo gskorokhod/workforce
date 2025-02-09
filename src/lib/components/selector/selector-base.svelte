@@ -19,6 +19,7 @@
   export let onSelect: (value: T | undefined) => void = () => {};
   export let isChecked: (value: T | undefined) => boolean;
   export let className = "";
+  export let closeOnSelect = true;
 
   $: _options = options.filter(optionsFilter).sort(optionsCmp);
 
@@ -46,7 +47,9 @@
               isChecked,
               onSelect: () => {
                 onSelect(option);
-                closeAndFocusTrigger(ids.trigger);
+                if (closeOnSelect) {
+                  closeAndFocusTrigger(ids.trigger);
+                }
               },
             }}
           />

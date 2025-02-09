@@ -108,7 +108,7 @@
 
   function rowClick(item: Shift) {
     dialogTitle = "Edit Shift";
-    selected = item;
+    selected = item.get() as Shift;
     dialogOpen = true;
   }
 

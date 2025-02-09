@@ -27,7 +27,7 @@
       item={option}
       defaultIcon={placeholderIcon}
       {size}
-      class="!pointer-events-none !border-none !bg-transparent"
+      class="!pointer-events-none"
     />
   {/if}
 

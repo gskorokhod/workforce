@@ -66,10 +66,11 @@
           builders={[popoverTrigger]}
           class="group/selector !h-max !w-max {BTN_SIZE[
             size
-          ]} overflow-visible rounded-full outline-none hover:outline-accent-foreground {variant ===
+          ]} overflow-visible rounded-full outline-none transition-all hover:outline-accent-foreground {variant ===
           'full'
             ? 'px-1.5 py-1'
-            : 'p-0.5'} {variant === 'compact' && 'aspect-square !p-0'} {className}"
+            : 'p-0.5'} {variant === 'compact' && 'aspect-square !p-0'} {open &&
+            'outline-accent-foreground'} {className}"
           role="combobox"
           variant={colors}
         >

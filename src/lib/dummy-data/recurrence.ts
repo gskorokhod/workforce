@@ -105,11 +105,11 @@ export function generateRecurrence(opts?: {
     dtstart: fromDate(faker.date.recent({ days: 14 }), "UTC").set(mkTime(opts?.whenStart)),
   };
 
-  const { rdates, exdates } = mkExceprions();
+  //const { rdates, exdates } = mkExceprions();
   const props: RecurrenceProps = {
     duration: mkDuration(),
-    rdates,
-    exdates,
+    // rdates,
+    // exdates,
     rule: options,
   };
 

@@ -74,7 +74,7 @@
 
   function rowClick(item: Location) {
     dialogTitle = "Edit Location";
-    selected = item;
+    selected = item.get() as Location;
     dialogOpen = true;
   }
 

@@ -43,7 +43,7 @@
         return;
       }
 
-      if (fval === RRule.DAILY && value.byweekday && value.byweekday.length !== 7) {
+      if (fval === RRule.DAILY && value.byweekday) {
         prevByweekday = value.byweekday;
         value.byweekday = undefined;
       } else if (fval !== RRule.DAILY && prevByweekday) {
@@ -69,7 +69,7 @@
     }
 
     const byweekday = WEEKDAYS.filter((day) => val.includes(day.toString()));
-    value.byweekday = byweekday && byweekday.length !== 7 ? byweekday : undefined;
+    value.byweekday = byweekday;
   }
 
   function onDtstartChange(val: DateValue | undefined) {
