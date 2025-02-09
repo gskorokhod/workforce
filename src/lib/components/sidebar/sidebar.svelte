@@ -11,7 +11,7 @@
 </script>
 
 <nav
-  class="z-20 flex h-dvh fixed top-0 bottom-0 shrink-0 grow-0 flex-col items-center justify-between overflow-hidden bg-gray-300 p-2 transition-all duration-300 ease-in-out {className}"
+  class="fixed bottom-0 top-0 z-50 flex h-dvh shrink-0 grow-0 flex-col items-center justify-between overflow-hidden bg-gray-300 p-2 transition-all duration-300 ease-in-out {className}"
 >
   <div class="flex w-full justify-start">
     <slot name="top" />
@@ -22,7 +22,7 @@
       }}
       variant="ghost"
       size="icon-xl"
-      class="{isExpanded ? 'ml-auto': ''}"
+      class={isExpanded ? "ml-auto" : ""}
     >
       {#if position === SidebarPosition.left}
         {#if isExpanded}
@@ -38,7 +38,7 @@
     </Button>
   </div>
 
-  <ul class="flex w-full flex-col items-center gap-1 list-none">
+  <ul class="flex w-full list-none flex-col items-center gap-1">
     <slot name="main" />
   </ul>
 

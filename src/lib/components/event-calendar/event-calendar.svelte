@@ -58,43 +58,55 @@
   }
 
   function displayRange(from: CalendarDate, to: CalendarDate) {
-    const head =  `${from.year}, ${from.toDate(getLocalTimeZone()).toLocaleDateString(navigator.language || "en", { month: "long" })} ` + `${from.day}`.padStart(2, "0") + " - ";
+    const head =
+      `${from.year}, ${from.toDate(getLocalTimeZone()).toLocaleDateString(navigator.language || "en", { month: "long" })} ` +
+      `${from.day}`.padStart(2, "0") +
+      " - ";
     if (isSameMonth(from, to)) {
       return head + `${to.day}`.padStart(2, "0");
     } else {
-      return head + `${to.toDate(getLocalTimeZone()).toLocaleDateString(navigator.language || "en", { month: "long" })} ` + `${to.day}`.padStart(2, "0");
+      return (
+        head +
+        `${to.toDate(getLocalTimeZone()).toLocaleDateString(navigator.language || "en", { month: "long" })} ` +
+        `${to.day}`.padStart(2, "0")
+      );
     }
   }
 
   export { className as class };
 </script>
 
-<div class="flex flex-col overflow-y-scroll py-2 {className}" style="--line: {line}">
-  <div class="flex flex-row items-center gap-4 px-2 pb-2">
+<div class="flex flex-col {className}" style="">
+  <div class="z-20 flex flex-row items-center gap-4 p-2 shadow">
     <Button on:click={shiftLeft} size="icon" variant="ghost">
       <ChevronLeft />
     </Button>
     <Button on:click={shiftRight} size="icon" variant="ghost">
       <ChevronRight />
     </Button>
-    <h2 class="text-lg text-primary font-semibold">
+    <h2 class="text-lg font-semibold text-primary">
       {displayRange(startDate, endDate)}
     </h2>
   </div>
-  <div class="main-container flex flex-row w-full" style="height: {calendarHeight}">
-    <TimeGrid
-      start={startTime}
-      end={endTime}
-      {precision}
-      {step}
-      hLineWidth={line}
-      showTime={true}
-      vLineWidth="0px"
-      class="w-14 bg-secondary"
+  <div class="flex h-full w-full flex-col overflow-y-scroll">
+    <div
+      class="main-container flex w-full flex-row"
+      style="height: {calendarHeight}; --line: {line}"
     >
-    <div class="bg-secondary" style="grid-row: 1; grid-column: 1 / span all" />
-    </TimeGrid>
-    <slot {context} />
+      <TimeGrid
+        start={startTime}
+        end={endTime}
+        {precision}
+        {step}
+        hLineWidth={line}
+        showTime={true}
+        vLineWidth="0px"
+        class="w-14 bg-secondary"
+      >
+        <div class="bg-secondary" style="grid-row: 1; grid-column: 1 / span all" />
+      </TimeGrid>
+      <slot {context} />
+    </div>
   </div>
 </div>
 
