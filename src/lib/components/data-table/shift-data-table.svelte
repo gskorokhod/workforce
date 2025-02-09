@@ -13,6 +13,7 @@
   import { Search } from "../search";
   import { type ColumnInitializer, DataTableCore } from "./core";
   import { ColumnHideSelector, TableHeader } from "./lib";
+  import { get } from "svelte/store";
 
   const timeFormatter = new DateFormatter(navigator.language || "en", {
     timeZone: getLocalTimeZone(),
@@ -79,7 +80,11 @@
       header: "Recurrence",
       id: "recurrence",
     },
-    {
+  ];
+
+  const settings = state.settings;
+  if (get(settings).assignmentMode === "granular") {
+    columnInitializers.push({
       accessor: (row: Shift) => Array.from(row.tasks.values()),
       cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No Tasks" }),
       header: "Tasks in Shift",
@@ -92,8 +97,8 @@
           getFilterValue: (value: Task[]) => value.map((t) => t.name).join(" "),
         },
       },
-    },
-  ];
+    });
+  }
 
   let actions = new Map([
     ...rowActions,
