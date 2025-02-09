@@ -75,11 +75,7 @@
           variant={colors}
         >
           {#if showImage}
-            <ProfilePicture
-              item={value}
-              class="!pointer-events-none !border-none !bg-transparent"
-              {size}
-            />
+            <ProfilePicture item={value} class="!pointer-events-none" {size} />
           {/if}
 
           {#if showName}
