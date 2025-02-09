@@ -6,17 +6,17 @@ import { Assignment } from "./assignment";
 import { Base } from "./base";
 import { displayFromJSON, displayToJSON, revivedArr } from "./misc";
 import { Person } from "./person";
-import { Skill } from "./skill";
+import { Qualification } from "./qualification";
 import { State } from "./state";
 
-type WithArg = Skill | Skill[];
+type WithArg = Qualification | Qualification[];
 
 interface TaskMinMax {
   people: number;
 }
 
 interface ITask extends Display {
-  skills: Skill[];
+  qualifications: Qualification[];
   min: TaskMinMax;
   max: TaskMinMax;
 }
@@ -27,7 +27,7 @@ export class Task extends Base implements ITask {
   icon?: Icon;
   min: TaskMinMax;
   max: TaskMinMax;
-  private _skills: Skill[] = [];
+  private _qualifications: Qualification[] = [];
 
   constructor(props: Partial<ITask>, state?: State, uuid?: string) {
     super(state, uuid);
@@ -36,7 +36,7 @@ export class Task extends Base implements ITask {
     this.icon = props.icon;
     this.min = { people: props.min?.people || 0 };
     this.max = { people: props.max?.people || Infinity };
-    this._skills = props.skills || [];
+    this._qualifications = props.qualifications || [];
   }
 
   /**
@@ -65,15 +65,15 @@ export class Task extends Base implements ITask {
   }
 
   /**
-   * Get all tasks that require a set of skills.
+   * Get all tasks that require a set of qualifications.
    *
    * @param from A state or array of tasks to search.
-   * @param args Each argument is a skill or an array of skills. An argument matches if the task requires all the skills in the argument. If multiple arguments are provided, all tasks that match at least one argument are returned. (See examples)
-   * @returns Array of tasks that require the specified skills.
+   * @param args Each argument is a qualification or an array of qualifications. An argument matches if the task requires all the qualifications in the argument. If multiple arguments are provided, all tasks that match at least one argument are returned. (See examples)
+   * @returns Array of tasks that require the specified qualifications.
    *
-   * @example `Task.getRequiring(state, skill1, skill2)` - Returns tasks that require `skill1` or `skill2`
-   * @example `Task.getRequiring(state, [skill1, skill2])` - Returns tasks that require both `skill1` and `skill2`
-   * @example `Task.getRequiring(state, skill1, [skill2, skill3])` - Returns tasks that require either `skill1` or both `skill2` and `skill3`
+   * @example `Task.getRequiring(state, qualification1, qualification2)` - Returns tasks that require `qualification1` or `qualification2`
+   * @example `Task.getRequiring(state, [qualification1, qualification2])` - Returns tasks that require both `qualification1` and `qualification2`
+   * @example `Task.getRequiring(state, qualification1, [qualification2, qualification3])` - Returns tasks that require either `qualification1` or both `qualification2` and `qualification3`
    */
   static getRequiring(from: State | Task[], ...args: WithArg[]): Task[] {
     const tasks = Task.getAll(from);
@@ -82,10 +82,10 @@ export class Task extends Base implements ITask {
     for (const arg of args) {
       let filtered: Task[] = [];
 
-      if (arg instanceof Skill) {
-        filtered = tasks.filter((task) => has(task.skills, arg));
+      if (arg instanceof Qualification) {
+        filtered = tasks.filter((task) => has(task.qualifications, arg));
       } else {
-        filtered = tasks.filter((task) => hasAll(task.skills, arg));
+        filtered = tasks.filter((task) => hasAll(task.qualifications, arg));
       }
 
       filtered.forEach((task) => {
@@ -99,15 +99,15 @@ export class Task extends Base implements ITask {
   }
 
   /**
-   * Get tasks that can be done by a person with a given set of skills.
+   * Get tasks that can be done by a person with a given set of qualifications.
    * @param from State or array of tasks to search.
-   * @param target `Person` object representing the candidate, or an array of `Skill` objects.
-   * @returns Array of tasks that can be done by a person with the specified skills.
+   * @param target `Person` object representing the candidate, or an array of `qualification` objects.
+   * @returns Array of tasks that can be done by a person with the specified qualifications.
    */
-  static getSuitable(from: State | Task[], target: Skill[] | Person) {
-    const skills = target instanceof Person ? target.skills : target;
+  static getSuitable(from: State | Task[], target: Qualification[] | Person) {
+    const quals = target instanceof Person ? target.qualifications : target;
     const tasks = Task.getAll(from);
-    return tasks.filter((task) => hasAll(skills, task.skills));
+    return tasks.filter((task) => hasAll(quals, task.qualifications));
   }
 
   /**
@@ -141,14 +141,14 @@ export class Task extends Base implements ITask {
    * @returns new Task
    */
   static fromJSON(json: JsonValue, state?: State): Task {
-    const { skills, _min, _max, uuid } = json as JsonObject;
+    const { qualifications, _min, _max, uuid } = json as JsonObject;
     const min = _min ? (_min as JsonObject) : { people: 0 };
     const max = _max ? (_max as JsonObject) : { people: Infinity };
 
     return new Task(
       {
         ...displayFromJSON(json),
-        skills: revivedArr(Skill, skills, state),
+        qualifications: revivedArr(Qualification, qualifications, state),
         min: { people: (min?.people as number) || 0 },
         max: { people: (max?.people as number) || Infinity },
       },
@@ -165,7 +165,7 @@ export class Task extends Base implements ITask {
     const ans: JsonObject = {
       uuid: this.uuid,
       ...displayToJSON(this),
-      skills: this.skills.map((skill) => skill.toJSON()),
+      qualifications: this.qualifications.map((ql) => ql.toJSON()),
       min: {
         people: this.min.people,
       },
@@ -187,7 +187,7 @@ export class Task extends Base implements ITask {
         name: this.name,
         description: this.description,
         icon: this.icon?.copy(),
-        skills: copyArr(this.skills),
+        qualifications: copyArr(this.qualifications),
       },
       this.state,
       this.uuid,
@@ -195,33 +195,33 @@ export class Task extends Base implements ITask {
   }
 
   /**
-   * Write this Task and its required skills to the state
+   * Write this Task and its required qualifications to the state
    */
   put() {
     if (this.state) {
       this.state.put(this);
-      this._skills.forEach((skill) => (skill.state = this.state));
-      this._skills.forEach((skill) => skill.put());
+      this._qualifications.forEach((ql) => (ql.state = this.state));
+      this._qualifications.forEach((ql) => ql.put());
     }
   }
 
   /**
-   * Add a skill to the task.
-   * @param skill Skill to add
+   * Add a qualification to the task.
+   * @param qualification Qualification to add
    */
-  addSkill(skill: Skill): void {
-    if (!has(this._skills, skill)) {
-      this._skills.push(skill);
+  addQualification(qualification: Qualification): void {
+    if (!has(this._qualifications, qualification)) {
+      this._qualifications.push(qualification);
     }
   }
 
   /**
-   * Remove a skill from the task.
-   * @param skill Skill to remove
+   * Remove a qualification from the task.
+   * @param qualification Qualification to remove
    */
-  removeSkill(skill: Skill): void {
-    if (has(this._skills, skill)) {
-      this._skills = without(this._skills, skill);
+  removeQualification(qualification: Qualification): void {
+    if (has(this._qualifications, qualification)) {
+      this._qualifications = without(this._qualifications, qualification);
     }
   }
 
@@ -240,20 +240,22 @@ export class Task extends Base implements ITask {
   }
 
   /**
-   * Get the skills required for the task.
+   * Get the qualifications required for the task.
    */
-  get skills(): Skill[] {
-    let ans = this._skills;
+  get qualifications(): Qualification[] {
+    let ans = this._qualifications;
     if (this.state) {
-      ans = this._skills.map((s) => s.get()).filter((s) => s !== undefined) as Skill[];
+      ans = this._qualifications
+        .map((s) => s.get())
+        .filter((s) => s !== undefined) as Qualification[];
     }
     return copyArr(ans);
   }
 
   /**
-   * Set the skills required for the task.
+   * Set the qualifications required for the task.
    */
-  set skills(skills: Skill[]) {
-    this._skills = copyArr(skills);
+  set qualifications(qs: Qualification[]) {
+    this._qualifications = copyArr(qs);
   }
 }

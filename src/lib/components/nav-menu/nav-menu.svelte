@@ -98,13 +98,13 @@
     <li class="w-full">
       <Button
         class="transition-all duration-300 {isExpanded ? 'w-full justify-start' : ''}"
-        href="{base}/skills/"
+        href="{base}/qualifications/"
         size={isExpanded ? "xl" : "icon-xl"}
-        variant={isActive("/skills/") ? "default" : "ghost"}
+        variant={isActive("/qualifications/") ? "default" : "ghost"}
       >
         <BriefcaseBusinessIcon class="min-w-8"/>
         {#if isExpanded}
-          Skills
+          Qualifications
         {/if}
       </Button>
     </li>

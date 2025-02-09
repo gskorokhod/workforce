@@ -3,7 +3,7 @@ import { faker } from "@faker-js/faker";
 import { CalendarDate, fromDate, toCalendarDate } from "@internationalized/date";
 import { get } from "svelte/store";
 import { sample } from "./misc";
-import { generateSkills, sampleSkills } from "./skill";
+import { generateQualifications, sampleQualifications } from "./qualification";
 
 function mkBirthday(): CalendarDate {
   const rawDate = faker.date.between({ from: new Date(1950, 0, 1), to: new Date(2000, 0, 1) });
@@ -12,7 +12,7 @@ function mkBirthday(): CalendarDate {
 }
 
 export function generatePerson(state?: State): Person {
-  const skills = state ? sampleSkills(state, 0, 3) : generateSkills(0, 3);
+  const qualifications = state ? sampleQualifications(state, 0, 3) : generateQualifications(0, 3);
   const name = faker.person.fullName();
   const job = faker.person.jobTitle();
   const birthday = mkBirthday();
@@ -23,7 +23,7 @@ export function generatePerson(state?: State): Person {
       name,
       birthday,
       job,
-      skills,
+      qualifications,
       avatar,
     },
     state,

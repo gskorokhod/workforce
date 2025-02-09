@@ -1,7 +1,7 @@
 <script lang="ts" generics="T extends Base">
   import * as Dialog from "$lib/components/dialog";
   import { state as GLOBAL_STATE } from "$lib/model";
-  import { Assignment, Base, Location, Person, Shift, Skill, Task } from "$lib/model/core";
+  import { Assignment, Base, Location, Person, Qualification, Shift, Task } from "$lib/model/core";
   import { Button } from "../button";
   import { DatePicker } from "../date-picker";
   import ImagePicker from "../image-picker/image-picker.svelte";
@@ -18,7 +18,7 @@
   export let open = false;
   export let state = GLOBAL_STATE;
 
-  $: skills = item?.state?.skills || state.skills;
+  $: qualifications = item?.state?.qualifications || state.qualifications;
   $: locations = item?.state?.locations || state.locations;
   // $: tasks = item?.state?.tasks || state.tasks;
   // $: people = item?.state?.people || state.people;
@@ -46,7 +46,7 @@
     </Dialog.Header>
     {#if item}
       <div class="mb-4 mt-4 flex h-full max-h-[60vh] w-full flex-col gap-6 overflow-y-scroll p-1">
-        {#if item instanceof Person || item instanceof Skill || item instanceof Task || item instanceof Location || item instanceof Shift}
+        {#if item instanceof Person || item instanceof Qualification || item instanceof Task || item instanceof Location || item instanceof Shift}
           <div class="flex w-full flex-row items-center justify-between gap-8">
             <ImagePicker bind:item size="xl" />
             <div class="flex h-full w-full flex-col gap-2">
@@ -71,13 +71,13 @@
             <DatePicker id="birthday" class="w-full" bind:value={item.birthday} />
           </div>
           <div class="flex w-full flex-col gap-1.5">
-            <Label class="font-semibold" for="skills">Skills</Label>
-            <SelectorMany id="skills" bind:value={item.skills} options={$skills} />
+            <Label class="font-semibold" for="qualifications">Qualifications</Label>
+            <SelectorMany id="qualifications" bind:value={item.qualifications} options={$qualifications} />
           </div>
         {:else if item instanceof Task}
           <div class="flex w-full flex-col gap-1.5">
-            <Label class="font-semibold" for="skills">Required Skills</Label>
-            <SelectorMany id="skills" bind:value={item.skills} options={$skills} />
+            <Label class="font-semibold" for="qualifications">Required Qualifications</Label>
+            <SelectorMany id="qualifications" bind:value={item.qualifications} options={$qualifications} />
           </div>
         {:else if item instanceof Location}
           <EditLocation {item} locations={$locations} />

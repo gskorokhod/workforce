@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { state as GLOBAL_STATE, Skill, State, Task } from "$lib/model";
+  import { state as GLOBAL_STATE, Qualification, State, Task } from "$lib/model";
   import type { Display } from "$lib/ui";
   import { PlusIcon } from "lucide-svelte";
   import { createRender, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
@@ -51,16 +51,16 @@
       id: "capacity",
     },
     {
-      accessor: (row: Task) => row.skills,
-      cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No Skills" }),
-      header: "Required Skills",
-      id: "skills",
+      accessor: (row: Task) => row.qualifications,
+      cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No Qualifications" }),
+      header: "Required Qualifications",
+      id: "qualifications",
       plugins: {
         sort: {
-          getSortValue: (value: Skill[]) => value.map((skill) => skill.name).join(" "),
+          getSortValue: (value: Qualification[]) => value.map((ql) => ql.name).join(" "),
         },
         tableFilter: {
-          getFilterValue: (value: Skill[]) => value.map((skill) => skill.name).join(" "),
+          getFilterValue: (value: Qualification[]) => value.map((ql) => ql.name).join(" "),
         },
       },
     },
