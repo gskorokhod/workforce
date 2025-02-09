@@ -36,7 +36,7 @@
     <h1
       class="overflow-hidden py-1 pl-3 text-3xl font-bold transition-all duration-300 {isExpanded
         ? 'w-[200px]'
-        : 'w-0'}"
+        : 'w-0 pl-0'}"
     >
       Workforce Planning
     </h1>
@@ -51,9 +51,7 @@
         variant={isActive("/") ? "default" : "ghost"}
       >
         <HomeIcon class="min-w-8"/>
-        {#if isExpanded}
-          Home
-        {/if}
+        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">{isExpanded ? "Home" : ""}</span>
       </Button>
     </li>
     <li class="w-full">
@@ -64,9 +62,7 @@
         variant={isActive("/shifts/") ? "default" : "ghost"}
       >
         <CalendarRangeIcon class="min-w-8"/>
-        {#if isExpanded}
-          Shifts
-        {/if}
+        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">Shifts</span>
       </Button>
     </li>
     <li class="w-full">
@@ -77,9 +73,7 @@
         variant={isActive("/people/") ? "default" : "ghost"}
       >
         <UsersRoundIcon class="min-w-8" />
-        {#if isExpanded}
-          People
-        {/if}
+        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">People</span>
       </Button>
     </li>
     <li class="w-full">
@@ -90,9 +84,7 @@
         variant={isActive("/locations/") ? "default" : "ghost"}
       >
         <MapPinIcon class="min-w-8" />
-        {#if isExpanded}
-          Locations
-        {/if}
+        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">Locations</span>
       </Button>
     </li>
     <li class="w-full">
@@ -103,9 +95,7 @@
         variant={isActive("/qualifications/") ? "default" : "ghost"}
       >
         <BriefcaseBusinessIcon class="min-w-8"/>
-        {#if isExpanded}
-          Qualifications
-        {/if}
+        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">Qualifications</span>
       </Button>
     </li>
     {#if $settings.assignmentMode === "granular"}
@@ -117,9 +107,7 @@
           variant={isActive("/tasks/") ? "default" : "ghost"}
         >
           <ClipboardListIcon class="min-w-8"/>
-          {#if isExpanded}
-            Tasks
-          {/if}
+          <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">Tasks</span>
         </Button>
       </li>
     {/if}
@@ -132,9 +120,7 @@
           variant={isActive("/ui_playground/") ? "default" : "ghost"}
         >
           <CodeXmlIcon class="min-w-8"/>
-          {#if isExpanded}
-            UI Components
-          {/if}
+          <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">UI Playground</span>
         </Button>
       </li>
     {/if}
@@ -148,9 +134,7 @@
       class="transition-all duration-300 {isExpanded ? 'w-full justify-start' : ''}"
     >
       <SettingsIcon class="min-w-8" />
-      {#if isExpanded}
-        Settings
-      {/if}
+      <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">Settings</span>
     </Button>
   </svelte:fragment>
 </Sidebar>

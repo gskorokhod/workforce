@@ -17,8 +17,8 @@ export function populateState(state: State): void {
 export {
   generateLocation,
   generatePerson,
+  generateQualification,
   generateShift,
-  generateQualification as generateSkill,
   generateTask,
   generateTrueLocation,
 };

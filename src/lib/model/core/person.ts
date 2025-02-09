@@ -112,7 +112,7 @@ export class Person extends Base implements IPerson {
    * @returns new Person, bound to the state if provided.
    */
   static fromJSON(json: JsonValue, state?: State): Person {
-    const { uuid, qualifications, job: role, birthday } = json as JsonObject;
+    const { uuid, qualifications, role, birthday } = json as JsonObject;
     return new Person(
       {
         ...displayFromJSON(json),
@@ -134,7 +134,7 @@ export class Person extends Base implements IPerson {
       uuid: this.uuid,
       ...displayToJSON(this),
       qualifications: this.qualifications.map((qualification) => qualification.toJSON()),
-      job: this.role,
+      role: this.role,
     };
 
     if (this.birthday) {

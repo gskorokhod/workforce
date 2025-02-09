@@ -102,13 +102,13 @@
   ]);
 
   function rowClick(item: Shift) {
-    dialogTitle = "Edit Skill";
+    dialogTitle = "Edit Shift";
     selected = item;
     dialogOpen = true;
   }
 
   function newShift() {
-    dialogTitle = "Create new Skill";
+    dialogTitle = "Create new Shift";
     selected = new Shift({}, state);
     dialogOpen = true;
   }

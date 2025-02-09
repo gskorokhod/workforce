@@ -48,7 +48,7 @@
     {
       accessor: (row: Qualification) => row.getPeople(),
       cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No People" }),
-      header: "People with Skill",
+      header: "People with Quialification",
       id: "people",
       plugins: {
         sort: {
@@ -62,7 +62,7 @@
     {
       accessor: (row: Qualification) => row.getTasks(),
       cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No Tasks" }),
-      header: "Tasks requiring Skill",
+      header: "Tasks requiring Qualification",
       id: "tasks",
       plugins: {
         sort: {
@@ -82,13 +82,13 @@
   ]);
 
   function rowClick(item: Qualification) {
-    dialogTitle = "Edit Skill";
+    dialogTitle = "Edit Qualification";
     selected = item;
     dialogOpen = true;
   }
 
-  function newSkill() {
-    dialogTitle = "Create new Skill";
+  function newQualification() {
+    dialogTitle = "Create new Qualification";
     selected = new Qualification({}, state);
     dialogOpen = true;
   }
@@ -102,7 +102,7 @@
       <svelte:fragment slot="start">
         <Button
           class="text-muted-foreground hover:text-accent-foreground"
-          on:click={newSkill}
+          on:click={newQualification}
           size="icon-xl"
           variant="ghost"
         >

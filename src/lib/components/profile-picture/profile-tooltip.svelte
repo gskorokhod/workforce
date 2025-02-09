@@ -31,7 +31,7 @@
         {:else if item instanceof Task}
           Task
         {:else if item instanceof Qualification}
-          Skill
+          Qualification
         {:else if item instanceof Location}
           Location
         {:else if item instanceof Shift}

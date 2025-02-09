@@ -2,19 +2,16 @@ import { Icon, type Display } from "$lib/ui";
 import type { JsonObject, JsonValue } from "type-fest";
 import type { State } from "./state";
 
-type Reviver<T> =
-  | {
-      fromJSON(json: JsonValue, state?: State): T;
-    }
-  | ((json: JsonValue, state?: State) => T);
+interface Reviver<T> {
+  fromJSON(json: JsonValue, state?: State): T;
+}
 
 export function revivedArr<T>(reviver: Reviver<T>, json: JsonValue, state?: State): T[] {
   if (!Array.isArray(json)) {
     return [];
   }
 
-  const revive = reviver instanceof Function ? reviver : reviver.fromJSON;
-  return json.map((v) => revive(v, state));
+  return json.map((v) => reviver.fromJSON(v, state));
 }
 
 export function displayToJSON(display: Display): JsonObject {

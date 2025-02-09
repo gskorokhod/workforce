@@ -202,8 +202,8 @@
       <EditDialog item={$people[0]} title="Edit Person">
         <Button>Edit Person</Button>
       </EditDialog>
-      <EditDialog item={$qualifications[0]} title="Edit Skill">
-        <Button>Edit Skill</Button>
+      <EditDialog item={$qualifications[0]} title="Edit Qualification">
+        <Button>Edit Qualification</Button>
       </EditDialog>
       <EditDialog item={$tasks[0]} title="Edit Task">
         <Button>Edit Task</Button>
