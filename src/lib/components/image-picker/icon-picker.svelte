@@ -48,7 +48,7 @@
       {/if}
     </Button>
   </Popover.Trigger>
-  <Popover.Content class="w-[310px] p-0">
+  <Popover.Content class="w-80 p-1">
     <IconPickerContent bind:icon onClose={() => closeAndFocusTrigger(ids.trigger)} />
   </Popover.Content>
 </Popover.Root>
