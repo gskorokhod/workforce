@@ -35,7 +35,7 @@ export class Skill extends Base implements ISkill {
   constructor(props: Partial<ISkill>, state?: State, uuid?: string) {
     super(state, uuid);
     this.name = props.name || "";
-    this.description = props.description || "";
+    this.description = props.description;
     this.icon = props.icon;
   }
 

@@ -133,7 +133,7 @@ export class Shift extends Base implements IShift {
    * Get the occurrence of the shift on a specific date.
    * @param date Date to get the occurrence for.
    * @param tzid Timezone ID. Defaults to local timezone.
-   * @returns Occurrence object or undefined if not found.
+   * @returns List of occurrences on the date.
    * @see {@link Recurrence.occurrencesOn}
    */
   occurrencesOn(date: DateValue): ShiftOccurrence[] {

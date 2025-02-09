@@ -6,7 +6,7 @@ import type { JsonObject, JsonValue } from "type-fest";
 import { fullYearsBetween } from "../temporal/utils";
 import { Assignment } from "./assignment";
 import { Base } from "./base";
-import { revivedArr } from "./misc";
+import { displayFromJSON, displayToJSON, revivedArr } from "./misc";
 import { Skill } from "./skill";
 import { State } from "./state";
 
@@ -110,12 +110,10 @@ export class Person extends Base implements IPerson {
    * @returns new Person, bound to the state if provided.
    */
   static fromJSON(json: JsonValue, state?: State): Person {
-    const { uuid, name, description, avatar, skills, job, birthday } = json as JsonObject;
+    const { uuid, skills, job, birthday } = json as JsonObject;
     return new Person(
       {
-        name: name as string,
-        description: description as string,
-        avatar: avatar ? new URL(avatar as string) : undefined,
+        ...displayFromJSON(json),
         skills: revivedArr(Skill, skills, state),
         job: job as string,
         birthday: birthday ? parseDate(birthday as string) : undefined,
@@ -132,9 +130,7 @@ export class Person extends Base implements IPerson {
   toJSON(): JsonObject {
     const ans: JsonObject = {
       uuid: this.uuid,
-      name: this.name,
-      description: this.description || "",
-      avatar: this.avatar?.href || null,
+      ...displayToJSON(this),
       skills: this.skills.map((skill) => skill.toJSON()),
       job: this.job,
     };

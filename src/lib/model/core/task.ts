@@ -4,7 +4,7 @@ import { get } from "svelte/store";
 import type { JsonObject, JsonValue } from "type-fest";
 import { Assignment } from "./assignment";
 import { Base } from "./base";
-import { revivedArr } from "./misc";
+import { displayFromJSON, displayToJSON, revivedArr } from "./misc";
 import { Person } from "./person";
 import { Skill } from "./skill";
 import { State } from "./state";
@@ -141,15 +141,13 @@ export class Task extends Base implements ITask {
    * @returns new Task
    */
   static fromJSON(json: JsonValue, state?: State): Task {
-    const { name, description, icon, skills, _min, _max, uuid } = json as JsonObject;
+    const { skills, _min, _max, uuid } = json as JsonObject;
     const min = _min ? (_min as JsonObject) : { people: 0 };
     const max = _max ? (_max as JsonObject) : { people: Infinity };
 
     return new Task(
       {
-        name: name as string,
-        description: description as string,
-        icon: icon ? Icon.fromJSON(icon as JsonObject) : undefined,
+        ...displayFromJSON(json),
         skills: revivedArr(Skill, skills, state),
         min: { people: (min?.people as number) || 0 },
         max: { people: (max?.people as number) || Infinity },
@@ -166,9 +164,7 @@ export class Task extends Base implements ITask {
   toJSON(): JsonObject {
     const ans: JsonObject = {
       uuid: this.uuid,
-      name: this.name,
-      description: this.description || "",
-      icon: this.icon?.toJSON() || null,
+      ...displayToJSON(this),
       skills: this.skills.map((skill) => skill.toJSON()),
       min: {
         people: this.min.people,
