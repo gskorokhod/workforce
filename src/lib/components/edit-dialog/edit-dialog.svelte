@@ -73,12 +73,20 @@
           </div>
           <div class="flex w-full flex-col gap-1.5">
             <Label class="font-semibold" for="qualifications">Qualifications</Label>
-            <SelectorMany id="qualifications" bind:value={item.qualifications} options={$qualifications} />
+            <SelectorMany
+              id="qualifications"
+              bind:value={item.qualifications}
+              options={$qualifications}
+            />
           </div>
         {:else if item instanceof Task}
           <div class="flex w-full flex-col gap-1.5">
             <Label class="font-semibold" for="qualifications">Required Qualifications</Label>
-            <SelectorMany id="qualifications" bind:value={item.qualifications} options={$qualifications} />
+            <SelectorMany
+              id="qualifications"
+              bind:value={item.qualifications}
+              options={$qualifications}
+            />
           </div>
         {:else if item instanceof Location}
           <EditLocation {item} locations={$locations} />
@@ -92,7 +100,7 @@
               hours
             </div>
           </div>
-          <RecurrenceOptionsEdit bind:value={item.pattern.recurrenceOptions} />
+          <RecurrenceOptionsEdit bind:recurrence={item.pattern.recurrenceOptions} />
         {/if}
       </div>
       <Dialog.Footer>

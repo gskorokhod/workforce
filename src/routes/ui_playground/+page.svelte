@@ -196,24 +196,28 @@
       <SelectorMany value={$qualifications.slice(0, 2)} options={$qualifications} variant="full" />
       <h3 class="text-lg">Compact</h3>
       <SelectorMany value={$people.slice(0, 2)} options={$people} variant="compact" />
-      <SelectorMany value={$qualifications.slice(0, 2)} options={$qualifications} variant="compact" />
+      <SelectorMany
+        value={$qualifications.slice(0, 2)}
+        options={$qualifications}
+        variant="compact"
+      />
     </section>
     <section>
       <h2 class="text-xl">Tabs (Vertical)</h2>
       <script lang="ts">
         import * as Tabs from "$lib/components/ui/tabs";
-       </script>
-        
-       <TabsVertical.Root value="account" class="w-[400px]">
+      </script>
+
+      <TabsVertical.Root value="account" class="w-[400px]">
         <TabsVertical.List>
-         <TabsVertical.Trigger value="account">Account</TabsVertical.Trigger>
-         <TabsVertical.Trigger value="password">Password</TabsVertical.Trigger>
+          <TabsVertical.Trigger value="account">Account</TabsVertical.Trigger>
+          <TabsVertical.Trigger value="password">Password</TabsVertical.Trigger>
         </TabsVertical.List>
         <TabsVertical.Content value="account">
-         Make changes to your account here.
+          Make changes to your account here.
         </TabsVertical.Content>
         <TabsVertical.Content value="password">Change your password here.</TabsVertical.Content>
-       </TabsVertical.Root>
+      </TabsVertical.Root>
     </section>
     <section>
       <h2 class="mb-1.5 text-xl">Edit Dialog</h2>
@@ -238,7 +242,7 @@
     <section>
       <h2 class="mb-1.5 text-xl">Recurrence Editor</h2>
       <div class="flex w-max flex-col gap-6 rounded-lg bg-card p-6">
-        <RecurrenceOptionsEdit value={$shifts[0].pattern.recurrenceOptions} />
+        <RecurrenceOptionsEdit recurrence={$shifts[0].pattern.recurrenceOptions} />
       </div>
     </section>
     <section>

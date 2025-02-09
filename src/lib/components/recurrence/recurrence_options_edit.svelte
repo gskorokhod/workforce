@@ -24,17 +24,20 @@
     ["infinite", "Never"],
   ]);
 
-  export let value: Partial<RecurrenceOptions>;
+  export let recurrence: Partial<RecurrenceOptions>;
 
   let prevByweekday: Weekday[] | undefined = undefined;
-  let until = value.until || undefined;
-  let count = value.count || 1;
-  $: freqSelected = { value: value.freq, label: mkFreqLabel(value.freq, value.interval) };
-  $: endVal = value.count ? "count" : value.until ? "until" : "infinite";
+  let until = recurrence.until || undefined;
+  let count = recurrence.count || 1;
+  let endVal = recurrence.count ? "count" : recurrence.until ? "until" : "infinite";
+  $: freqSelected = {
+    value: recurrence.freq,
+    label: mkFreqLabel(recurrence.freq, recurrence.interval),
+  };
   $: endSelected = { value: endVal, label: END_OPTIONS.get(endVal) || "Never" };
-  $: byweekday = (value.byweekday || WEEKDAYS).map((day) => day.toString());
-  $: dtstart = value.dtstart;
-  $: rrule = new RRule(fromRecurrenceOptions(value));
+  $: byweekday = (recurrence.byweekday || WEEKDAYS).map((day) => day.toString());
+  $: dtstart = recurrence.dtstart;
+  $: rrule = new RRule(fromRecurrenceOptions(recurrence));
 
   function onFreqChange(val?: Selected<SupportedFrequency | undefined>) {
     if (val) {
@@ -43,15 +46,15 @@
         return;
       }
 
-      if (fval === RRule.DAILY && value.byweekday) {
-        prevByweekday = value.byweekday;
-        value.byweekday = undefined;
+      if (fval === RRule.DAILY && recurrence.byweekday && recurrence.byweekday.length !== 7) {
+        prevByweekday = recurrence.byweekday;
+        recurrence.byweekday = undefined;
       } else if (fval !== RRule.DAILY && prevByweekday) {
-        value.byweekday = prevByweekday;
+        recurrence.byweekday = prevByweekday;
         prevByweekday = undefined;
       }
 
-      value.freq = fval;
+      recurrence.freq = fval;
     }
   }
 
@@ -60,25 +63,25 @@
       return;
     }
 
-    if (value.freq === RRule.DAILY) {
-      value = {
-        ...value,
+    if (recurrence.freq === RRule.DAILY) {
+      recurrence = {
+        ...recurrence,
         freq: RRule.WEEKLY,
         interval: 1,
       };
     }
 
     const byweekday = WEEKDAYS.filter((day) => val.includes(day.toString()));
-    value.byweekday = byweekday;
+    recurrence.byweekday = byweekday;
   }
 
   function onDtstartChange(val: DateValue | undefined) {
     if (!val) return;
 
-    if (value.dtstart) {
-      value.dtstart = value.dtstart.set(val);
+    if (recurrence.dtstart) {
+      recurrence.dtstart = recurrence.dtstart.set(val);
     } else {
-      value.dtstart = toZoned(val, getLocalTimeZone());
+      recurrence.dtstart = toZoned(val, getLocalTimeZone());
     }
   }
 
@@ -98,15 +101,16 @@
     count: number | undefined,
   ) {
     if (end) {
+      endVal = end;
       if (end === "infinite") {
-        value.until = undefined;
-        value.count = undefined;
+        recurrence.until = undefined;
+        recurrence.count = undefined;
       } else if (end === "until") {
-        value.until = until;
-        value.count = undefined;
+        recurrence.until = until;
+        recurrence.count = undefined;
       } else if (end === "count") {
-        value.count = count;
-        value.until = undefined;
+        recurrence.count = count;
+        recurrence.until = undefined;
       }
     }
   }
@@ -124,14 +128,14 @@
   <Label for="occurs" class="font-semibold">Occurs</Label>
   <div class="flex flex-row items-center gap-2" id="occurs">
     <span>Every</span>
-    <Input class="w-20" type="number" bind:value={value.interval} min={1} />
+    <Input class="w-20" type="number" bind:value={recurrence.interval} min={1} />
     <Select.Root selected={freqSelected} onSelectedChange={onFreqChange} required>
       <Select.Trigger id="frequency" class="w-40">
         <Select.Value placeholder="Frequency" />
       </Select.Trigger>
       <Select.Content>
         {#each FREQUENCIES.keys() as freq}
-          <Select.Item value={freq}>{mkFreqLabel(freq, value.interval)}</Select.Item>
+          <Select.Item value={freq}>{mkFreqLabel(freq, recurrence.interval)}</Select.Item>
         {/each}
       </Select.Content>
     </Select.Root>
@@ -185,7 +189,7 @@
         on:change={() => onEndValChange("count", until, count)}
       />
       <span>
-        {pluralise("occurrence", value.count)}
+        {pluralise("occurrence", recurrence.count)}
       </span>
     {/if}
   </div>
