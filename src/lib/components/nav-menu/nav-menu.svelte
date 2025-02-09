@@ -36,7 +36,7 @@
     <h1
       class="overflow-hidden py-1 pl-3 text-3xl font-bold transition-all duration-300 {isExpanded
         ? 'w-[200px]'
-        : 'w-0 pl-0'}"
+        : 'w-0 !px-0'}"
     >
       Workforce Planning
     </h1>
@@ -131,7 +131,7 @@
       href="{base}/settings/"
       size={isExpanded ? "xl" : "icon-xl"}
       variant={isActive("/settings/") ? "default" : "ghost"}
-      class="transition-all duration-300 {isExpanded ? 'w-full justify-start' : ''}"
+      class="transition-all duration-300 {isExpanded ? 'w-full justify-start' : 'ml-auto mr-auto'}"
     >
       <SettingsIcon class="min-w-8" />
       <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">Settings</span>

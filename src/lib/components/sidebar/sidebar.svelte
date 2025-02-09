@@ -22,6 +22,7 @@
       }}
       variant="ghost"
       size="icon-xl"
+      class="{isExpanded ? 'ml-auto': ''}"
     >
       {#if position === SidebarPosition.left}
         {#if isExpanded}
