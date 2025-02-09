@@ -6,34 +6,33 @@ import { Base } from "./base";
 import { displayFromJSON, displayToJSON } from "./misc";
 import { Person } from "./person";
 import { State } from "./state";
-import { Task } from "./task";
 
 /**
- * Represents a qualification that a person can have.
+ * Represents a team that a person can be a part of.
  * @interface
- * @property {string} name - The name of the qualification.
- * @property {string} description - A description of the qualification.
- * @property {Icon} icon - The icon representing the qualification.
+ * @property {string} name - The name of the team.
+ * @property {string} description - A description of the team.
+ * @property {Icon} icon - The icon representing the team.
  * @see Icon
  */
-type IQualification = Display;
+type ITeam = Display;
 
 /**
- * Represents a qualification (skill) that a person can have.
+ * Represents a team that a person can be a part of.
  */
-export class Qualification extends Base implements IQualification {
+export class Team extends Base implements ITeam {
   name: string;
   description?: string;
   icon?: Icon;
 
   /**
-   * Creates a new qualification.
-   * @param props Properties of the qualification.
-   * @param state State to bind the qualification to.
-   * @param uuid UUID of the qualification. If not provided, a new UUID is generated
-   * @see IQualification
+   * Creates a new team.
+   * @param props Properties of the team.
+   * @param state State to bind the team to.
+   * @param uuid UUID of the team. If not provided, a new UUID is generated
+   * @see ITeam
    */
-  constructor(props: Partial<IQualification>, state?: State, uuid?: string) {
+  constructor(props: Partial<Team>, state?: State, uuid?: string) {
     super(state, uuid);
     this.name = props.name || "";
     this.description = props.description;
@@ -46,9 +45,9 @@ export class Qualification extends Base implements IQualification {
    * @param uuid UUID of the qualification to get.
    * @returns qualification with the specified UUID, or undefined if not found.
    */
-  static get(from: State | Qualification[], uuid: string): Qualification | undefined {
+  static get(from: State | Team[], uuid: string): Team | undefined {
     if (from instanceof State) {
-      return get(from._qualifications).get(uuid)?.copy();
+      return get(from._teams).get(uuid)?.copy();
     }
     return from.find((ql) => ql.uuid === uuid)?.copy();
   }
@@ -58,9 +57,9 @@ export class Qualification extends Base implements IQualification {
    * @param from State to get all qualifications from.
    * @returns Array of qualifications.
    */
-  static getAll(from: State | Qualification[]): Qualification[] {
+  static getAll(from: State | Team[]): Team[] {
     if (from instanceof State) {
-      return copyArr(Array.from(get(from._qualifications).values()));
+      return copyArr(Array.from(get(from._teams).values()));
     }
     return copyArr(from);
   }
@@ -71,11 +70,8 @@ export class Qualification extends Base implements IQualification {
    * @param filter Predicate function to filter qualifications.
    * @returns Array of qualifications that satisfy the filter.
    */
-  static getBy(
-    from: State | Qualification[],
-    filter: (ql: Qualification) => boolean,
-  ): Qualification[] {
-    return this.getAll(from).filter(filter);
+  static getBy(from: State | Team[], filterFn: (team: Team) => boolean): Team[] {
+    return this.getAll(from).filter(filterFn);
   }
 
   /**
@@ -84,9 +80,9 @@ export class Qualification extends Base implements IQualification {
    * @param state State to bind the qualification to.
    * @returns new qualification
    */
-  static fromJSON(json: JsonValue, state?: State): Qualification {
+  static fromJSON(json: JsonValue, state?: State): Team {
     const { uuid } = json as JsonObject;
-    return new Qualification(
+    return new Team(
       {
         ...displayFromJSON(json),
       },
@@ -110,8 +106,8 @@ export class Qualification extends Base implements IQualification {
    * Copy the qualification.
    * @returns new qualification
    */
-  copy(): Qualification {
-    return new Qualification(
+  copy(): Team {
+    return new Team(
       {
         name: this.name,
         description: this.description,
@@ -123,19 +119,7 @@ export class Qualification extends Base implements IQualification {
   }
 
   /**
-   * Get all tasks that require this qualification from the state.
-   * Note: this queries the state for tasks that require this qualification. If no state is bound, this method will return an empty array.
-   * @returns Array of tasks that require this qualification.
-   */
-  getTasks(): Task[] {
-    if (!this.state) {
-      return [];
-    }
-    return Task.getRequiring(this.state, this);
-  }
-
-  /**
-   * Get all people with this qualification from the state.
+   * Get all people who are part of this team.
    * Note: this queries the state for people with this qualification. If no state is bound, this method will return an empty array.
    * @returns Array of people with this qualification.
    */
@@ -143,6 +127,6 @@ export class Qualification extends Base implements IQualification {
     if (!this.state) {
       return [];
     }
-    return Person.getWith(this.state, this);
+    return Person.getBy(this.state, (person) => person.team?.eq(this) ?? false);
   }
 }

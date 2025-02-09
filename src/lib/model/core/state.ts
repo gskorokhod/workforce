@@ -11,6 +11,7 @@ import { Qualification } from "./qualification";
 import { DEFAULTS, type Settings } from "./settings";
 import { Shift } from "./shift";
 import { Task } from "./task";
+import { Team } from "./team";
 
 // A map of UUIDs to objects of type T
 type Stored<T extends Base> = Map<string, T>;
@@ -21,6 +22,7 @@ export class State {
   private readonly stateID: string;
   readonly settings: Writable<Settings>;
   readonly _qualifications: Storage<Qualification>;
+  readonly _teams: Storage<Team>;
   readonly _tasks: Storage<Task>;
   readonly _people: Storage<Person>;
   readonly _locations: Storage<Location>;
@@ -32,6 +34,9 @@ export class State {
     this.settings = persisted("settings_" + this.stateID, { ...DEFAULTS });
     this._qualifications = persisted("qualifications_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Qualification.fromJSON),
+    });
+    this._teams = persisted("teams_" + this.stateID, new Map(), {
+      serializer: this.mkSerializer(Team.fromJSON),
     });
     this._tasks = persisted("tasks_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Task.fromJSON),

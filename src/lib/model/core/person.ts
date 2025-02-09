@@ -9,6 +9,7 @@ import { Base } from "./base";
 import { displayFromJSON, displayToJSON, revivedArr } from "./misc";
 import { Qualification } from "./qualification";
 import { State } from "./state";
+import { Team } from "./team";
 
 /**
  * Represents a member of an organisation who can be assigned to tasks.
@@ -24,6 +25,7 @@ import { State } from "./state";
  */
 interface IPerson extends Display {
   qualifications: Qualification[];
+  team?: Team;
   role: string;
   birthday?: CalendarDate;
 }
@@ -38,6 +40,7 @@ export class Person extends Base implements IPerson {
   role: string;
   birthday?: CalendarDate;
   private _qualifications: Qualification[];
+  private _team?: Team;
 
   /**
    * A member of an organisation who can be assigned to tasks.
@@ -54,6 +57,7 @@ export class Person extends Base implements IPerson {
     this.role = props.role || "";
     this.birthday = props.birthday;
     this._qualifications = props.qualifications || [];
+    this._team = props.team;
   }
 
   /**
@@ -112,11 +116,12 @@ export class Person extends Base implements IPerson {
    * @returns new Person, bound to the state if provided.
    */
   static fromJSON(json: JsonValue, state?: State): Person {
-    const { uuid, qualifications, role, birthday } = json as JsonObject;
+    const { uuid, qualifications, role, birthday, team } = json as JsonObject;
     return new Person(
       {
         ...displayFromJSON(json),
         qualifications: revivedArr(Qualification, qualifications, state),
+        team: team ? Team.fromJSON(team as JsonObject, state) : undefined,
         role: role as string,
         birthday: birthday ? parseDate(birthday as string) : undefined,
       },
@@ -134,6 +139,7 @@ export class Person extends Base implements IPerson {
       uuid: this.uuid,
       ...displayToJSON(this),
       qualifications: this.qualifications.map((qualification) => qualification.toJSON()),
+      team: this._team?.toJSON() || null,
       role: this.role,
     };
 
@@ -156,6 +162,7 @@ export class Person extends Base implements IPerson {
         description: this.description,
         role: this.role,
         qualifications: copyArr(this.qualifications),
+        team: this._team?.copy(),
         avatar: this.avatar ? new URL(this.avatar.href) : undefined,
         birthday: this.birthday?.copy(),
       },
@@ -170,6 +177,7 @@ export class Person extends Base implements IPerson {
   put() {
     if (this.state) {
       this.state.put(this);
+      this._team?.put();
       this._qualifications.forEach((qualification) => qualification.put());
     }
   }
@@ -241,5 +249,12 @@ export class Person extends Base implements IPerson {
       return undefined;
     }
     return fullYearsBetween(this.birthday, now(getLocalTimeZone()));
+  }
+
+  /**
+   * Get the team that the person is a part of
+   */
+  get team(): Team | undefined {
+    return this._team?.get() as Team | undefined;
   }
 }

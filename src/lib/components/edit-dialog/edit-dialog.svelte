@@ -1,7 +1,8 @@
 <script lang="ts" generics="T extends Base">
   import * as Dialog from "$lib/components/dialog";
   import { state as GLOBAL_STATE } from "$lib/model";
-  import { Assignment, Base, Location, Person, Qualification, Shift, Task } from "$lib/model/core";
+  import { Assignment, Base, Location, Person, Shift, Task } from "$lib/model/core";
+  import { isDisplay } from "$lib/ui";
   import { Button } from "../button";
   import { DatePicker } from "../date-picker";
   import ImagePicker from "../image-picker/image-picker.svelte";
@@ -46,7 +47,7 @@
     </Dialog.Header>
     {#if item}
       <div class="mb-4 mt-4 flex h-full max-h-[60vh] w-full flex-col gap-6 overflow-y-scroll p-1">
-        {#if item instanceof Person || item instanceof Qualification || item instanceof Task || item instanceof Location || item instanceof Shift}
+        {#if isDisplay(item)}
           <div class="flex w-full flex-row items-center justify-between gap-8">
             <ImagePicker bind:item size="xl" />
             <div class="flex h-full w-full flex-col gap-2">

@@ -15,4 +15,9 @@ export interface HasAvatar extends HasName {
 
 export type Display = HasName & Partial<HasIcon> & Partial<HasAvatar>;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function isDisplay(obj: any): obj is Display {
+  return typeof obj === "object" && obj !== null && typeof obj.name === "string";
+}
+
 export { Icon };
