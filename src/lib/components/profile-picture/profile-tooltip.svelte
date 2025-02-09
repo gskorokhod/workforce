@@ -27,7 +27,7 @@
           {/if}
         </div>
         {#if item instanceof Person}
-          {item.job}
+          {item.role}
         {:else if item instanceof Task}
           Task
         {:else if item instanceof Qualification}

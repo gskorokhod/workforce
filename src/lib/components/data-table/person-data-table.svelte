@@ -51,9 +51,9 @@
       id: "age",
     },
     {
-      accessor: (row: Person) => row.job,
-      header: "Job Title",
-      id: "job",
+      accessor: (row: Person) => row.role,
+      header: "Role",
+      id: "role",
     },
     {
       accessor: (row: Person) => row.qualifications,

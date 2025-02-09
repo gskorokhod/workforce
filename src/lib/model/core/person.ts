@@ -15,7 +15,7 @@ import { State } from "./state";
  * @interface
  * @property {string} name - The name of the person.
  * @property {Qualification[]} qualifications - The qualifications that the person has.
- * @property {string} job - The job title of the person.
+ * @property {string} role - The job title of the person.
  * @property {URL} [avatar] - The URL of the person's avatar.
  * @property {CalendarDate} [birthday] - The person's birthday.
  * @see Qualification
@@ -24,7 +24,7 @@ import { State } from "./state";
  */
 interface IPerson extends Display {
   qualifications: Qualification[];
-  job: string;
+  role: string;
   birthday?: CalendarDate;
 }
 
@@ -35,7 +35,7 @@ export class Person extends Base implements IPerson {
   name: string;
   description?: string;
   avatar?: URL;
-  job: string;
+  role: string;
   birthday?: CalendarDate;
   private _qualifications: Qualification[];
 
@@ -51,7 +51,7 @@ export class Person extends Base implements IPerson {
     this.name = props.name || "";
     this.description = props.description || "";
     this.avatar = props.avatar;
-    this.job = props.job || "";
+    this.role = props.role || "";
     this.birthday = props.birthday;
     this._qualifications = props.qualifications || [];
   }
@@ -112,12 +112,12 @@ export class Person extends Base implements IPerson {
    * @returns new Person, bound to the state if provided.
    */
   static fromJSON(json: JsonValue, state?: State): Person {
-    const { uuid, qualifications, job, birthday } = json as JsonObject;
+    const { uuid, qualifications, job: role, birthday } = json as JsonObject;
     return new Person(
       {
         ...displayFromJSON(json),
         qualifications: revivedArr(Qualification, qualifications, state),
-        job: job as string,
+        role: role as string,
         birthday: birthday ? parseDate(birthday as string) : undefined,
       },
       state,
@@ -134,7 +134,7 @@ export class Person extends Base implements IPerson {
       uuid: this.uuid,
       ...displayToJSON(this),
       qualifications: this.qualifications.map((qualification) => qualification.toJSON()),
-      job: this.job,
+      job: this.role,
     };
 
     if (this.birthday) {
@@ -154,7 +154,7 @@ export class Person extends Base implements IPerson {
       {
         name: this.name,
         description: this.description,
-        job: this.job,
+        role: this.role,
         qualifications: copyArr(this.qualifications),
         avatar: this.avatar ? new URL(this.avatar.href) : undefined,
         birthday: this.birthday?.copy(),

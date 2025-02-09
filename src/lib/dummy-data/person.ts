@@ -14,7 +14,7 @@ function mkBirthday(): CalendarDate {
 export function generatePerson(state?: State): Person {
   const qualifications = state ? sampleQualifications(state, 0, 3) : generateQualifications(0, 3);
   const name = faker.person.fullName();
-  const job = faker.person.jobTitle();
+  const role = faker.person.jobTitle();
   const birthday = mkBirthday();
   const avatar = new URL(faker.image.avatar());
 
@@ -22,7 +22,7 @@ export function generatePerson(state?: State): Person {
     {
       name,
       birthday,
-      job,
+      role,
       qualifications,
       avatar,
     },
