@@ -1,3 +1,7 @@
+<script lang="ts">
+  import Shifts from "$lib/components/views/shifts.svelte";
+</script>
+
 <div class="w-full bg-gray-50">
-  <h1>TODO: Update shifts page</h1>
+  <Shifts />
 </div>

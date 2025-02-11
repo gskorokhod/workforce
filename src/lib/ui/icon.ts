@@ -18,7 +18,12 @@ export class Icon implements Copy<Icon> {
     this.color = color;
   }
 
-  static fromString(str: string, color?: Color): Icon {
+  static fromString(str: string, aColor?: Color | string): Icon {
+    let color = undefined;
+    if (aColor) {
+      color = typeof aColor === "string" ? new Color(aColor) : aColor;
+    }
+
     if (!str.includes(":")) {
       return new Icon({ pack: DEFAULT_PACK, name: str }, color);
     }

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Label } from "$lib/components/label";
+  import { Label } from "$lib/components/ui/label";
   import { Map, MapMarker } from "$lib/components/map";
   import { Search } from "$lib/components/search";
   import { Location } from "$lib/model";

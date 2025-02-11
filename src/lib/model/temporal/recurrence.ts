@@ -1,4 +1,5 @@
 import { type Copy } from "$lib/utils";
+import { noUndefined } from "$lib/utils/misc";
 import {
   CalendarDate,
   fromDate,
@@ -7,7 +8,7 @@ import {
   type DateValue,
   type TimeDuration,
 } from "@internationalized/date";
-import { datetime, RRule, RRuleSet } from "rrule";
+import { RRule, RRuleSet } from "rrule";
 import type { JsonObject } from "type-fest";
 import { fromRecurrenceOptions, toRecurrenceOptions, type RecurrenceOptions } from "./options";
 import { TimeSlot } from "./timeslot";
@@ -203,7 +204,8 @@ class Recurrence implements Copy<Recurrence> {
    * @param applyExceptions If this is false, the date inclusion / exclusion functionality is disabled. Defaults to true.
    * @returns TimeSlot object representing the occurrence, or undefined if the event is not occurring at the given date & time.
    */
-  occurrenceOn(date: DateValue, applyExceptions = true): TimeSlot | undefined {
+  occurrencesOn(date: DateValue, applyExceptions = true): TimeSlot[] {
+    const allDay = TimeSlot.allDay(date);
     const occurrences = this.occurrences(
       date.subtract({ days: 1 }),
       date.add({ days: 1 }),
@@ -212,7 +214,7 @@ class Recurrence implements Copy<Recurrence> {
       applyExceptions,
     );
 
-    return occurrences.find((occ) => occ.includes(date)) || undefined;
+    return occurrences.filter((occ) => occ.intersects(allDay));
   }
 
   /**
@@ -328,7 +330,7 @@ class Recurrence implements Copy<Recurrence> {
    * @returns New Recurrence object with the updated properties
    */
   update(props: Partial<RecurrenceProps>): Recurrence {
-    let rule = this.recurrenceOptions;
+    let rule = this.recurrenceOptions as Partial<RecurrenceOptions>;
     if (props.rule) {
       const { until, count, ...rest } =
         props.rule instanceof RRule
@@ -337,8 +339,7 @@ class Recurrence implements Copy<Recurrence> {
 
       rule = {
         ...rule,
-
-        ...Object.fromEntries(Object.entries(rest).filter(([_, v]) => v !== undefined)),
+        ...noUndefined(rest),
       };
 
       if (count) {
@@ -364,12 +365,7 @@ class Recurrence implements Copy<Recurrence> {
    * @returns A human-readable string representing the recurrence pattern.
    */
   toText(): string {
-    const dts = this.dtStart;
-    const rrule = new RRule({
-      ...this._rrule.options,
-      // This is a hack: RRule does not handle timezones correctly in its `toText` method, so we make a "UTC" date which is actually in the correct timezone.
-      dtstart: datetime(dts.year, dts.month, dts.day, dts.hour, dts.minute),
-    });
+    const rrule = new RRule(fromRecurrenceOptions(this.recurrenceOptions));
     return rrule.toText();
   }
 

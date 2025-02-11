@@ -7,12 +7,13 @@
   import { createRender, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
   import { type Writable, writable } from "svelte/store";
-  import { Button } from "../button";
+  import { Button } from "../ui/button";
   import { EditDialog } from "../edit-dialog";
   import { ProfilePicture, ProfilesList } from "../profile-picture";
   import { Search } from "../search";
   import { type ColumnInitializer, DataTableCore } from "./core";
   import { ColumnHideSelector, TableHeader } from "./lib";
+  import { get } from "svelte/store";
 
   const timeFormatter = new DateFormatter(navigator.language || "en", {
     timeZone: getLocalTimeZone(),
@@ -79,7 +80,11 @@
       header: "Recurrence",
       id: "recurrence",
     },
-    {
+  ];
+
+  const settings = state.settings;
+  if (get(settings).assignmentMode === "granular") {
+    columnInitializers.push({
       accessor: (row: Shift) => Array.from(row.tasks.values()),
       cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No Tasks" }),
       header: "Tasks in Shift",
@@ -92,8 +97,8 @@
           getFilterValue: (value: Task[]) => value.map((t) => t.name).join(" "),
         },
       },
-    },
-  ];
+    });
+  }
 
   let actions = new Map([
     ...rowActions,
@@ -102,13 +107,13 @@
   ]);
 
   function rowClick(item: Shift) {
-    dialogTitle = "Edit Skill";
-    selected = item;
+    dialogTitle = "Edit Shift";
+    selected = item.get() as Shift;
     dialogOpen = true;
   }
 
   function newShift() {
-    dialogTitle = "Create new Skill";
+    dialogTitle = "Create new Shift";
     selected = new Shift({}, state);
     dialogOpen = true;
   }

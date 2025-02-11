@@ -7,10 +7,11 @@ import { Assignment } from "./assignment";
 import { Base } from "./base";
 import { Location } from "./location";
 import { Person } from "./person";
+import { Qualification } from "./qualification";
 import { DEFAULTS, type Settings } from "./settings";
 import { Shift } from "./shift";
-import { Skill } from "./skill";
 import { Task } from "./task";
+import { Team } from "./team";
 
 // A map of UUIDs to objects of type T
 type Stored<T extends Base> = Map<string, T>;
@@ -20,7 +21,8 @@ type Storage<T extends Base> = Writable<Stored<T>>;
 export class State {
   private readonly stateID: string;
   readonly settings: Writable<Settings>;
-  readonly _skills: Storage<Skill>;
+  readonly _qualifications: Storage<Qualification>;
+  readonly _teams: Storage<Team>;
   readonly _tasks: Storage<Task>;
   readonly _people: Storage<Person>;
   readonly _locations: Storage<Location>;
@@ -30,8 +32,11 @@ export class State {
   constructor(stateID?: string) {
     this.stateID = stateID || uuidv4();
     this.settings = persisted("settings_" + this.stateID, { ...DEFAULTS });
-    this._skills = persisted("skills_" + this.stateID, new Map(), {
-      serializer: this.mkSerializer(Skill.fromJSON),
+    this._qualifications = persisted("qualifications_" + this.stateID, new Map(), {
+      serializer: this.mkSerializer(Qualification.fromJSON),
+    });
+    this._teams = persisted("teams_" + this.stateID, new Map(), {
+      serializer: this.mkSerializer(Team.fromJSON),
     });
     this._tasks = persisted("tasks_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Task.fromJSON),
@@ -114,9 +119,9 @@ export class State {
    * @throws Error if the object type is unknown
    */
   put<T extends Base>(obj: T): string {
-    if (obj instanceof Skill) {
-      this._skills.update((map) => {
-        map.set(obj.uuid, obj as Skill);
+    if (obj instanceof Qualification) {
+      this._qualifications.update((map) => {
+        map.set(obj.uuid, obj as Qualification);
         return map;
       });
     } else if (obj instanceof Task) {
@@ -161,8 +166,8 @@ export class State {
     }
   }
 
-  get skills(): Writable<Skill[]> {
-    return this.createWritable(this._skills);
+  get qualifications(): Writable<Qualification[]> {
+    return this.createWritable(this._qualifications);
   }
 
   get tasks(): Writable<Task[]> {
@@ -218,7 +223,7 @@ export class State {
    */
   private get _stores(): Storage<Base>[] {
     return [
-      this._skills,
+      this._qualifications,
       this._tasks,
       this._people,
       this._locations,

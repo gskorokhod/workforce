@@ -1,6 +1,6 @@
 <script lang="ts" generics="T extends Base & Display">
-  import { Button } from "$lib/components/button";
-  import * as Popover from "$lib/components/popover";
+  import { Button } from "$lib/components/ui/button";
+  import * as Popover from "$lib/components/ui/popover";
   import { Base } from "$lib/model/core";
   import { Icon, type Display } from "$lib/ui";
   import { has, without } from "$lib/utils";
@@ -51,6 +51,7 @@
     onSelect,
     isChecked,
     className,
+    closeOnSelect: false,
   }}
   bind:open
 >
@@ -61,7 +62,8 @@
       builders={[builder]}
       class="group/selector !h-max w-max px-2 py-2 {BTN_SIZE[
         size
-      ]} overflow-visible rounded-full outline-none hover:outline-accent-foreground"
+      ]} overflow-visible rounded-full outline-none transition-all hover:outline-accent-foreground {open &&
+        'outline-accent-foreground'}"
       role="combobox"
       variant="ghost"
     >

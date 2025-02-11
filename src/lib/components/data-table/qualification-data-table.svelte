@@ -1,32 +1,31 @@
 <script lang="ts">
-  import { Person, Task, Skill, State } from "$lib/model";
+  import { state as GLOBAL_STATE, Person, Qualification, State, Task } from "$lib/model";
   import type { Display } from "$lib/ui";
-  import { state as GLOBAL_STATE } from "$lib/model";
+  import { PlusIcon } from "lucide-svelte";
   import { createRender, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
-  import { type Writable, writable } from "svelte/store";
-  import { Search } from "../search";
-  import { Button } from "../button";
-  import { PlusIcon } from "lucide-svelte";
-  import { ProfilePicture, ProfilesList } from "../profile-picture";
-  import { type ColumnInitializer, DataTableCore } from "./core";
+  import { get, type Writable, writable } from "svelte/store";
+  import { Button } from "../ui/button";
   import { EditDialog } from "../edit-dialog";
-  import { TableHeader, ColumnHideSelector } from "./lib";
+  import { ProfilePicture, ProfilesList } from "../profile-picture";
+  import { Search } from "../search";
+  import { type ColumnInitializer, DataTableCore } from "./core";
+  import { ColumnHideSelector, TableHeader } from "./lib";
 
-  let data: ReadOrWritable<Skill[]>;
+  let data: ReadOrWritable<Qualification[]>;
   let header = true;
   let state: State = GLOBAL_STATE;
-  let rowActions = new Map<string, (item: Skill) => void>();
+  let rowActions = new Map<string, (item: Qualification) => void>();
   let filterValue: Writable<string> = writable("");
   let sortKeys: WritableSortKeys = createSortKeysStore([]);
   let hideForId: Record<string, boolean> = {};
-  let flatColumns: FlatColumn<Skill, any, string>[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+  let flatColumns: FlatColumn<Qualification, any, string>[]; // eslint-disable-line @typescript-eslint/no-explicit-any
   let className = "";
 
-  let selected: Skill | undefined = undefined;
+  let selected: Qualification | undefined = undefined;
   let dialogOpen = false;
   let dialogTitle = "Edit Person";
-  let columnInitializers: ColumnInitializer<Skill>[] = [
+  let columnInitializers: ColumnInitializer<Qualification>[] = [
     {
       accessor: (row) => row as Display,
       cell: (cell) => createRender(ProfilePicture, { item: cell.value }),
@@ -42,14 +41,14 @@
       },
     },
     {
-      accessor: (row: Skill) => row.name,
+      accessor: (row: Qualification) => row.name,
       header: "Name",
       id: "name",
     },
     {
-      accessor: (row: Skill) => row.getPeople(),
+      accessor: (row: Qualification) => row.getPeople(),
       cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No People" }),
-      header: "People with Skill",
+      header: "People with Quialification",
       id: "people",
       plugins: {
         sort: {
@@ -60,10 +59,14 @@
         },
       },
     },
-    {
-      accessor: (row: Skill) => row.getTasks(),
+  ];
+
+  const settings = state.settings;
+  if (get(settings).assignmentMode === "granular") {
+    columnInitializers.push({
+      accessor: (row: Qualification) => row.getTasks(),
       cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No Tasks" }),
-      header: "Tasks requiring Skill",
+      header: "Tasks requiring Qualification",
       id: "tasks",
       plugins: {
         sort: {
@@ -73,24 +76,24 @@
           getFilterValue: (value: Task[]) => value.map((t) => t.name).join(" "),
         },
       },
-    },
-  ];
+    });
+  }
 
   let actions = new Map([
     ...rowActions,
-    ["Edit", (item: Skill) => rowClick(item)],
-    ["Delete", (item: Skill) => item.delete()],
+    ["Edit", (item: Qualification) => rowClick(item)],
+    ["Delete", (item: Qualification) => item.delete()],
   ]);
 
-  function rowClick(item: Skill) {
-    dialogTitle = "Edit Skill";
-    selected = item;
+  function rowClick(item: Qualification) {
+    dialogTitle = "Edit Qualification";
+    selected = item.get() as Qualification;
     dialogOpen = true;
   }
 
-  function newSkill() {
-    dialogTitle = "Create new Skill";
-    selected = new Skill({}, state);
+  function newQualification() {
+    dialogTitle = "Create new Qualification";
+    selected = new Qualification({}, state);
     dialogOpen = true;
   }
 
@@ -103,7 +106,7 @@
       <svelte:fragment slot="start">
         <Button
           class="text-muted-foreground hover:text-accent-foreground"
-          on:click={newSkill}
+          on:click={newQualification}
           size="icon-xl"
           variant="ghost"
         >

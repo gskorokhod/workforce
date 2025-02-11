@@ -5,6 +5,7 @@ import {
   CalendarDate,
   fromDate,
   isSameDay,
+  Time,
   toCalendarDate,
   type TimeDuration,
 } from "@internationalized/date";
@@ -52,7 +53,7 @@ function mkEnd(): { count: number } | { until: CalendarDate } {
 
 function mkDuration(): TimeDuration {
   return {
-    hours: Math.floor(Math.random() * 22) + 1,
+    hours: Math.floor(Math.random() * 8) + 1,
     minutes: select([0, 15, 30, 45]),
   };
 }
@@ -77,21 +78,38 @@ function mkExceprions(): {
   return { rdates, exdates };
 }
 
-export function generateRecurrence(): Recurrence {
+function mkTime(when?: "Morning" | "Day" | "Evening" | "Night"): Time {
+  switch (when) {
+    case "Morning":
+      return new Time(5 + Math.floor(Math.random() * 5), select([0, 15, 30, 45]));
+    case "Day":
+      return new Time(9 + Math.floor(Math.random() * 5), select([0, 15, 30, 45]));
+    case "Evening":
+      return new Time(14 + Math.floor(Math.random() * 5), select([0, 15, 30, 45]));
+    case "Night":
+      return new Time(19 + Math.floor(Math.random() * 4), select([0, 15, 30, 45]));
+    default:
+      return new Time(Math.floor(Math.random() * 24), select([0, 15, 30, 45]));
+  }
+}
+
+export function generateRecurrence(opts?: {
+  whenStart?: "Morning" | "Day" | "Evening" | "Night";
+}): Recurrence {
   const freq = mkFreq();
   const options: Partial<RecurrenceOptions> = {
     ...mkEnd(),
     freq,
     interval: mkInterval(),
     byweekday: freq === RRule.DAILY ? [] : mkWeekdays(),
-    dtstart: fromDate(faker.date.recent({ days: 14 }), "UTC"),
+    dtstart: fromDate(faker.date.recent({ days: 14 }), "UTC").set(mkTime(opts?.whenStart)),
   };
 
-  const { rdates, exdates } = mkExceprions();
+  //const { rdates, exdates } = mkExceprions();
   const props: RecurrenceProps = {
     duration: mkDuration(),
-    rdates,
-    exdates,
+    // rdates,
+    // exdates,
     rule: options,
   };
 

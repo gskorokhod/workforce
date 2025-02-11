@@ -1,7 +1,7 @@
 <script lang="ts" generics="T extends Display">
   import { ProfilePicture } from ".";
 
-  import { Person, Shift, Skill, Task } from "$lib/model/core";
+  import { Person, Qualification, Shift, Task } from "$lib/model/core";
   import { type Display } from "$lib/ui";
   import { CakeIcon } from "lucide-svelte";
 
@@ -13,7 +13,7 @@
 </script>
 
 {#if item}
-  {#if item instanceof Person || item instanceof Task || item instanceof Skill || item instanceof Location || item instanceof Shift}
+  {#if item instanceof Person || item instanceof Task || item instanceof Qualification || item instanceof Location || item instanceof Shift}
     <div class="flex w-max flex-row items-center justify-between gap-4 {className}">
       <ProfilePicture {item} size="lg" />
       <div class="flex w-full flex-col justify-between gap-[2px] py-1">
@@ -27,11 +27,11 @@
           {/if}
         </div>
         {#if item instanceof Person}
-          {item.job}
+          {item.role}
         {:else if item instanceof Task}
           Task
-        {:else if item instanceof Skill}
-          Skill
+        {:else if item instanceof Qualification}
+          Qualification
         {:else if item instanceof Location}
           Location
         {:else if item instanceof Shift}

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { CalendarDate, Time } from "@internationalized/date";
+  import { CalendarDate, getLocalTimeZone, isSameMonth, Time } from "@internationalized/date";
   import { ChevronLeft, ChevronRight } from "lucide-svelte";
   import { writable, type Writable } from "svelte/store";
-  import Button from "../button/button.svelte";
+  import Button from "../ui/button/button.svelte";
   import TimeGrid from "./time-grid.svelte";
   import type { CalendarContext, CalendarProps } from "./types";
 
@@ -15,6 +15,7 @@
   export let columnGap = "0.5rem";
   export let innerGap: string | undefined = undefined;
   export let line = "1px";
+  export let calendarHeight = "1800px";
   let className = "";
 
   const props: Writable<CalendarProps> = writable({
@@ -56,37 +57,56 @@
     console.log(startDate, endDate);
   }
 
+  function displayRange(from: CalendarDate, to: CalendarDate) {
+    const head =
+      `${from.year}, ${from.toDate(getLocalTimeZone()).toLocaleDateString(navigator.language || "en", { month: "long" })} ` +
+      `${from.day}`.padStart(2, "0") +
+      " - ";
+    if (isSameMonth(from, to)) {
+      return head + `${to.day}`.padStart(2, "0");
+    } else {
+      return (
+        head +
+        `${to.toDate(getLocalTimeZone()).toLocaleDateString(navigator.language || "en", { month: "long" })} ` +
+        `${to.day}`.padStart(2, "0")
+      );
+    }
+  }
+
   export { className as class };
 </script>
 
-<div class={className} style="--line: {line}">
-  <div class="flex h-fit w-full flex-row justify-between">
-    <slot name="header" {context} />
-    <div class="mb-2 ml-auto flex h-fit w-fit flex-row gap-2">
-      <Button size="icon-xl" variant="ghost" on:click={shiftLeft}>
-        <ChevronLeft />
-      </Button>
-      <Button size="icon-xl" variant="ghost" on:click={shiftRight}>
-        <ChevronRight />
-      </Button>
-    </div>
+<div class="flex flex-col {className}" style="">
+  <div class="z-20 flex flex-row items-center gap-4 p-2 shadow">
+    <Button on:click={shiftLeft} size="icon" variant="ghost">
+      <ChevronLeft />
+    </Button>
+    <Button on:click={shiftRight} size="icon" variant="ghost">
+      <ChevronRight />
+    </Button>
+    <h2 class="text-lg font-semibold text-primary">
+      {displayRange(startDate, endDate)}
+    </h2>
   </div>
-  <div class="main-container w-wull flex h-full flex-row">
-    <!-- Yes, there is a weird magic value for the bottom padding. Yes, this is *bad*. Please ignore for now :) -->
-    <!-- The grid doesn't always fit its container exactly (especially inside flex and such) so we have to add extra padding at the bottom so it doesnt look borked -->
-    <!-- By trial and error I have found a value that seems to do the trick -->
-    <TimeGrid
-      start={startTime}
-      end={endTime}
-      {precision}
-      {step}
-      hLineWidth={line}
-      showTime={true}
-      vLineWidth="0px"
-      class="time-col mt-10 h-full w-14"
-      style="padding-bottom: calc(2.5rem - {line})"
-    />
-    <slot {context} />
+  <div class="flex h-full w-full flex-col overflow-y-scroll">
+    <div
+      class="main-container flex w-full flex-row"
+      style="height: {calendarHeight}; --line: {line}"
+    >
+      <TimeGrid
+        start={startTime}
+        end={endTime}
+        {precision}
+        {step}
+        hLineWidth={line}
+        showTime={true}
+        vLineWidth="0px"
+        class="w-14 bg-secondary"
+      >
+        <div class="bg-secondary" style="grid-row: 1; grid-column: 1 / span all" />
+      </TimeGrid>
+      <slot {context} />
+    </div>
   </div>
 </div>
 

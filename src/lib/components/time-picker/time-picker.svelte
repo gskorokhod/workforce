@@ -10,7 +10,7 @@
     ZonedDateTime,
     type TimeDuration,
   } from "@internationalized/date";
-  import { Input } from "../input";
+  import { Input } from "../ui/input";
 
   export let value: T | undefined = undefined;
   export let onChange: (val: T) => void = () => {};

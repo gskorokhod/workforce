@@ -20,16 +20,17 @@
   const props = writable<TimeGridProps>({ start, end, step, precision, columnGap, showTime });
   const intervals = writable(new Map<string, { start: Time; end: Time }>());
   const startCols = writable(new Map<string, number>());
-  export const tgContext: TimeGridContext = { props, intervals, startCols };
+  const endCols = writable(new Map<string, number>());
+  export const tgContext: TimeGridContext = { props, intervals, startCols, endCols };
 
   $: tgContext.props.set({ start, end, step, precision, columnGap, showTime });
-  $: rows = Math.floor(minutesBetween(start, end) / precision);
-  $: visibleRows = Math.floor(minutesBetween(start, end) / step);
+  $: rows = Math.ceil(minutesBetween(start, end) / precision);
+  $: visibleRows = Math.ceil(minutesBetween(start, end) / step);
   $: colGap = $props.columnGap;
   $: colVals = Array.from($startCols.values());
   $: cols = Math.max(...colVals, 0);
 
-  tgContext.intervals.subscribe((tree) => {
+  tgContext.intervals.subscribe((val) => {
     interface Event {
       key: string;
       start: number;
@@ -37,9 +38,10 @@
     }
 
     const startCols = new Map<string, number>();
+    const endCols = new Map<string, number>();
     const events: Event[] = [];
 
-    tree.forEach((interval, key) => {
+    val.forEach((interval, key) => {
       events.push({
         key,
         start: toMinutes(interval.start),
@@ -50,30 +52,64 @@
     events.sort((a, b) => a.start - b.start || b.end - a.end);
 
     const columns: number[] = [];
+    let ongoing: [Event, number][] = [];
 
     events.forEach((event) => {
       const { key, start, end } = event;
-      let assigned = false;
+      let thisStartCol = -1;     // Starting column for the new event
+      let thisEndCol = Infinity; // Ending column for the new event. Initially, assume it can span all columns
 
+      // Find the first column that is available for this event
       for (let i = 0; i < columns.length; i++) {
         if (columns[i] <= start) {
           columns[i] = end;
-          startCols.set(key, i + 1);
-          console.log(`Assigned event ${key} to existing column ${i + 1}`);
-          assigned = true;
+          thisStartCol = i + 1;
           break;
         }
       }
 
-      if (!assigned) {
+      // All columns are occupied, so we need to add a new one
+      if (thisStartCol === -1) {
         columns.push(end);
-        startCols.set(key, columns.length);
-        console.log(`Assigned event ${key} to new column ${columns.length}`);
+        thisStartCol = columns.length;
       }
+
+      // Update the end column for ongoing events
+      let newOngoing: [Event, number][] = [];
+      ongoing.forEach(([ev, evEndCol]) => {
+        if (ev.end <= start) {
+          // Event has ended, save its final end column and remove it from the ongoing list
+          endCols.set(ev.key, evEndCol);
+        } else {
+          // Event is still ongoing (i.e overlaps with the current one)
+          const evStartCol = startCols.get(ev.key) ?? evEndCol;
+          if (evStartCol >= thisStartCol) {
+            // This event has a higher start column than us. We have to constrain our end column.
+            thisEndCol = Math.min(thisEndCol, evStartCol - 1);
+          } else {
+            // This event has a lower start column than us. We can shrink its end column.
+            newOngoing.push([ev, Math.min(evEndCol, thisStartCol - 1)]);
+          }
+        }
+      });
+      newOngoing.push([event, thisEndCol]);
+      ongoing = newOngoing;
+
+      startCols.set(key, thisStartCol);
     });
 
-    console.log("Start cols:", startCols);
+    // Save the final end columns for all remaining events
+    ongoing.forEach(([ev, col]) => {
+      endCols.set(ev.key, col);
+    });
+
+    // Sanity check on end columns: not less than start columns, not more than total columns
+    for (const [key, col] of endCols) {
+      endCols.set(key, Math.max(Math.min(col, columns.length), startCols.get(key) ?? 1));
+    }
+
     tgContext.startCols.set(startCols);
+    tgContext.endCols.set(endCols);
   });
 
   export { className as class };
@@ -86,13 +122,13 @@
       hLineWidth}; --padRight: {padRight}"
   >
     {#each Array.from({ length: visibleRows }) as _, i}
-      {@const rw = Math.floor((i * $props.step) / $props.precision)}
-      <div class="hline-container" style="grid-row: {rw + 1}; grid-column: 1 / span all">
+      {@const rw = Math.ceil((i * $props.step) / $props.precision) + 2}
+      <div class="hline-container" style="grid-row: {rw}; grid-column: 1 / span all">
         <div class="hline"></div>
       </div>
       <div
         class="time-container"
-        style="grid-row: {rw + 1}; grid-column: 1; width: {showTime ? 'fit-content' : padLeft}"
+        style="grid-row: {rw}; grid-column: 1; width: {showTime ? 'fit-content' : padLeft}"
       >
         <span class={showTime ? "ml-1 mt-1 text-muted-foreground" : "invisible"}>
           {fmtTime($props.start.add({ minutes: i * $props.step }))}
@@ -111,7 +147,7 @@
 <style>
   .time-grid {
     display: grid;
-    grid-template-rows: repeat(var(--rows), 1fr);
+    grid-template-rows: 2rem repeat(var(--rows), 1fr);
     grid-template-columns: min-content repeat(var(--cols), 1fr) var(--padRight);
     row-gap: var(--hLineWidth);
     width: 100%;

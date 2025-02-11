@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Skill, State } from "$lib/model";
+import { Qualification, State } from "$lib/model";
 import { Icon } from "$lib/ui";
 import { faker } from "@faker-js/faker";
 import Color from "color";
@@ -18,16 +18,16 @@ const SKILLS = new Map<string, Icon>([
 
 const PREFIXES = ["Junior", "Senior", "Assistant", "Lead", ""];
 
-function withPrefix(skill: string): string {
+function withPrefix(qualification: string): string {
   const prefix = select(PREFIXES);
   if (prefix === "") {
-    return skill;
+    return qualification;
   } else {
-    return `${prefix} ${skill}`;
+    return `${prefix} ${qualification}`;
   }
 }
 
-function randomSkill(): [string, Icon] {
+function randomQualification(): [string, Icon] {
   const keys = Array.from(SKILLS.keys());
   const key = select(keys);
   const icon = SKILLS.get(key)!;
@@ -35,10 +35,10 @@ function randomSkill(): [string, Icon] {
   return [withPrefix(key), icon];
 }
 
-export function generateSkill(state?: State): Skill {
-  const [name, icon] = randomSkill();
+export function generateQualification(state?: State): Qualification {
+  const [name, icon] = randomQualification();
   const description = faker.lorem.sentence();
-  return new Skill(
+  return new Qualification(
     {
       name,
       description,
@@ -48,25 +48,25 @@ export function generateSkill(state?: State): Skill {
   );
 }
 
-export function sampleSkills(state: State, n: number, max?: number): Skill[] {
+export function sampleQualifications(state: State, n: number, max?: number): Qualification[] {
   if (max && max > n) {
     n = faker.number.int({ min: n, max: max });
   }
 
-  const skills = get(state.skills);
+  const qualifications = get(state.qualifications);
 
-  let missing = n - skills.length;
+  let missing = n - qualifications.length;
   while (missing > 0) {
-    state.put(generateSkill(state));
+    state.put(generateQualification(state));
     missing--;
   }
 
-  return sample(get(state.skills), n);
+  return sample(get(state.qualifications), n);
 }
 
-export function generateSkills(n: number, max?: number, state?: State): Skill[] {
+export function generateQualifications(n: number, max?: number, state?: State): Qualification[] {
   if (max && max > n) {
     n = faker.number.int({ min: n, max: max });
   }
-  return Array.from({ length: n }, () => generateSkill(state));
+  return Array.from({ length: n }, () => generateQualification(state));
 }

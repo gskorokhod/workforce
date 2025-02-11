@@ -4,9 +4,9 @@
 
   import type { FlatColumn } from "svelte-headless-table";
 
-  import { Button } from "$lib/components/button";
-  import * as DropdownMenu from "$lib/components/dropdown-menu";
-  import * as Tooltip from "$lib/components/tooltip";
+  import { Button } from "$lib/components/ui/button";
+  import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+  import * as Tooltip from "$lib/components/ui/tooltip";
   import { EyeOffIcon } from "lucide-svelte";
 
   let flatColumns: FlatColumn<any, any, string>[];

@@ -1,39 +1,28 @@
 <script lang="ts">
-  import { Button } from "$lib/components/button";
+  import { Button } from "$lib/components/ui/button";
   import { SidebarPosition } from "$lib/components/sidebar/index.ts";
   import { PanelLeftCloseIcon, PanelLeftOpenIcon, PanelRightCloseIcon } from "lucide-svelte";
 
   let isExpanded = false;
   let position: SidebarPosition;
-  let expandedWidth = "250px";
-  let collapsedWidth = "72px";
-  let variant: "top" | "center" | "bottom" = "center";
   let className = "";
 
-  let variantClasses: string = {
-    top: "justify-start h-full",
-    center: "justify-start",
-    bottom: "justify-end h-full",
-  }[variant];
-
-  export { isExpanded, position, expandedWidth, collapsedWidth, variant, className as class };
+  export { isExpanded, position, className as class };
 </script>
 
 <nav
-  class="z-20 flex h-full shrink-0 grow-0 flex-col justify-between overflow-hidden bg-gray-300 transition-all duration-200 ease-out {className}"
-  style={isExpanded ? `width: ${expandedWidth}` : `width: ${collapsedWidth}`}
+  class="fixed bottom-0 top-0 z-50 flex h-dvh shrink-0 grow-0 flex-col items-center justify-between overflow-hidden bg-gray-300 p-2 transition-all duration-300 ease-in-out {className}"
 >
-  <div
-    class="flex items-start justify-start p-4 {position === SidebarPosition.left
-      ? 'flex-row-reverse'
-      : 'flex-row'}"
-  >
+  <div class="flex w-full justify-start">
+    <slot name="top" />
+
     <Button
       on:click={() => {
         isExpanded = !isExpanded;
       }}
       variant="ghost"
       size="icon-xl"
+      class={isExpanded ? "ml-auto" : ""}
     >
       {#if position === SidebarPosition.left}
         {#if isExpanded}
@@ -47,43 +36,13 @@
         <PanelLeftCloseIcon />
       {/if}
     </Button>
-
-    {#if isExpanded}
-      {#if $$slots.expanded_top}
-        <slot name="expanded_top" />
-      {:else}
-        <slot name="collapsed_top" />
-      {/if}
-    {:else}
-      <slot name="collapsed_top" />
-    {/if}
   </div>
 
-  <div class="flex flex-col items-start p-4 {variantClasses}">
-    {#if isExpanded}
-      {#if $$slots.expanded_main}
-        <slot name="expanded_main" />
-      {:else}
-        <slot name="collapsed_main" />
-      {/if}
-    {:else}
-      <slot name="collapsed_main" />
-    {/if}
-  </div>
+  <ul class="flex w-full list-none flex-col items-center gap-1">
+    <slot name="main" />
+  </ul>
 
-  <div
-    class="flex items-end justify-start p-4 {position === SidebarPosition.left
-      ? 'flex-row-reverse'
-      : 'flex-row'}"
-  >
-    {#if isExpanded}
-      {#if $$slots.expanded_bottom}
-        <slot name="expanded_bottom" />
-      {:else}
-        <slot name="collapsed_bottom" />
-      {/if}
-    {:else}
-      <slot name="collapsed_bottom" />
-    {/if}
+  <div class="flex w-full justify-start">
+    <slot name="bottom" />
   </div>
 </nav>

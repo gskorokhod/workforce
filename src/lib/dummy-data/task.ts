@@ -3,7 +3,7 @@ import { Icon } from "$lib/ui";
 import { faker } from "@faker-js/faker";
 import { get } from "svelte/store";
 import { sample, select } from "./misc";
-import { generateSkills, sampleSkills } from "./skill";
+import { generateQualifications, sampleQualifications } from "./qualification";
 
 const ICONS = [
   Icon.fromString("mdi:cleaning"),
@@ -55,7 +55,7 @@ export function generateTask(state?: State): Task {
     people: faker.number.int({ min: min.people, max: 10 }),
   };
 
-  const skills = state ? sampleSkills(state, 0, 3) : generateSkills(0, 3);
+  const qualifications = state ? sampleQualifications(state, 0, 3) : generateQualifications(0, 3);
 
   return new Task(
     {
@@ -64,7 +64,7 @@ export function generateTask(state?: State): Task {
       icon,
       min,
       max,
-      skills,
+      qualifications,
     },
     state,
   );

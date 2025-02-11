@@ -3,13 +3,10 @@
   import "../app.css";
 </script>
 
-<div class="flex h-dvh w-dvw flex-row bg-gray-100">
-  <NavMenu />
-  <div class="flex h-dvh w-full flex-col overflow-y-scroll rounded p-4">
+<NavMenu />
+
+<div class="flex h-dvh w-dvw flex-col bg-gray-100 overflow-y-scroll pl-20">
+  <div class="flex flex-col p-2">
     <slot />
   </div>
 </div>
-
-<footer class="text-center">
-  <h1 class="text-xl">My footer</h1>
-</footer>

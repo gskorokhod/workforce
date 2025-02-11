@@ -1,8 +1,8 @@
 <script lang="ts" generics="T extends Display">
   import IconPickerContent from "./icon-picker-content.svelte";
 
-  import { Button } from "$lib/components/button";
-  import * as Popover from "$lib/components/popover";
+  import { Button } from "$lib/components/ui/button";
+  import * as Popover from "$lib/components/ui/popover";
   import { Icon, type Display } from "$lib/ui";
   import { tick } from "svelte";
   import type { Size } from "../profile-picture";
@@ -33,14 +33,14 @@
     <Button
       aria-expanded={open}
       builders={[builder]}
-      class="aspect-square h-fit w-fit rounded-full p-0 outline-none"
+      class="aspect-square h-fit w-fit rounded-full !bg-transparent p-0 !outline-none"
       role="combobox"
       variant="ghost"
     >
       <ProfilePicture {item} {size} {defaultIcon} />
     </Button>
   </Popover.Trigger>
-  <Popover.Content class="w-[310px] p-0">
+  <Popover.Content class="w-80 p-1">
     <div class="rounded bg-destructive p-3 text-destructive-foreground">
       File upload is not supported yet.
     </div>

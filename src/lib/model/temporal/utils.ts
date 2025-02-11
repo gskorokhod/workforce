@@ -1,3 +1,4 @@
+import { noUndefined } from "$lib/utils/misc";
 import {
   CalendarDate,
   CalendarDateTime,
@@ -232,8 +233,13 @@ export function cycle(value: number, d: number, min: number, max: number): numbe
  * @param b Second object
  * @returns The later of the two datetimes
  */
-export function dtMax<T extends DateValue>(a: T, b: T): T {
-  return a.compare(b) >= 0 ? a : b;
+export function dtMax<T extends DateValue | Time>(a: T, b: T): T {
+  if (a instanceof Time && b instanceof Time) {
+    return a.compare(b) >= 0 ? a : b;
+  } else if (!(a instanceof Time) && !(b instanceof Time)) {
+    return a.compare(b) >= 0 ? a : b;
+  }
+  throw new Error("Cannot mix Time and ZonedDateTime objects");
 }
 
 /**
@@ -242,8 +248,13 @@ export function dtMax<T extends DateValue>(a: T, b: T): T {
  * @param b Second object
  * @returns The earlier of the two datetimes
  */
-export function dtMin<T extends DateValue>(a: T, b: T): T {
-  return a.compare(b) <= 0 ? a : b;
+export function dtMin<T extends DateValue | Time>(a: T, b: T): T {
+  if (a instanceof Time && b instanceof Time) {
+    return a.compare(b) <= 0 ? a : b;
+  } else if (!(a instanceof Time) && !(b instanceof Time)) {
+    return a.compare(b) <= 0 ? a : b;
+  }
+  throw new Error("Cannot mix Time and ZonedDateTime objects");
 }
 
 /**
@@ -449,7 +460,7 @@ export function parseDateTimeDuration(json: JsonValue): DateTimeDuration | undef
   }
 
   const jsn = json as JsonObject;
-  return {
+  const ans = {
     years: tryParseInt(jsn.years),
     months: tryParseInt(jsn.months),
     days: tryParseInt(jsn.days),
@@ -459,6 +470,7 @@ export function parseDateTimeDuration(json: JsonValue): DateTimeDuration | undef
     seconds: tryParseInt(jsn.seconds),
     milliseconds: tryParseInt(jsn.milliseconds),
   };
+  return noUndefined(ans);
 }
 
 /**

@@ -5,6 +5,7 @@ import type { JsonObject, JsonValue } from "type-fest";
 import { Geopoint, type LngLat } from "../geocoding";
 import { Assignment } from "./assignment";
 import { Base } from "./base";
+import { displayFromJSON, displayToJSON } from "./misc";
 import { State } from "./state";
 
 /**
@@ -157,13 +158,11 @@ export class Location extends Base implements ILocation {
    * @returns new Location
    */
   static fromJSON(json: JsonValue, state?: State): Location {
-    const { name, description, avatar, min, max, point, uuid } = json as JsonObject;
+    const { min, max, point, uuid } = json as JsonObject;
 
     return new Location(
       {
-        name: name as string,
-        description: description as string,
-        avatar: avatar ? new URL(avatar as string) : undefined,
+        ...displayFromJSON(json),
         point: point ? Geopoint.fromJSON(point as JsonObject) : undefined,
         min: mkMin(min as Partial<LocationMinMax>),
         max: mkMax(max as Partial<LocationMinMax>),
@@ -180,9 +179,7 @@ export class Location extends Base implements ILocation {
   toJSON(): JsonObject {
     const ans: JsonObject = {
       uuid: this.uuid,
-      name: this.name,
-      description: this.description || "",
-      avatar: this.avatar?.href || null,
+      ...displayToJSON(this),
       min: this.min as unknown as JsonObject,
       max: this.max as unknown as JsonObject,
     };

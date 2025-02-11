@@ -3,8 +3,8 @@
 <script lang="ts" generics="T, V = any">
   import ActionsBtn from "./actions-btn.svelte";
 
-  import { Button } from "$lib/components/button";
-  import * as Table from "$lib/components/table";
+  import { Button } from "$lib/components/ui/button";
+  import * as Table from "$lib/components/ui/table";
   import { cn } from "$lib/utils/ui";
   import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-svelte";
   import {
@@ -83,6 +83,7 @@
   }
 
   function rowClicked(row: BodyRow<T>) {
+    console.log("row clicked", row);
     if (row.isData()) {
       const drow = row as DataBodyRow<T>;
       defaultAction(drow.original);

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Button } from "$lib/components/button";
   import Chip from "$lib/components/chip/chip.svelte";
   import type { ComboboxItem } from "$lib/components/combobox";
   import Combobox from "$lib/components/combobox/combobox.svelte";
@@ -16,10 +15,13 @@
   import Search from "$lib/components/search/search.svelte";
   import { Selector } from "$lib/components/selector";
   import SelectorMany from "$lib/components/selector/selector-many.svelte";
+  import * as TabsVertical from "$lib/components/tabs-vertical";
   import TimePicker from "$lib/components/time-picker/time-picker.svelte";
+  import { Button } from "$lib/components/ui/button";
   import { state } from "$lib/model";
   import { fmtTime } from "$lib/model/temporal/utils";
   import { Icon, type Display } from "$lib/ui";
+  import { randomColor } from "$lib/utils/misc";
   import { faker } from "@faker-js/faker";
   import {
     getLocalTimeZone,
@@ -58,7 +60,7 @@
     avatar: new URL(faker.image.avatar()),
   };
   let people = state.people;
-  let skills = state.skills;
+  let qualifications = state.qualifications;
   let tasks = state.tasks;
   let shifts = state.shifts;
 
@@ -74,10 +76,6 @@
     end: Time;
     color: Color;
     id: string;
-  }
-
-  function randomColor(): Color {
-    return Color.rgb(Math.random() * 255, Math.random() * 255, Math.random() * 255);
   }
 
   let start: Time = new Time(9, 0);
@@ -174,39 +172,60 @@
       <Profile item={$people[0]} placeholder="Select person..." />
       <Profile variant="full" item={$people[0]} placeholder="Select person..." />
       <Profile variant="text" item={$people[0]} placeholder="Select person..." />
-      <Profile item={$skills[0]} placeholder="Select skill..." />
+      <Profile item={$qualifications[0]} placeholder="Select qualification..." />
     </section>
     <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Selector (One)</h2>
       <h3 class="text-lg">Default</h3>
       <Selector value={$people[0]} options={$people} />
-      <Selector value={$skills[0]} options={$skills} />
+      <Selector value={$qualifications[0]} options={$qualifications} />
       <h3 class="text-lg">Full</h3>
       <Selector value={$people[0]} options={$people} variant="full" />
-      <Selector value={$skills[0]} options={$skills} variant="full" />
+      <Selector value={$qualifications[0]} options={$qualifications} variant="full" />
       <h3 class="text-lg">Compact</h3>
       <Selector value={$people[0]} options={$people} variant="compact" />
-      <Selector value={$skills[0]} options={$skills} variant="compact" />
+      <Selector value={$qualifications[0]} options={$qualifications} variant="compact" />
     </section>
     <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Selector (Many)</h2>
       <h3 class="text-lg">Default</h3>
       <SelectorMany value={$people.slice(0, 2)} options={$people} />
-      <SelectorMany value={$skills.slice(0, 2)} options={$skills} />
+      <SelectorMany value={$qualifications.slice(0, 2)} options={$qualifications} />
       <h3 class="text-lg">Full</h3>
       <SelectorMany value={$people.slice(0, 2)} options={$people} variant="full" />
-      <SelectorMany value={$skills.slice(0, 2)} options={$skills} variant="full" />
+      <SelectorMany value={$qualifications.slice(0, 2)} options={$qualifications} variant="full" />
       <h3 class="text-lg">Compact</h3>
       <SelectorMany value={$people.slice(0, 2)} options={$people} variant="compact" />
-      <SelectorMany value={$skills.slice(0, 2)} options={$skills} variant="compact" />
+      <SelectorMany
+        value={$qualifications.slice(0, 2)}
+        options={$qualifications}
+        variant="compact"
+      />
+    </section>
+    <section>
+      <h2 class="text-xl">Tabs (Vertical)</h2>
+      <script lang="ts">
+        import * as Tabs from "$lib/components/ui/tabs";
+      </script>
+
+      <TabsVertical.Root value="account" class="w-[400px]">
+        <TabsVertical.List>
+          <TabsVertical.Trigger value="account">Account</TabsVertical.Trigger>
+          <TabsVertical.Trigger value="password">Password</TabsVertical.Trigger>
+        </TabsVertical.List>
+        <TabsVertical.Content value="account">
+          Make changes to your account here.
+        </TabsVertical.Content>
+        <TabsVertical.Content value="password">Change your password here.</TabsVertical.Content>
+      </TabsVertical.Root>
     </section>
     <section>
       <h2 class="mb-1.5 text-xl">Edit Dialog</h2>
       <EditDialog item={$people[0]} title="Edit Person">
         <Button>Edit Person</Button>
       </EditDialog>
-      <EditDialog item={$skills[0]} title="Edit Skill">
-        <Button>Edit Skill</Button>
+      <EditDialog item={$qualifications[0]} title="Edit Qualification">
+        <Button>Edit Qualification</Button>
       </EditDialog>
       <EditDialog item={$tasks[0]} title="Edit Task">
         <Button>Edit Task</Button>
@@ -223,7 +242,7 @@
     <section>
       <h2 class="mb-1.5 text-xl">Recurrence Editor</h2>
       <div class="flex w-max flex-col gap-6 rounded-lg bg-card p-6">
-        <RecurrenceOptionsEdit value={$shifts[0].pattern.recurrenceOptions} />
+        <RecurrenceOptionsEdit recurrence={$shifts[0].pattern.recurrenceOptions} />
       </div>
     </section>
     <section>

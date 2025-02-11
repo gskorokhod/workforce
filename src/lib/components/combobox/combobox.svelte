@@ -1,10 +1,10 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import { Button } from "$lib/components/button/index.js";
+  import { Button } from "$lib/components/ui/button/index.js";
   import type { ComboboxItem } from "$lib/components/combobox/index.ts";
-  import * as Command from "$lib/components/command/index.js";
+  import * as Command from "$lib/components/ui/command/index.js";
   import Icon from "$lib/components/icon/icon.svelte";
-  import * as Popover from "$lib/components/popover/index.js";
+  import * as Popover from "$lib/components/ui/popover/index.js";
   import type { Icon as TIcon } from "$lib/ui";
   import { cn } from "$lib/utils/ui.js";
   import Check from "lucide-svelte/icons/check";

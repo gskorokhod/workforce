@@ -1,15 +1,16 @@
 <script lang="ts" generics="T extends Base">
-  import * as Dialog from "$lib/components/dialog";
+  import * as Dialog from "$lib/components/ui/dialog";
   import { state as GLOBAL_STATE } from "$lib/model";
-  import { Assignment, Base, Location, Person, Shift, Skill, Task } from "$lib/model/core";
-  import { Button } from "../button";
+  import { Assignment, Base, Location, Person, Shift, Task } from "$lib/model/core";
+  import { isDisplay } from "$lib/ui";
+  import { Button } from "../ui/button";
   import { DatePicker } from "../date-picker";
   import ImagePicker from "../image-picker/image-picker.svelte";
-  import { Input } from "../input";
-  import { Label } from "../label";
+  import { Input } from "../ui/input";
+  import { Label } from "../ui/label";
   import RecurrenceOptionsEdit from "../recurrence/recurrence_options_edit.svelte";
   import { SelectorMany } from "../selector";
-  import { Textarea } from "../textarea";
+  import { Textarea } from "../ui/textarea";
   import TimePicker from "../time-picker/time-picker.svelte";
   import EditLocation from "./edit-location.svelte";
 
@@ -18,7 +19,7 @@
   export let open = false;
   export let state = GLOBAL_STATE;
 
-  $: skills = item?.state?.skills || state.skills;
+  $: qualifications = item?.state?.qualifications || state.qualifications;
   $: locations = item?.state?.locations || state.locations;
   // $: tasks = item?.state?.tasks || state.tasks;
   // $: people = item?.state?.people || state.people;
@@ -46,7 +47,7 @@
     </Dialog.Header>
     {#if item}
       <div class="mb-4 mt-4 flex h-full max-h-[60vh] w-full flex-col gap-6 overflow-y-scroll p-1">
-        {#if item instanceof Person || item instanceof Skill || item instanceof Task || item instanceof Location || item instanceof Shift}
+        {#if isDisplay(item)}
           <div class="flex w-full flex-row items-center justify-between gap-8">
             <ImagePicker bind:item size="xl" />
             <div class="flex h-full w-full flex-col gap-2">
@@ -67,17 +68,29 @@
         {/if}
         {#if item instanceof Person}
           <div class="flex w-full flex-col gap-1.5">
+            <Label class="font-semibold" for="role">Role</Label>
+            <Input bind:value={item.role} id="role" placeholder="Role" type="text" />
+          </div>
+          <div class="flex w-full flex-col gap-1.5">
             <Label class="font-semibold" for="birthday">Date of Birth</Label>
             <DatePicker id="birthday" class="w-full" bind:value={item.birthday} />
           </div>
           <div class="flex w-full flex-col gap-1.5">
-            <Label class="font-semibold" for="skills">Skills</Label>
-            <SelectorMany id="skills" bind:value={item.skills} options={$skills} />
+            <Label class="font-semibold" for="qualifications">Qualifications</Label>
+            <SelectorMany
+              id="qualifications"
+              bind:value={item.qualifications}
+              options={$qualifications}
+            />
           </div>
         {:else if item instanceof Task}
           <div class="flex w-full flex-col gap-1.5">
-            <Label class="font-semibold" for="skills">Required Skills</Label>
-            <SelectorMany id="skills" bind:value={item.skills} options={$skills} />
+            <Label class="font-semibold" for="qualifications">Required Qualifications</Label>
+            <SelectorMany
+              id="qualifications"
+              bind:value={item.qualifications}
+              options={$qualifications}
+            />
           </div>
         {:else if item instanceof Location}
           <EditLocation {item} locations={$locations} />
@@ -91,7 +104,7 @@
               hours
             </div>
           </div>
-          <RecurrenceOptionsEdit bind:value={item.pattern.recurrenceOptions} />
+          <RecurrenceOptionsEdit bind:recurrence={item.pattern.recurrenceOptions} />
         {/if}
       </div>
       <Dialog.Footer>

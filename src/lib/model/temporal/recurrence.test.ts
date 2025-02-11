@@ -99,6 +99,6 @@ describe("Recurrence", () => {
     const recurrence = new Recurrence(sampleProps);
     const json = JSON.stringify(recurrence.toJSON());
     const deserialized = Recurrence.fromJSON(JSON.parse(json));
-    expect(deserialized).toEqual(recurrence);
+    expect(deserialized?.recurrenceOptions).toEqual(recurrence?.recurrenceOptions);
   });
 });

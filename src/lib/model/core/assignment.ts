@@ -58,6 +58,24 @@ export class Assignment extends Base implements IAssignment {
   }
 
   /**
+   * Create a new day off assignment
+   * @param person Person taking the day off
+   * @param date Date
+   * @param state State to bind the Assignment to
+   * @returns new Assignment object
+   */
+  static dayOff(person: Person, date: CalendarDate, state?: State): Assignment {
+    return new Assignment({
+      type: AssignmentType.DAY_OFF,
+      name: "Day Off",
+      description: `${person.name} is taking a day off on this date`,
+      icon: Icon.fromString("lucide:calendar-off"),
+      person,
+      date
+    }, state)
+  }
+
+  /**
    * Get an assignment by UUID (by copy)
    * @param from State or array of assignments
    * @param uuid UUID of the assignment to get

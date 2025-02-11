@@ -1,7 +1,7 @@
 <script lang="ts" generics="T extends Base & Display">
-  import { Button } from "$lib/components/button";
-  import * as Popover from "$lib/components/popover";
-  import * as Tooltip from "$lib/components/tooltip";
+  import { Button } from "$lib/components/ui/button";
+  import * as Popover from "$lib/components/ui/popover";
+  import * as Tooltip from "$lib/components/ui/tooltip";
   import { Base } from "$lib/model/core";
   import { Icon, type Display } from "$lib/ui";
   import { ChevronDownIcon } from "lucide-svelte";
@@ -66,19 +66,16 @@
           builders={[popoverTrigger]}
           class="group/selector !h-max !w-max {BTN_SIZE[
             size
-          ]} overflow-visible rounded-full outline-none hover:outline-accent-foreground {variant ===
+          ]} overflow-visible rounded-full outline-none transition-all hover:outline-accent-foreground {variant ===
           'full'
             ? 'px-1.5 py-1'
-            : 'p-0.5'} {variant === 'compact' && 'aspect-square !p-0'} {className}"
+            : 'p-0.5'} {variant === 'compact' && 'aspect-square !p-0'} {open &&
+            'outline-accent-foreground'} {className}"
           role="combobox"
           variant={colors}
         >
           {#if showImage}
-            <ProfilePicture
-              item={value}
-              class="!pointer-events-none !border-none !bg-transparent"
-              {size}
-            />
+            <ProfilePicture item={value} class="!pointer-events-none" {size} />
           {/if}
 
           {#if showName}

@@ -1,9 +1,9 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import { Button } from "$lib/components/button";
+  import { Button } from "$lib/components/ui/button";
   import { Chip } from "$lib/components/chip";
   import { Icon } from "$lib/components/icon";
-  import * as Popover from "$lib/components/popover/";
+  import * as Popover from "$lib/components/ui/popover";
   import { Icon as TIcon } from "$lib/ui";
   import { ChevronDownIcon } from "lucide-svelte";
   import { tick } from "svelte";
@@ -48,7 +48,7 @@
       {/if}
     </Button>
   </Popover.Trigger>
-  <Popover.Content class="w-[310px] p-0">
+  <Popover.Content class="w-80 p-1">
     <IconPickerContent bind:icon onClose={() => closeAndFocusTrigger(ids.trigger)} />
   </Popover.Content>
 </Popover.Root>

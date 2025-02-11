@@ -1,6 +1,6 @@
 <script lang="ts" generics="T extends Base & Display">
-  import * as Command from "$lib/components/command";
-  import * as Popover from "$lib/components/popover";
+  import * as Command from "$lib/components/ui/command";
+  import * as Popover from "$lib/components/ui/popover";
   import { Base } from "$lib/model/core";
   import { Icon, type Display } from "$lib/ui";
   import { tick } from "svelte";
@@ -19,6 +19,7 @@
   export let onSelect: (value: T | undefined) => void = () => {};
   export let isChecked: (value: T | undefined) => boolean;
   export let className = "";
+  export let closeOnSelect = true;
 
   $: _options = options.filter(optionsFilter).sort(optionsCmp);
 
@@ -46,7 +47,9 @@
               isChecked,
               onSelect: () => {
                 onSelect(option);
-                closeAndFocusTrigger(ids.trigger);
+                if (closeOnSelect) {
+                  closeAndFocusTrigger(ids.trigger);
+                }
               },
             }}
           />

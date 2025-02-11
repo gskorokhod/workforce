@@ -1,7 +1,7 @@
 <!--suppress ES6UnusedImports -->
 <script lang="ts">
-  import { Button } from "$lib/components/button";
-  import * as Tooltip from "$lib/components/tooltip";
+  import { Button } from "$lib/components/ui/button";
+  import * as Tooltip from "$lib/components/ui/tooltip";
   import Color from "color";
   import { PipetteIcon } from "lucide-svelte";
 
@@ -61,9 +61,9 @@
         style={inputStyle}
       >
         <input
-          class="absolute left-0 top-0 z-10 h-6 w-6 rounded-full"
+          class="absolute left-0 top-0 z-10 h-8 w-8 rounded-full p-0"
           type="color"
-          style="opacity: 0.5%"
+          style="opacity: 0%"
           bind:value={inputValue}
           on:input={() => {
             color = new Color(inputValue);

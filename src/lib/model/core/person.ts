@@ -6,25 +6,27 @@ import type { JsonObject, JsonValue } from "type-fest";
 import { fullYearsBetween } from "../temporal/utils";
 import { Assignment } from "./assignment";
 import { Base } from "./base";
-import { revivedArr } from "./misc";
-import { Skill } from "./skill";
+import { displayFromJSON, displayToJSON, revivedArr } from "./misc";
+import { Qualification } from "./qualification";
 import { State } from "./state";
+import { Team } from "./team";
 
 /**
  * Represents a member of an organisation who can be assigned to tasks.
  * @interface
  * @property {string} name - The name of the person.
- * @property {Skill[]} skills - The skills that the person has.
- * @property {string} job - The job title of the person.
+ * @property {Qualification[]} qualifications - The qualifications that the person has.
+ * @property {string} role - The job title of the person.
  * @property {URL} [avatar] - The URL of the person's avatar.
  * @property {CalendarDate} [birthday] - The person's birthday.
- * @see Skill
+ * @see Qualification
  * @see CalendarDate
  * @see URL
  */
 interface IPerson extends Display {
-  skills: Skill[];
-  job: string;
+  qualifications: Qualification[];
+  team?: Team;
+  role: string;
   birthday?: CalendarDate;
 }
 
@@ -35,9 +37,10 @@ export class Person extends Base implements IPerson {
   name: string;
   description?: string;
   avatar?: URL;
-  job: string;
+  role: string;
   birthday?: CalendarDate;
-  private _skills: Skill[];
+  private _qualifications: Qualification[];
+  private _team?: Team;
 
   /**
    * A member of an organisation who can be assigned to tasks.
@@ -51,9 +54,10 @@ export class Person extends Base implements IPerson {
     this.name = props.name || "";
     this.description = props.description || "";
     this.avatar = props.avatar;
-    this.job = props.job || "";
+    this.role = props.role || "";
     this.birthday = props.birthday;
-    this._skills = props.skills || [];
+    this._qualifications = props.qualifications || [];
+    this._team = props.team;
   }
 
   /**
@@ -82,15 +86,17 @@ export class Person extends Base implements IPerson {
   }
 
   /**
-   * Get all people with a specific set of skills from a state
+   * Get all people with a specific set of qualifications from a state
    * @param from State or array of people to search.
-   * @param skill Skill or array of skills to search for.
-   * @returns Array of people with the specified skills.
+   * @param qualification Qualification or array of qualifications to search for.
+   * @returns Array of people with the specified qualifications.
    */
-  static getWith(from: State | Person[], skill: Skill | Skill[]): Person[] {
+  static getWith(from: State | Person[], qualification: Qualification | Qualification[]): Person[] {
     const all = this.getAll(from);
-    const skills = Array.isArray(skill) ? skill : [skill];
-    return all.filter((person) => skills.every((skill) => has(person.skills, skill)));
+    const qualifications = Array.isArray(qualification) ? qualification : [qualification];
+    return all.filter((person) =>
+      qualifications.every((qualification) => has(person.qualifications, qualification)),
+    );
   }
 
   /**
@@ -110,14 +116,13 @@ export class Person extends Base implements IPerson {
    * @returns new Person, bound to the state if provided.
    */
   static fromJSON(json: JsonValue, state?: State): Person {
-    const { uuid, name, description, avatar, skills, job, birthday } = json as JsonObject;
+    const { uuid, qualifications, role, birthday, team } = json as JsonObject;
     return new Person(
       {
-        name: name as string,
-        description: description as string,
-        avatar: avatar ? new URL(avatar as string) : undefined,
-        skills: revivedArr(Skill, skills, state),
-        job: job as string,
+        ...displayFromJSON(json),
+        qualifications: revivedArr(Qualification, qualifications, state),
+        team: team ? Team.fromJSON(team as JsonObject, state) : undefined,
+        role: role as string,
         birthday: birthday ? parseDate(birthday as string) : undefined,
       },
       state,
@@ -132,11 +137,10 @@ export class Person extends Base implements IPerson {
   toJSON(): JsonObject {
     const ans: JsonObject = {
       uuid: this.uuid,
-      name: this.name,
-      description: this.description || "",
-      avatar: this.avatar?.href || null,
-      skills: this.skills.map((skill) => skill.toJSON()),
-      job: this.job,
+      ...displayToJSON(this),
+      qualifications: this.qualifications.map((qualification) => qualification.toJSON()),
+      team: this._team?.toJSON() || null,
+      role: this.role,
     };
 
     if (this.birthday) {
@@ -156,8 +160,9 @@ export class Person extends Base implements IPerson {
       {
         name: this.name,
         description: this.description,
-        job: this.job,
-        skills: copyArr(this.skills),
+        role: this.role,
+        qualifications: copyArr(this.qualifications),
+        team: this._team?.copy(),
         avatar: this.avatar ? new URL(this.avatar.href) : undefined,
         birthday: this.birthday?.copy(),
       },
@@ -167,32 +172,33 @@ export class Person extends Base implements IPerson {
   }
 
   /**
-   * Write this Person and their skills to the state
+   * Write this Person and their qualifications to the state
    */
   put() {
     if (this.state) {
       this.state.put(this);
-      this._skills.forEach((skill) => skill.put());
+      this._team?.put();
+      this._qualifications.forEach((qualification) => qualification.put());
     }
   }
 
   /**
-   * Add a skill to the person
-   * @param skill Skill to add to the person.
+   * Add a qualification to the person
+   * @param qualification qualification to add to the person.
    */
-  addSkill(skill: Skill): void {
-    if (!has(this.skills, skill)) {
-      this._skills.push(skill);
+  addQualification(qualification: Qualification): void {
+    if (!has(this.qualifications, qualification)) {
+      this._qualifications.push(qualification);
     }
   }
 
   /**
-   * Remove a skill from the person, if they have it
-   * @param skill Skill to remove from the person.
+   * Remove a qualification from the person, if they have it
+   * @param qualification qualification to remove from the person.
    */
-  removeSkill(skill: Skill): void {
-    if (has(this.skills, skill)) {
-      this.skills = without(this.skills, skill);
+  removeQualification(qualification: Qualification): void {
+    if (has(this.qualifications, qualification)) {
+      this.qualifications = without(this.qualifications, qualification);
     }
   }
 
@@ -209,20 +215,22 @@ export class Person extends Base implements IPerson {
   }
 
   /**
-   * Get the person's skills
+   * Get the person's qualifications
    */
-  get skills(): Skill[] {
+  get qualifications(): Qualification[] {
     if (!this.state) {
-      return copyArr(this._skills);
+      return copyArr(this._qualifications);
     }
-    return this._skills.map((s) => s.get()).filter((s) => s !== undefined) as Skill[];
+    return this._qualifications
+      .map((s) => s.get())
+      .filter((s) => s !== undefined) as Qualification[];
   }
 
   /**
-   * Set the person's skills
+   * Set the person's qualifications
    */
-  set skills(skills: Skill[]) {
-    this._skills = copyArr(skills);
+  set qualifications(qs: Qualification[]) {
+    this._qualifications = copyArr(qs);
   }
 
   /**
@@ -241,5 +249,12 @@ export class Person extends Base implements IPerson {
       return undefined;
     }
     return fullYearsBetween(this.birthday, now(getLocalTimeZone()));
+  }
+
+  /**
+   * Get the team that the person is a part of
+   */
+  get team(): Team | undefined {
+    return this._team?.get() as Team | undefined;
   }
 }
