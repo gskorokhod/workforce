@@ -4,15 +4,19 @@ import {
   CalendarDate,
   fromDate,
   getLocalTimeZone,
+  Time,
+  toCalendarDateTime,
+  toZoned,
   ZonedDateTime,
   type DateValue,
   type TimeDuration,
 } from "@internationalized/date";
-import { RRule, RRuleSet } from "rrule";
-import type { JsonObject } from "type-fest";
+import { Frequency, RRule, RRuleSet } from "rrule";
+import type { JsonObject, JsonValue } from "type-fest";
 import { fromRecurrenceOptions, toRecurrenceOptions, type RecurrenceOptions } from "./options";
 import { TimeSlot } from "./timeslot";
-import { parseDates, parseDateTimeDuration, toUTCDate } from "./utils";
+import { cdSchema, timeDurationBetween, timeDurationSchema, toUTCDate } from "./utils";
+import { z } from "zod";
 
 interface RecurrenceProps {
   rule: Partial<RecurrenceOptions> | RRule;
@@ -27,6 +31,14 @@ interface RecurrenceProps {
  * (e.g. a shift that occurs every Monday from 9am to 5pm)
  */
 class Recurrence implements Copy<Recurrence> {
+  static schema = z.object({
+    tzid: z.string().default(getLocalTimeZone),
+    rule: z.string().transform(RRule.fromString),
+    duration: timeDurationSchema.optional(),
+    rdates: z.array(cdSchema).optional(),
+    exdates: z.array(cdSchema).optional(),
+  });
+
   tzid: string = getLocalTimeZone();
   /**
    * The duration of the event.
@@ -104,25 +116,46 @@ class Recurrence implements Copy<Recurrence> {
     return rruleSet;
   }
 
+  static daily(props: {
+    startDate: CalendarDate;
+    endDate?: CalendarDate;
+    times?: number;
+    start: Time;
+    end: Time;
+    tzid?: string;
+  }) {
+    const tzid = props.tzid || getLocalTimeZone();
+    const dtstart = toZoned(toCalendarDateTime(props.startDate, props.start), tzid);
+    if (props.endDate) {
+      return new Recurrence({
+        tzid,
+        rule: {
+          freq: Frequency.DAILY,
+          dtstart,
+          until: toZoned(toCalendarDateTime(props.endDate, props.end), tzid),
+        },
+      });
+    } else {
+      return new Recurrence({
+        tzid,
+        rule: {
+          freq: Frequency.DAILY,
+          dtstart,
+          count: props.times,
+        },
+        duration: timeDurationBetween(props.start, props.end),
+      });
+    }
+  }
+
   /**
    * Parse a JSON object to a Recurrence object.
    * @param json JSON object to parse
    * @returns new Recurrence object, or undefined if the JSON object is invalid
    */
-  static fromJSON(json: JsonObject): Recurrence | undefined {
-    if (typeof json.rrule !== "string") return undefined;
-
-    try {
-      return new Recurrence({
-        tzid: typeof json.tzid == "string" ? json.tzid : getLocalTimeZone(),
-        rule: RRule.fromString(json.rrule),
-        duration: parseDateTimeDuration(json.duration),
-        rdates: parseDates(json.rdates),
-        exdates: parseDates(json.exdates),
-      });
-    } catch {
-      return undefined;
-    }
+  static fromJSON(json: JsonValue): Recurrence {
+    const parsed = Recurrence.schema.parse(json);
+    return new Recurrence(parsed);
   }
 
   /**
@@ -132,7 +165,7 @@ class Recurrence implements Copy<Recurrence> {
   toJSON(): JsonObject {
     const ans: JsonObject = {
       tzid: this.tzid,
-      rrule: this._rrule.toString(),
+      rule: this._rrule.toString(),
       rdates: this.rdates.map((d) => d.toString()),
       exdates: this.exdates.map((d) => d.toString()),
     };

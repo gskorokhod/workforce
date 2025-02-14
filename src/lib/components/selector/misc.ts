@@ -1,5 +1,5 @@
 import { Icon } from "$lib/ui";
-import type { ProfileSize } from "../profile-picture";
+import type { ProfileSize } from "$lib/components/profile";
 
 export const BTN_SIZE: ProfileSize = {
   xs: "h-6 gap-1",

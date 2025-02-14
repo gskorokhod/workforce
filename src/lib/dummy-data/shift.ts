@@ -5,7 +5,7 @@ import { faker } from "@faker-js/faker";
 import { get } from "svelte/store";
 import { sample, select } from "./misc";
 import { generateRecurrence } from "./recurrence";
-import { generateTasks, sampleTasks } from "./task";
+import { sampleTasks } from "./task";
 
 const SHIFTS = new Map<string, Icon>([
   ["Morning", Icon.fromString("mdi:sunrise", "#FFE135")],
@@ -21,10 +21,10 @@ function randomShift(): [string, Icon] {
   return [key, icon];
 }
 
-export function generateShift(state?: State): Shift {
+export function generateShift(state: State): Shift {
   const [name, icon] = randomShift();
   const description = faker.lorem.sentence();
-  const tasks = state ? sampleTasks(state, 0, 3) : generateTasks(0, 3);
+  const tasks = sampleTasks(state, 3);
 
   return new Shift(
     {
@@ -54,7 +54,7 @@ export function sampleShifts(state: State, n: number, max?: number): Shift[] {
   return sample(get(state.shifts), n);
 }
 
-export function generateShifts(n: number, max?: number, state?: State): Shift[] {
+export function generateShifts(state: State, n: number, max?: number): Shift[] {
   if (max && max > n) {
     n = faker.number.int({ min: n, max: max });
   }

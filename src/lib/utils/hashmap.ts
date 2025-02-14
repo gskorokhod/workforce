@@ -1,7 +1,3 @@
-import "core-js/actual/iterator";
-import deepEqual from "deep-equal";
-import objectHash from "object-hash";
-
 type MapEntry<K, V> = [K, V];
 type Bucket<K, V> = MapEntry<K, V>[];
 
@@ -11,24 +7,21 @@ type Bucket<K, V> = MapEntry<K, V>[];
  * @template V Value type. Can be any type.
  * @implements {Map}
  *
- * Note: the default hash function uses SHA-1 (object-hash implementation) and the default equality function uses `assert.deepStrictEqual`.
- * These should support most types, but if not, you can provide your own hash and equality functions.
- *
- * @see https://github.com/inspect-js/node-deep-equal
- * @see deepEqual
- * @see objectHash
+ * Note: by default, we check if the key has a `hash` method and use it if it does. Otherwise, we use JS built-in `toString` (may be slow).
+ * For equality, we check if it has an `equals` or `compare` method and use it if it does. Otherwise, we use `===`.
+ * You can bring your own hash and equality functions by passing them to the constructor.
  */
-export class HashMap<K extends objectHash.NotUndefined, V> implements Map<K, V> {
-  private _map: Map<string, Bucket<K, V>> = new Map<string, Bucket<K, V>>();
-  private _hash: (key: K) => string = objectHash.sha1;
-  private _equals: (a: K, b: K) => boolean = deepEqual;
+export class HashMap<K, V> implements Map<K, V> {
+  readonly _map: Map<string, Bucket<K, V>> = new Map<string, Bucket<K, V>>();
+  readonly _hash: (key: K) => string = HashMap.defaultHash;
+  readonly _equals: (a: K, b: K) => boolean = HashMap.defaultEquals;
   private _size = 0;
 
   /**
    * Create a new HashMap.
    * @param iterable Initial key-value pairs to add to the map
-   * @param hash Hash function to use for keys. Defaults to SHA-1 (object-hash implementation).
-   * @param equals Equality function to use for keys. Defaults to `assert.deepStrictEqual`.
+   * @param hash Hash function to use for keys.
+   * @param equals Equality function to use for keys.
    */
   constructor(
     iterable?: Iterable<readonly [K, V]> | null | undefined,
@@ -50,15 +43,15 @@ export class HashMap<K extends objectHash.NotUndefined, V> implements Map<K, V> 
     }
   }
 
+  toJSON() {
+    return this.toMap().toJSON();
+  }
+
   private getEntry(key: K): MapEntry<K, V> | undefined {
     const bucket = this._map.get(this._hash(key));
     if (!bucket) return undefined;
 
     return bucket.find(([k]) => this._equals(k, key));
-  }
-
-  toJSON() {
-    return this.toMap().toJSON();
   }
 
   clear(): void {
@@ -70,7 +63,6 @@ export class HashMap<K extends objectHash.NotUndefined, V> implements Map<K, V> 
     const hash = this._hash(key);
 
     if (this._map.has(hash)) {
-      // We just checked this above
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const bucket = this._map.get(hash)!;
       const index = bucket.findIndex(([k]) => this._equals(k, key));
@@ -169,5 +161,41 @@ export class HashMap<K extends objectHash.NotUndefined, V> implements Map<K, V> 
 
   get size() {
     return this._size;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static defaultEquals(a: any, b: any): boolean {
+    try {
+      if (a && typeof a.eq === "function") {
+        return a.eq(b);
+      }
+      if (a && typeof a.equals === "function") {
+        return a.equals(b);
+      }
+      if (a && typeof a.compare === "function") {
+        return a.compare(b) === 0;
+      }
+      return a === b;
+    } catch (e) {
+      console.warn("Error comparing values:\n", `a = ${a}\n`, `b = ${b}\n`, e);
+    }
+    return a === b;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static defaultHash(key: any): string {
+    try {
+      if (key && typeof key.hash === "function") {
+        const h = key.hash();
+        return String(h);
+      }
+      if (key && typeof key.hashCode === "function") {
+        const h = key.hashCode();
+        return String(h);
+      }
+    } catch (e) {
+      console.warn("Error hashing key:\n", `key = ${key}\n`, e);
+    }
+    return String(key);
   }
 }

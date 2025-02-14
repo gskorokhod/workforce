@@ -1,37 +1,49 @@
 import { Recurrence } from "$lib/model/temporal";
-import { Icon, type Display } from "$lib/ui";
-import { copyArr } from "$lib/utils";
-import { getLocalTimeZone, now, type DateValue } from "@internationalized/date";
-import { RRule } from "rrule";
-import type { JsonObject, JsonValue } from "type-fest";
-import { Base } from "./base";
-import { revivedArr } from "./misc";
+import { timeDurationSchema } from "$lib/model/temporal/utils";
+import { type Display } from "$lib/ui";
+import {
+  CalendarDate,
+  isSameDay,
+  Time,
+  type DateValue,
+  type TimeDuration,
+} from "@internationalized/date";
+import { get as _get, derived, writable, type Readable, type Writable } from "svelte/store";
+import type { JsonObject } from "type-fest";
+import { z } from "zod";
+import { Assignment, SimpleAssignment } from "./assignment";
+import { Displayable } from "./displayable";
+import { uuidsOf, type IdOr } from "./misc";
 import { ShiftOccurrence } from "./occurrence";
-import { State } from "./state";
-import { Task } from "./task";
+import { subset, type State } from "./state";
+import type { Task } from "./task";
+
+interface SimplePattern {
+  start: Time;
+  end: Time;
+}
 
 /**
  * Represents a shift that a person can work.
  * @interface
  * @property {Recurrence} pattern - The pattern of the shift.
- * @property {Task[]} tasks - The tasks to be done during the shift.
+ * @property {IdOr<Task>[]} tasks - The tasks to be done during the shift.
  * @property {string} name - The name of the shift.
  * @property {Icon} icon - The icon representing the shift. Icon color will be used as the color of the shift.
  */
-interface IShift extends Display {
-  pattern: Recurrence;
-  tasks: Task[];
+interface ShiftProps extends Display {
+  pattern: Recurrence | SimplePattern;
+  tasks?: IdOr<Task>[];
+  paidDuration?: TimeDuration;
 }
 
 /**
  * Represents a shift that a person can work.
  */
-export class Shift extends Base implements IShift {
-  name: string;
-  description?: string;
-  icon?: Icon;
+export class Shift extends Displayable {
   pattern: Recurrence;
-  private _tasks: Task[];
+  private _paidDuration?: TimeDuration;
+  private _task_uuids: Writable<string[]>;
 
   /**
    * Creates a new shift.
@@ -39,24 +51,23 @@ export class Shift extends Base implements IShift {
    * @param state State to bind the shift to.
    * @param uuid UUID of the shift. If not provided, a new UUID is generated.
    */
-  constructor(props: Partial<IShift>, state?: State, uuid?: string) {
-    super(state, uuid);
+  constructor(props: ShiftProps, state: State, uuid?: string) {
+    super(props, state, uuid);
 
-    this.name = props.name || "";
-    this.description = props.description || "";
-    this.icon = props.icon;
-    this._tasks = props.tasks || [];
+    this._task_uuids = writable(uuidsOf(props.tasks || []));
+    this._paidDuration = props.paidDuration;
 
-    this.pattern =
-      props.pattern ||
-      new Recurrence({
-        tzid: getLocalTimeZone(),
-        rule: {
-          dtstart: now(getLocalTimeZone()),
-          freq: RRule.DAILY,
-          interval: 1,
-        },
+    if (props.pattern instanceof Recurrence) {
+      this.pattern = props.pattern;
+    } else {
+      const { planningHorizonEnd, planningHorizonStart } = _get(state.settings);
+      this.pattern = Recurrence.daily({
+        startDate: planningHorizonStart,
+        endDate: planningHorizonEnd,
+        start: props.pattern.start,
+        end: props.pattern.end,
       });
+    }
   }
 
   /**
@@ -65,18 +76,23 @@ export class Shift extends Base implements IShift {
    * @param state State to bind the shift to and revive references.
    * @returns new Shift
    */
-  static fromJSON(json: JsonValue, state?: State): Shift {
-    const { name, description, icon, pattern, tasks, uuid } = json as JsonObject;
+  static fromJSON(json: JsonObject, state: State): Shift {
     return new Shift(
       {
-        name: name as string,
-        description: description as string,
-        icon: icon ? Icon.fromJSON(icon as JsonObject) : undefined,
-        pattern: Recurrence.fromJSON(pattern as JsonObject),
-        tasks: revivedArr(Task, tasks, state),
+        ...super.fromJSON(json, state),
+        pattern: Recurrence.fromJSON(json.pattern),
+        tasks: z
+          .array(z.string())
+          .nullish()
+          .transform((x) => x ?? undefined)
+          .parse(json.tasks),
+        paidDuration: timeDurationSchema
+          .nullish()
+          .transform((x) => x ?? undefined)
+          .parse(json.paidDuration),
       },
       state,
-      typeof uuid === "string" ? uuid : undefined,
+      z.optional(z.string()).parse(json.uuid),
     );
   }
 
@@ -86,12 +102,10 @@ export class Shift extends Base implements IShift {
    */
   toJSON(): JsonObject {
     return {
-      uuid: this.uuid,
-      name: this.name,
-      description: this.description || "",
-      icon: this.icon?.toJSON() || null,
+      ...super.toJSON(),
       pattern: this.pattern.toJSON(),
-      tasks: this.tasks.map((task) => task.toJSON()),
+      tasks: _get(this._task_uuids),
+      paidDuration: this._paidDuration ? (this._paidDuration as JsonObject) : null,
     };
   }
 
@@ -102,11 +116,10 @@ export class Shift extends Base implements IShift {
   copy(): Shift {
     return new Shift(
       {
+        ...super.copy(),
         pattern: this.pattern.copy(),
-        tasks: copyArr(this._tasks),
-        name: this.name,
-        description: this.description,
-        icon: this.icon?.copy(),
+        tasks: _get(this._task_uuids),
+        paidDuration: this._paidDuration,
       },
       this.state,
       this.uuid,
@@ -162,43 +175,30 @@ export class Shift extends Base implements IShift {
     return occurrences.map(({ start, end }) => new ShiftOccurrence(start, end, this.copy()));
   }
 
-  /**
-   * Add a task to the shift, with an optional duration.
-   * If the task is already in the shift, its duration is updated.
-   * @param task Task to add.
-   * @param duration Duration of the task. If not set, the task will last the whole shift.
-   */
-  putTask(task: Task): void {
-    if (!this._tasks.some((t) => t.eq(task))) {
-      this._tasks.push(task.copy());
-    }
-  }
-
-  /**
-   * Remove a task from the shift.
-   * @param task Task to remove.
-   */
-  removeTask(task: Task): void {
-    this._tasks = this._tasks.filter((t) => !t.eq(task));
-  }
-
-  /**
-   * Get the tasks of the shift, with their durations.
-   */
   get tasks(): Task[] {
-    if (!this.state) {
-      return copyArr(this._tasks);
-    }
-
-    this._tasks.forEach((task) => (task.state = this.state));
-    return this._tasks.map((t) => t.get()).filter((t) => t !== undefined) as Task[];
+    return _get(this.rTasks);
   }
 
-  /**
-   * Set the tasks of the shift.
-   * @param tasks Tasks to be done during the shift.
-   */
   set tasks(tasks: Task[]) {
-    this._tasks = copyArr(tasks);
+    this.rTasks.set(tasks);
+  }
+
+  get rTasks(): Writable<Task[]> {
+    return subset(this.state._tasks, this._task_uuids);
+  }
+
+  rAssignments(on?: CalendarDate): Readable<Assignment[]> {
+    return derived(this.state.assignments, (assignments) =>
+      assignments.filter((a) => {
+        if (on && !isSameDay(a.date, on)) {
+          return false;
+        }
+        if (a instanceof SimpleAssignment) {
+          return a.shift?.eq(this);
+        }
+        // TODO: Implement complex assignments
+        return false;
+      }),
+    );
   }
 }

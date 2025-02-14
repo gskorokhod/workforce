@@ -29,7 +29,7 @@ function mkCoords(): LngLat {
   return [lon, lat];
 }
 
-export async function generateTrueLocation(state?: State): Promise<Location> {
+export async function generateTrueLocation(state: State): Promise<Location> {
   const point = await Geopoint.fromCoords(mkCoords());
   const name = mkName();
   const avatar = new URL(faker.image.avatar());
@@ -48,7 +48,7 @@ export async function generateTrueLocation(state?: State): Promise<Location> {
   );
 }
 
-export function generateLocation(state?: State): Location {
+export function generateLocation(state: State): Location {
   const point = new Geopoint(
     mkCoords(),
     new Address({
@@ -93,7 +93,7 @@ export function sampleLocations(state: State, n: number, max?: number): Location
   return sample(get(state.locations), n);
 }
 
-export function generateLocations(n: number, max?: number, state?: State): Location[] {
+export function generateLocations(state: State, n: number, max?: number): Location[] {
   if (max && max > n) {
     n = faker.number.int({ min: n, max: max });
   }
@@ -101,9 +101,9 @@ export function generateLocations(n: number, max?: number, state?: State): Locat
 }
 
 export async function generateTrueLocations(
+  state: State,
   n: number,
   max?: number,
-  state?: State,
 ): Promise<Location[]> {
   if (max && max > n) {
     n = faker.number.int({ min: n, max: max });

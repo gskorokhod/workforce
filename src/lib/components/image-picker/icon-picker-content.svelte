@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { Button } from "$lib/components/ui/button";
   import { ColorPicker } from "$lib/components/color-picker";
   import { Icon } from "$lib/components/icon";
   import { Search } from "$lib/components/search";
+  import { Button } from "$lib/components/ui/button";
   import { Separator } from "$lib/components/ui/separator";
   import * as Tooltip from "$lib/components/ui/tooltip";
   import { Icon as TIcon } from "$lib/ui";
@@ -103,7 +103,7 @@
   {:else}
     <div class="flex max-h-[300px] w-full flex-row flex-wrap overflow-y-scroll p-2">
       {#each $iconList as option}
-        <Tooltip.Root openDelay={50}>
+        <Tooltip.Root openDelay={50} closeDelay={50} group="icon-picker">
           <Tooltip.Trigger asChild let:builder>
             <Button
               on:click={() => {

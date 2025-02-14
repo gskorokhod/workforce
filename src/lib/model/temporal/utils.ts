@@ -1,4 +1,3 @@
-import { noUndefined } from "$lib/utils/misc";
 import {
   CalendarDate,
   CalendarDateTime,
@@ -19,7 +18,8 @@ import {
 } from "@internationalized/date";
 
 import { datetime } from "rrule";
-import type { JsonObject, JsonValue } from "type-fest";
+import type { JsonValue } from "type-fest";
+import { z } from "zod";
 
 /**
  * Converts a ZonedDateTime or CalendarDate to a Date object in UTC.
@@ -431,22 +431,29 @@ export function tMin(a: TimeDuration | Time, b: TimeDuration | Time): TimeDurati
   return cmpTime(a, b) <= 0 ? a : b;
 }
 
+export const timeDurationSchema = z.object({
+  hours: z.number().int().optional(),
+  minutes: z.number().int().optional(),
+  seconds: z.number().int().optional(),
+  milliseconds: z.number().int().optional(),
+});
+
+export const dateTimeDurationSchema = timeDurationSchema.extend({
+  years: z.number().int().optional(),
+  months: z.number().int().optional(),
+  weeks: z.number().int().optional(),
+  days: z.number().int().optional(),
+});
+
 /**
  * Fill missing fields in a DateTimeDuration object with default values.
  * @param dur Partial DateTimeDuration object
  * @returns DateTimeDuration object with all fields filled
  */
 export function completeDuration(dur: Partial<DateTimeDuration>): Required<DateTimeDuration> {
-  return {
-    years: dur.years ?? 0,
-    months: dur.months ?? 0,
-    days: dur.days ?? 0,
-    weeks: dur.weeks ?? 0,
-    hours: dur.hours ?? 0,
-    minutes: dur.minutes ?? 0,
-    seconds: dur.seconds ?? 0,
-    milliseconds: dur.milliseconds ?? 0,
-  };
+  return Object.fromEntries(
+    Object.entries(dur).map(([k, v]) => [k, v ?? 0]),
+  ) as Required<DateTimeDuration>;
 }
 
 /**
@@ -455,23 +462,10 @@ export function completeDuration(dur: Partial<DateTimeDuration>): Required<DateT
  * @returns DateTimeDuration object, or undefined if the JSON object is invalid
  */
 export function parseDateTimeDuration(json: JsonValue): DateTimeDuration | undefined {
-  if (typeof json !== "object" || !json) {
-    return undefined;
-  }
-
-  const jsn = json as JsonObject;
-  const ans = {
-    years: tryParseInt(jsn.years),
-    months: tryParseInt(jsn.months),
-    days: tryParseInt(jsn.days),
-    weeks: tryParseInt(jsn.weeks),
-    hours: tryParseInt(jsn.hours),
-    minutes: tryParseInt(jsn.minutes),
-    seconds: tryParseInt(jsn.seconds),
-    milliseconds: tryParseInt(jsn.milliseconds),
-  };
-  return noUndefined(ans);
+  return dateTimeDurationSchema.safeParse(json).data;
 }
+
+export const cdSchema = z.string().transform(parseDate);
 
 /**
  * Try to parse an array of dates from a JSON value.
@@ -479,37 +473,7 @@ export function parseDateTimeDuration(json: JsonValue): DateTimeDuration | undef
  * @returns Array of dates
  */
 export function parseDates(json: JsonValue): CalendarDate[] {
-  if (!Array.isArray(json)) {
-    return [];
-  }
-
-  const dates: CalendarDate[] = [];
-  for (const item of json) {
-    if (typeof item === "string") {
-      dates.push(parseDate(item));
-    }
-  }
-  return dates;
-}
-
-/**
- * Parse an integer from a JSON value, if possible.
- * @param value JSON value to parse
- * @returns number, or undefined if the value is not a number or a string that can be parsed as a number
- */
-export function tryParseInt(value: unknown): number | undefined {
-  if (typeof value === "number") {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    const num = parseInt(value, 10);
-    if (!isNaN(num)) {
-      return num;
-    }
-  }
-
-  return undefined;
+  return z.array(cdSchema).safeParse(json).data ?? [];
 }
 
 /**

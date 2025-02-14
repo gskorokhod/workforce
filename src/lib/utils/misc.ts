@@ -1,5 +1,18 @@
 import Color from "color";
 
+export interface HasUUID {
+  uuid: string;
+}
+
+export function hasUUID(obj: unknown): obj is HasUUID {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "uuid" in obj &&
+    typeof (obj as HasUUID).uuid === "string"
+  );
+}
+
 export function getInitials(name: string): string {
   if (name.length === 0) return "N/A";
 
@@ -48,4 +61,36 @@ export function noUndefined<T extends object>(obj: T): T {
 
 export function randomColor(): Color {
   return Color.rgb(Math.random() * 255, Math.random() * 255, Math.random() * 255);
+}
+
+export function varyColor(
+  col: Color,
+  delta?: { hue?: number; saturation?: number; lightness?: number },
+) {
+  const { hue = 0, saturation = 0, lightness = 0 } = delta ?? {};
+  const { h, s, l } = col.hsl().object();
+
+  const newH = (h + hue + 360) % 360;
+  const newS = Math.min(100, Math.max(0, s + saturation));
+  const newL = Math.min(100, Math.max(0, l + lightness));
+
+  return Color.hsl(newH, newS, newL);
+}
+
+export function randVaryColor(
+  col: Color,
+  options: {
+    lightnessSpread?: number;
+    saturationSpread?: number;
+    hueSpread?: number;
+  },
+): Color {
+  const { lightnessSpread = 0, saturationSpread = 0, hueSpread = 0 } = options;
+  const { h, s, l } = col.hsl().object();
+
+  const newH = (h + (Math.random() - 0.5) * hueSpread + 360) % 360;
+  const newS = Math.min(100, Math.max(0, s + (Math.random() - 0.5) * saturationSpread));
+  const newL = Math.min(100, Math.max(0, l + (Math.random() - 0.5) * lightnessSpread));
+
+  return Color.hsl(newH, newS, newL);
 }

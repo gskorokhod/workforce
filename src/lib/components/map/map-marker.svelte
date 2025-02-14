@@ -4,7 +4,7 @@
   import { Geopoint, type LngLat } from "$lib/model/geocoding";
   import { debounce } from "$lib/utils/misc";
   import { Marker, type MarkerClickInfo, Popup } from "svelte-maplibre";
-  import ProfilePicture from "../profile-picture/profile-picture.svelte";
+  import { ProfilePicture } from "$lib/components/profile";
 
   export let location: Location | Geopoint;
   export let draggable = false;

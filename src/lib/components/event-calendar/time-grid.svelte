@@ -56,7 +56,7 @@
 
     events.forEach((event) => {
       const { key, start, end } = event;
-      let thisStartCol = -1;     // Starting column for the new event
+      let thisStartCol = -1; // Starting column for the new event
       let thisEndCol = Infinity; // Ending column for the new event. Initially, assume it can span all columns
 
       // Find the first column that is available for this event

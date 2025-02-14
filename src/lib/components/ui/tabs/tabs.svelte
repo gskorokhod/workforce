@@ -2,18 +2,21 @@
   import { cn } from "$lib/utils/ui";
   import { Tabs as TabsPrimitive } from "bits-ui";
 
-  type $$Props = TabsPrimitive.ListProps;
+  type $$Props = TabsPrimitive.Props;
+  export let orientation: $$Props["orientation"] = "horizontal";
 
   let className: $$Props["class"] = undefined;
   export { className as class };
 </script>
 
-<TabsPrimitive.List
+<TabsPrimitive.Root
   class={cn(
-    "inline-flex min-w-32 flex-col justify-center rounded-md bg-muted p-2 text-muted-foreground",
+    "flex gap-4 rounded-md",
+    orientation === "vertical" ? "flex-row" : "flex-col",
     className,
   )}
+  {orientation}
   {...$$restProps}
 >
   <slot />
-</TabsPrimitive.List>
+</TabsPrimitive.Root>

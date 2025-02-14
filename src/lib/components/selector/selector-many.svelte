@@ -1,12 +1,11 @@
-<script lang="ts" generics="T extends Base & Display">
+<script lang="ts" generics="T extends Display & HasUUID">
+  import { ProfilesList, type Size } from "$lib/components/profile";
   import { Button } from "$lib/components/ui/button";
   import * as Popover from "$lib/components/ui/popover";
-  import { Base } from "$lib/model/core";
   import { Icon, type Display } from "$lib/ui";
   import { has, without } from "$lib/utils";
+  import { type HasUUID } from "$lib/utils/misc";
   import { ChevronDownIcon } from "lucide-svelte";
-  import { type Size } from "../profile-picture";
-  import ProfilesList from "../profile-picture/profiles-list.svelte";
   import { BTN_SIZE, PLACEHOLDER, PLUS, type OptionsCmp, type OptionsFilter } from "./misc";
   import SelectorBase from "./selector-base.svelte";
 

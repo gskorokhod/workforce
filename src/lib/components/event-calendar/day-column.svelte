@@ -40,8 +40,11 @@
     padRight={columnGap}
     class="h-full w-full"
   >
-    <div class="flex justify-center items-center bg-secondary" style="grid-row: 1; grid-column: 1 / span all">
-      <DayHeader {day} class=""/>
+    <div
+      class="flex items-center justify-center bg-secondary"
+      style="grid-row: 1; grid-column: 1 / span all"
+    >
+      <DayHeader {day} class="" />
     </div>
     <slot {tgContext} />
   </TimeGrid>

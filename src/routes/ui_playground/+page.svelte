@@ -10,15 +10,14 @@
   import TimeGrid from "$lib/components/event-calendar/time-grid.svelte";
   import IconPicker from "$lib/components/image-picker/icon-picker.svelte";
   import ImagePicker from "$lib/components/image-picker/image-picker.svelte";
-  import { Profile } from "$lib/components/profile-picture";
+  import { Profile } from "$lib/components/profile";
   import RecurrenceOptionsEdit from "$lib/components/recurrence/recurrence_options_edit.svelte";
   import Search from "$lib/components/search/search.svelte";
   import { Selector } from "$lib/components/selector";
   import SelectorMany from "$lib/components/selector/selector-many.svelte";
-  import * as TabsVertical from "$lib/components/tabs-vertical";
+  import * as Tabs from "$lib/components/ui/tabs";
   import TimePicker from "$lib/components/time-picker/time-picker.svelte";
   import { Button } from "$lib/components/ui/button";
-  import { state } from "$lib/model";
   import { fmtTime } from "$lib/model/temporal/utils";
   import { Icon, type Display } from "$lib/ui";
   import { randomColor } from "$lib/utils/misc";
@@ -33,6 +32,7 @@
   import Color from "color";
   import { GraduationCapIcon, XIcon } from "lucide-svelte";
   import { v4 as uuid } from "uuid";
+  import { dummyState } from "$lib/dummy-data";
 
   const schedules: ComboboxItem[] = [
     { label: "Schedule 1", value: "schedule1" },
@@ -59,10 +59,10 @@
     icon: Icon.fromString("lucide:user"),
     avatar: new URL(faker.image.avatar()),
   };
-  let people = state.people;
-  let qualifications = state.qualifications;
-  let tasks = state.tasks;
-  let shifts = state.shifts;
+  let people = dummyState.people;
+  let properties = dummyState.properties;
+  let tasks = dummyState.tasks;
+  let shifts = dummyState.shifts;
 
   let time1: ZonedDateTime = now(getLocalTimeZone());
   let time2 = new Date();
@@ -172,35 +172,31 @@
       <Profile item={$people[0]} placeholder="Select person..." />
       <Profile variant="full" item={$people[0]} placeholder="Select person..." />
       <Profile variant="text" item={$people[0]} placeholder="Select person..." />
-      <Profile item={$qualifications[0]} placeholder="Select qualification..." />
+      <Profile item={$properties[0]} placeholder="Select qualification..." />
     </section>
     <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Selector (One)</h2>
       <h3 class="text-lg">Default</h3>
       <Selector value={$people[0]} options={$people} />
-      <Selector value={$qualifications[0]} options={$qualifications} />
+      <Selector value={$properties[0]} options={$properties} />
       <h3 class="text-lg">Full</h3>
       <Selector value={$people[0]} options={$people} variant="full" />
-      <Selector value={$qualifications[0]} options={$qualifications} variant="full" />
+      <Selector value={$properties[0]} options={$properties} variant="full" />
       <h3 class="text-lg">Compact</h3>
       <Selector value={$people[0]} options={$people} variant="compact" />
-      <Selector value={$qualifications[0]} options={$qualifications} variant="compact" />
+      <Selector value={$properties[0]} options={$properties} variant="compact" />
     </section>
     <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Selector (Many)</h2>
       <h3 class="text-lg">Default</h3>
       <SelectorMany value={$people.slice(0, 2)} options={$people} />
-      <SelectorMany value={$qualifications.slice(0, 2)} options={$qualifications} />
+      <SelectorMany value={$properties.slice(0, 2)} options={$properties} />
       <h3 class="text-lg">Full</h3>
       <SelectorMany value={$people.slice(0, 2)} options={$people} variant="full" />
-      <SelectorMany value={$qualifications.slice(0, 2)} options={$qualifications} variant="full" />
+      <SelectorMany value={$properties.slice(0, 2)} options={$properties} variant="full" />
       <h3 class="text-lg">Compact</h3>
       <SelectorMany value={$people.slice(0, 2)} options={$people} variant="compact" />
-      <SelectorMany
-        value={$qualifications.slice(0, 2)}
-        options={$qualifications}
-        variant="compact"
-      />
+      <SelectorMany value={$properties.slice(0, 2)} options={$properties} variant="compact" />
     </section>
     <section>
       <h2 class="text-xl">Tabs (Vertical)</h2>
@@ -208,23 +204,21 @@
         import * as Tabs from "$lib/components/ui/tabs";
       </script>
 
-      <TabsVertical.Root value="account" class="w-[400px]">
-        <TabsVertical.List>
-          <TabsVertical.Trigger value="account">Account</TabsVertical.Trigger>
-          <TabsVertical.Trigger value="password">Password</TabsVertical.Trigger>
-        </TabsVertical.List>
-        <TabsVertical.Content value="account">
-          Make changes to your account here.
-        </TabsVertical.Content>
-        <TabsVertical.Content value="password">Change your password here.</TabsVertical.Content>
-      </TabsVertical.Root>
+      <Tabs.Root value="account" class="w-[400px]" orientation="vertical">
+        <Tabs.List>
+          <Tabs.Trigger value="account">Account</Tabs.Trigger>
+          <Tabs.Trigger value="password">Password</Tabs.Trigger>
+        </Tabs.List>
+        <Tabs.Content value="account">Make changes to your account here.</Tabs.Content>
+        <Tabs.Content value="password">Change your password here.</Tabs.Content>
+      </Tabs.Root>
     </section>
     <section>
       <h2 class="mb-1.5 text-xl">Edit Dialog</h2>
       <EditDialog item={$people[0]} title="Edit Person">
         <Button>Edit Person</Button>
       </EditDialog>
-      <EditDialog item={$qualifications[0]} title="Edit Qualification">
+      <EditDialog item={$properties[0]} title="Edit Qualification">
         <Button>Edit Qualification</Button>
       </EditDialog>
       <EditDialog item={$tasks[0]} title="Edit Task">
@@ -233,11 +227,11 @@
     </section>
     <section>
       <h2 class="mb-1.5 text-xl">Data Table - Person</h2>
-      <PersonDataTable data={people} {state} />
+      <PersonDataTable data={people} state={dummyState} />
     </section>
     <section>
       <h2 class="mb-1.5 text-xl">Data Table - Shift</h2>
-      <ShiftDataTable data={shifts} {state} />
+      <ShiftDataTable data={shifts} state={dummyState} />
     </section>
     <section>
       <h2 class="mb-1.5 text-xl">Recurrence Editor</h2>

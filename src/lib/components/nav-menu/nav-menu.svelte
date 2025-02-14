@@ -4,17 +4,17 @@
   import { state } from "$lib/model";
   import { misc } from "$lib/utils";
   import {
-    BriefcaseBusinessIcon,
     CalendarRangeIcon,
     ClipboardListIcon,
     CodeXmlIcon,
     HomeIcon,
     MapPinIcon,
     SettingsIcon,
+    TagIcon,
     UsersRoundIcon,
   } from "lucide-svelte";
-  import { Button } from "../ui/button";
   import { Sidebar, SidebarPosition } from "../sidebar";
+  import { Button } from "../ui/button";
 
   const settings = state.settings;
 
@@ -50,8 +50,10 @@
         size={isExpanded ? "xl" : "icon-xl"}
         variant={isActive("/") ? "default" : "ghost"}
       >
-        <HomeIcon class="min-w-8"/>
-        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">{isExpanded ? "Home" : ""}</span>
+        <HomeIcon class="min-w-8" />
+        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'hidden w-0'}"
+          >{isExpanded ? "Home" : ""}</span
+        >
       </Button>
     </li>
     <li class="w-full">
@@ -61,8 +63,8 @@
         size={isExpanded ? "xl" : "icon-xl"}
         variant={isActive("/shifts/") ? "default" : "ghost"}
       >
-        <CalendarRangeIcon class="min-w-8"/>
-        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">Shifts</span>
+        <CalendarRangeIcon class="min-w-8" />
+        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'hidden w-0'}">Shifts</span>
       </Button>
     </li>
     <li class="w-full">
@@ -73,7 +75,7 @@
         variant={isActive("/people/") ? "default" : "ghost"}
       >
         <UsersRoundIcon class="min-w-8" />
-        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">People</span>
+        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'hidden w-0'}">People</span>
       </Button>
     </li>
     <li class="w-full">
@@ -84,18 +86,18 @@
         variant={isActive("/locations/") ? "default" : "ghost"}
       >
         <MapPinIcon class="min-w-8" />
-        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">Locations</span>
+        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'hidden w-0'}">Locations</span>
       </Button>
     </li>
     <li class="w-full">
       <Button
         class="transition-all duration-300 {isExpanded ? 'w-full justify-start' : ''}"
-        href="{base}/qualifications/"
+        href="{base}/properties/"
         size={isExpanded ? "xl" : "icon-xl"}
-        variant={isActive("/qualifications/") ? "default" : "ghost"}
+        variant={isActive("/properties/") ? "default" : "ghost"}
       >
-        <BriefcaseBusinessIcon class="min-w-8"/>
-        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">Qualifications</span>
+        <TagIcon class="min-w-8" />
+        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'hidden w-0'}">Properties</span>
       </Button>
     </li>
     {#if $settings.assignmentMode === "granular"}
@@ -106,8 +108,8 @@
           size={isExpanded ? "xl" : "icon-xl"}
           variant={isActive("/tasks/") ? "default" : "ghost"}
         >
-          <ClipboardListIcon class="min-w-8"/>
-          <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">Tasks</span>
+          <ClipboardListIcon class="min-w-8" />
+          <span class="overflow-hidden {isExpanded ? 'w-auto' : 'hidden w-0'}">Tasks</span>
         </Button>
       </li>
     {/if}
@@ -119,8 +121,8 @@
           size={isExpanded ? "xl" : "icon-xl"}
           variant={isActive("/ui_playground/") ? "default" : "ghost"}
         >
-          <CodeXmlIcon class="min-w-8"/>
-          <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">UI Playground</span>
+          <CodeXmlIcon class="min-w-8" />
+          <span class="overflow-hidden {isExpanded ? 'w-auto' : 'hidden w-0'}">UI Playground</span>
         </Button>
       </li>
     {/if}
@@ -134,7 +136,7 @@
       class="transition-all duration-300 {isExpanded ? 'w-full justify-start' : 'ml-auto mr-auto'}"
     >
       <SettingsIcon class="min-w-8" />
-      <span class="overflow-hidden {isExpanded ? 'w-auto' : 'w-0 hidden'}">Settings</span>
+      <span class="overflow-hidden {isExpanded ? 'w-auto' : 'hidden w-0'}">Settings</span>
     </Button>
   </svelte:fragment>
 </Sidebar>
