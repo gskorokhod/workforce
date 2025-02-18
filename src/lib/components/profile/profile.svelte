@@ -44,8 +44,9 @@
       <Tooltip.Trigger asChild let:builder>
         <Button
           builders={[builder]}
-          class="flex w-max flex-row items-center justify-center gap-2 rounded-full px-2 py-0.5 decoration-2 transition-all {hoverEffects ?
-            'outline-none hover:bg-accent hover:outline-accent-foreground' : ''} {className}"
+          class="flex w-max flex-row items-center justify-center gap-2 rounded-full px-2 py-0.5 decoration-2 transition-all {hoverEffects
+            ? 'outline-none hover:bg-accent hover:outline-accent-foreground'
+            : ''} {className}"
           on:click={() => onClick(item)}
         >
           <ProfilePicture {item} {size} {defaultIcon} {emptyIcon} class="!pointer-events-none" />

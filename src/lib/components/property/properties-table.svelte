@@ -150,7 +150,7 @@
         description: selected.description,
         icon: selected.icon,
         avatar: selected.avatar,
-      }
+      };
       if (selected instanceof ASelectProperty) {
         oldProps.options = selected.options;
       }
@@ -174,7 +174,6 @@
     }
   }
 
-
   export { className as class };
 </script>
 
@@ -182,13 +181,26 @@
   <div class="mt-4 flex h-max w-full flex-col items-start justify-start overflow-y-scroll">
     {#if header}
       <TableHeader sticky={true}>
-        <div class="flex flex-row items-center group hover:bg-muted hover:bg-opacity-20 rounded-md transition-all" slot="start">
-          <Button variant="ghost" size="icon-xl" class="text-muted-foreground hover:text-primary group-hover:bg-muted group-hover:bg-opacity-20 hover:!bg-opacity-100" on:click={() => newProperty(nextType)}>
+        <div
+          class="group flex flex-row items-center rounded-md transition-all hover:bg-muted hover:bg-opacity-20"
+          slot="start"
+        >
+          <Button
+            variant="ghost"
+            size="icon-xl"
+            class="text-muted-foreground hover:!bg-opacity-100 hover:text-primary group-hover:bg-muted group-hover:bg-opacity-20"
+            on:click={() => newProperty(nextType)}
+          >
             <PlusIcon />
           </Button>
-          <Separator orientation="vertical" class="bg-muted-foreground bg-opacity-50 h-7 w-[1px] group-hover:bg-transparent transition-all" />
+          <Separator
+            orientation="vertical"
+            class="h-7 w-[1px] bg-muted-foreground bg-opacity-50 transition-all group-hover:bg-transparent"
+          />
           <DropdownMenu.Root>
-            <DropdownMenu.Trigger class="text-muted-foreground hover:bg-muted hover:text-primary w-11 h-11 rounded-md flex items-center justify-center transition-all group-hover:bg-muted group-hover:bg-opacity-20 hover:!bg-opacity-100">
+            <DropdownMenu.Trigger
+              class="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-muted hover:!bg-opacity-100 hover:text-primary group-hover:bg-muted group-hover:bg-opacity-20"
+            >
               <ChevronDownIcon />
             </DropdownMenu.Trigger>
             <DropdownMenu.Content>
@@ -196,13 +208,16 @@
                 <DropdownMenu.Label class="text-center">Choose a Type</DropdownMenu.Label>
                 <DropdownMenu.Separator />
                 <DropdownMenu.Item on:click={() => newProperty("single")}>
-                  <TagIcon class="w-8 mr-2 text-muted-foreground"/> {describeType("single")}
+                  <TagIcon class="mr-2 w-8 text-muted-foreground" />
+                  {describeType("single")}
                 </DropdownMenu.Item>
                 <DropdownMenu.Item on:click={() => newProperty("multiple")}>
-                  <TagsIcon class="w-8 mr-2 text-muted-foreground"/> {describeType("multiple")}
+                  <TagsIcon class="mr-2 w-8 text-muted-foreground" />
+                  {describeType("multiple")}
                 </DropdownMenu.Item>
                 <DropdownMenu.Item on:click={() => newProperty("text")}>
-                  <TextIcon class="w-8 mr-2 text-muted-foreground"/> {describeType("text")}
+                  <TextIcon class="mr-2 w-8 text-muted-foreground" />
+                  {describeType("text")}
                 </DropdownMenu.Item>
               </DropdownMenu.Group>
             </DropdownMenu.Content>
@@ -243,7 +258,10 @@
     {#if selected}
       <div class="flex w-full flex-col gap-1.5">
         <Label class="font-semibold" for="type">Type</Label>
-        <Select.Root onSelectedChange={(v) => changePropType(v?.value)} selected={{ value: selected.type, label: describeType(selected.type) }}>
+        <Select.Root
+          onSelectedChange={(v) => changePropType(v?.value)}
+          selected={{ value: selected.type, label: describeType(selected.type) }}
+        >
           <Select.Trigger id="type">
             <Select.Value placeholder="Select a type" />
           </Select.Trigger>
@@ -258,7 +276,7 @@
         <div class="flex w-full flex-col gap-1.5">
           <span class="font-semibold">Options</span>
           <OptionsTable property={selected} />
-        </div>  
+        </div>
       {/if}
     {/if}
   </svelte:fragment>
