@@ -13,17 +13,12 @@ import type { State } from "./state";
  */
 export abstract class Base implements Copy<Base>, Eq<Base> {
   readonly uuid: string;
-  state?: State;
+  state: State;
 
-  constructor(state?: State, uuid?: string) {
+  constructor(state: State, uuid?: string) {
     this.uuid = uuid || uuidv4();
     this.state = state;
   }
-
-  /**
-   * Convert the object to a JSON value for serialization.
-   */
-  abstract toJSON(): JsonObject;
 
   /**
    * Create a deep copy of the object.
@@ -31,25 +26,13 @@ export abstract class Base implements Copy<Base>, Eq<Base> {
   abstract copy(): Base;
 
   /**
-   * Add or update the object in the state it is bound to.
+   * Convert the object to a JSON value for serialization.
    */
-  put() {
-    if (this.state) {
-      this.state.put(this);
-    }
-  }
-
-  /**
-   * Delete the object from the state it is bound to, and unbind the object from the state.
-   * @return True on success, false if the object was not bound to a state
-   */
-  delete(): boolean {
-    if (this.state) {
-      this.state.delete(this);
-      this.state = undefined;
-      return true;
-    }
-    return false;
+  toJSON(): JsonObject {
+    console.log("Base toJSON");
+    return {
+      uuid: this.uuid,
+    };
   }
 
   /**
@@ -65,8 +48,18 @@ export abstract class Base implements Copy<Base>, Eq<Base> {
    * Get this object's corresponding copy in the global state
    * @returns That object, or undefined if it doesn't exist
    */
-  get(): Base | undefined {
-    if (!this.state) return this;
-    return this.state?.get(this.uuid);
+  pull(): Base | undefined {
+    return this.state.get(this.uuid);
+  }
+
+  /**
+   * Add or update the object in the state it is bound to.
+   */
+  push() {
+    return this.state.put(this);
+  }
+
+  delete() {
+    return this.state.delete(this);
   }
 }

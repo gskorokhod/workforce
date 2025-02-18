@@ -1,9 +1,9 @@
-<script lang="ts" generics="T extends Base & Display">
+<script lang="ts" generics="T extends Display & HasUUID">
+  import { type HasUUID } from "$lib/utils/misc";
   import * as Command from "$lib/components/ui/command";
-  import { Base } from "$lib/model/core";
   import type { Display, Icon } from "$lib/ui";
   import { Check } from "lucide-svelte";
-  import { ProfilePicture, type Size } from "../profile-picture";
+  import { ProfilePicture, type Size } from "$lib/components/profile";
   import { PLACEHOLDER } from "./misc";
 
   export let option: T | undefined = undefined;

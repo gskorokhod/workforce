@@ -7,7 +7,7 @@
   import { Icon as TIcon } from "$lib/ui";
   import { ChevronDownIcon } from "lucide-svelte";
   import { tick } from "svelte";
-  import { PFP_HEIGHT, PFP_WIDTH, type Size } from "../profile-picture";
+  import { PFP_HEIGHT, PFP_WIDTH, type Size } from "$lib/components/profile";
   import IconPickerContent from "./icon-picker-content.svelte";
 
   export let icon: TIcon | undefined = undefined;

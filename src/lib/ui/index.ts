@@ -1,23 +1,35 @@
+import { z } from "zod";
 import { Icon } from "./icon";
 
-export interface HasName {
-  name: string;
-  description?: string;
-}
+export const displaySchema = z.object({
+  name: z.string(),
+  description: z
+    .string()
+    .nullish()
+    .transform((x) => x ?? undefined),
+  icon: Icon.schema.nullish().transform((x) => x ?? undefined),
+  avatar: z
+    .union([
+      z
+        .string()
+        .url()
+        .transform((url) => new URL(url)),
+      z.instanceof(URL),
+    ])
+    .nullish()
+    .transform((x) => x ?? undefined),
+});
 
-export interface HasIcon extends HasName {
-  icon: Icon;
-}
-
-export interface HasAvatar extends HasName {
-  avatar: URL;
-}
-
-export type Display = HasName & Partial<HasIcon> & Partial<HasAvatar>;
+export type Display = z.infer<typeof displaySchema>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isDisplay(obj: any): obj is Display {
-  return typeof obj === "object" && obj !== null && typeof obj.name === "string";
+  const res = displaySchema.safeParse(obj);
+  if (!res.success) {
+    console.error(res.error);
+    console.error(obj);
+  }
+  return res.success;
 }
 
 export { Icon };

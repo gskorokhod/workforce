@@ -1,7 +1,7 @@
 <script lang="ts" generics="T extends Display">
   import { Icon, type Display } from "$lib/ui";
-  import { PFP_HEIGHT, PFP_WIDTH, Profile, type ProfileSize, type Size } from ".";
   import { v4 as uuid } from "uuid";
+  import { PFP_HEIGHT, PFP_WIDTH, Profile, type ProfileSize, type Size } from ".";
 
   const COMPACT_WIDTH: ProfileSize = {
     xs: "w-4 hover:w-5",
@@ -19,7 +19,8 @@
   export let max: number | undefined = undefined;
   export let defaultIcon: Icon | undefined = undefined;
   export let emptyIcon: Icon | undefined = undefined;
-  export let placeholder: string;
+  export let onClick: ((item: T | undefined) => void) | undefined = undefined;
+  export let placeholder = "No items";
   export let itemClass = "";
   let className = "";
 
@@ -27,8 +28,8 @@
 </script>
 
 {#if variant === "compact"}
-  {#if items.length > 0}
-    <div class="group flex flex-row flex-wrap items-center justify-start {className}">
+  <div class="group flex flex-row flex-wrap items-center justify-start {className}">
+    {#if items.length > 0}
       {#each items.slice(0, max) as item}
         <div
           class="relative transition-all hover:z-20 hover:!opacity-100 group-hover:opacity-55 {COMPACT_WIDTH[
@@ -43,6 +44,7 @@
             {emptyIcon}
             {placeholder}
             {group}
+            {onClick}
             hoverEffects={false}
             class="{COMPACT_WIDTH[size]} {PFP_HEIGHT[size]} {itemClass}"
           />
@@ -64,19 +66,31 @@
           </div>
         </div>
       {/if}
-    </div>
-  {:else}
-    <Profile
-      variant="default"
-      item={undefined}
-      {size}
-      {emptyIcon}
-      {placeholder}
-      {group}
-      hoverEffects={false}
-      class={itemClass}
-    />
-  {/if}
+      {#if $$slots.extraItems}
+        <div
+          class="relative transition-all hover:z-20 hover:!opacity-100 group-hover:opacity-55 {COMPACT_WIDTH[
+            size
+          ]}"
+        >
+          <slot name="extraItems" />
+        </div>
+      {/if}
+    {:else}
+      <slot name="extraItems">
+        <Profile
+          variant="default"
+          item={undefined}
+          {size}
+          {emptyIcon}
+          {placeholder}
+          {group}
+          {onClick}
+          hoverEffects={false}
+          class={itemClass}
+        />
+      </slot>
+    {/if}
+  </div>
 {:else if items.length > 0}
   <div class="flex flex-row flex-wrap items-center justify-start gap-2 {className}">
     {#each items.slice(0, max) as item}
@@ -88,6 +102,7 @@
         {emptyIcon}
         {placeholder}
         {group}
+        {onClick}
         hoverEffects={false}
         class={itemClass}
       />
@@ -101,7 +116,22 @@
         +{items.length - max}
       </div>
     {/if}
+    {#if $$slots.extraItems}
+      <slot name="extraItems" />
+    {/if}
   </div>
 {:else}
-  <Profile {variant} item={undefined} {size} {emptyIcon} {placeholder} {group} class={itemClass} />
+  <slot name="extraItems">
+    <Profile
+      {variant}
+      item={undefined}
+      {size}
+      {emptyIcon}
+      {placeholder}
+      {group}
+      {onClick}
+      hoverEffects={false}
+      class={itemClass}
+    />
+  </slot>
 {/if}

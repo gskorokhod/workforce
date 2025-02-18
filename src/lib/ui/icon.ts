@@ -1,6 +1,7 @@
 import type { Copy } from "$lib/utils";
 import Color from "color";
-import type { JsonObject } from "type-fest";
+import type { JsonObject, JsonValue } from "type-fest";
+import { z } from "zod";
 
 const DEFAULT_PACK = "lucide";
 
@@ -10,6 +11,18 @@ interface IconName extends JsonObject {
 }
 
 export class Icon implements Copy<Icon> {
+  static schema = z.union([
+    z
+      .object({
+        name: z.object({
+          pack: z.string(),
+          name: z.string(),
+        }),
+        color: z.string().nullish(),
+      })
+      .transform((val) => new Icon(val.name, val.color ? new Color(val.color) : undefined)),
+    z.instanceof(Icon),
+  ]);
   color?: Color;
   icon: IconName;
 
@@ -31,23 +44,15 @@ export class Icon implements Copy<Icon> {
     return new Icon({ pack, name }, color);
   }
 
-  static fromJSON(json: JsonObject): Icon | undefined {
-    const color = typeof json.color === "string" ? Color(json.color) : undefined;
-    const name = typeof json.name === "object" ? (json.name as IconName) : undefined;
-    if (!name) return undefined;
-    return new Icon(name, color);
+  static fromJSON(json: JsonValue): Icon {
+    return Icon.schema.parse(json);
   }
 
   toJSON(): JsonObject {
-    const ans: JsonObject = {
+    return {
       name: this.icon,
+      color: this.color?.hex() ?? null,
     };
-
-    if (this.color) {
-      ans.color = this.color.hex();
-    }
-
-    return ans;
   }
 
   with(props: { color?: Color; icon?: IconName }): Icon {

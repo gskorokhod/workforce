@@ -1,10 +1,10 @@
-<script lang="ts" generics="T extends Base & Display">
+<script lang="ts" generics="T extends HasUUID & Display">
+  import { type HasUUID } from "$lib/utils/misc";
   import * as Command from "$lib/components/ui/command";
   import * as Popover from "$lib/components/ui/popover";
-  import { Base } from "$lib/model/core";
   import { Icon, type Display } from "$lib/ui";
   import { tick } from "svelte";
-  import { type Size } from "../profile-picture";
+  import { type Size } from "$lib/components/profile";
   import { CLEAR, PLACEHOLDER, type OptionsCmp, type OptionsFilter } from "./misc";
   import SelectorEntry from "./selector-entry.svelte";
 

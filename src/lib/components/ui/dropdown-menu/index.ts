@@ -14,6 +14,7 @@ const Sub = DropdownMenuPrimitive.Sub;
 const Root = DropdownMenuPrimitive.Root;
 const Trigger = DropdownMenuPrimitive.Trigger;
 const Group = DropdownMenuPrimitive.Group;
+const Arrow = DropdownMenuPrimitive.Arrow;
 
 export {
   Sub,
@@ -21,6 +22,7 @@ export {
   Item,
   Label,
   Group,
+  Arrow,
   Trigger,
   Content,
   Shortcut,
@@ -36,6 +38,7 @@ export {
   Item as DropdownMenuItem,
   Label as DropdownMenuLabel,
   Group as DropdownMenuGroup,
+  Arrow as DropdownMenuArrow,
   Content as DropdownMenuContent,
   Trigger as DropdownMenuTrigger,
   Shortcut as DropdownMenuShortcut,

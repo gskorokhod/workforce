@@ -1,17 +1,17 @@
 import { copyArr, type Copy } from "$lib/utils";
 import { persisted, type Serializer } from "svelte-persisted-store";
-import { get as _get, derived, type Writable } from "svelte/store";
+import { get as _get, derived, type Readable, type Writable } from "svelte/store";
 import type { JsonObject } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
 import { Assignment } from "./assignment";
 import { Base } from "./base";
 import { Location } from "./location";
 import { Person } from "./person";
-import { Qualification } from "./qualification";
-import { DEFAULTS, type Settings } from "./settings";
+import { Property } from "./property";
+import { DefaultSettings, SettingsSerializer, type Settings } from "./settings";
 import { Shift } from "./shift";
 import { Task } from "./task";
-import { Team } from "./team";
+import { defaultTemplates, templatesSerializer, type Templates } from "./templates";
 
 // A map of UUIDs to objects of type T
 type Stored<T extends Base> = Map<string, T>;
@@ -21,22 +21,28 @@ type Storage<T extends Base> = Writable<Stored<T>>;
 export class State {
   private readonly stateID: string;
   readonly settings: Writable<Settings>;
-  readonly _qualifications: Storage<Qualification>;
-  readonly _teams: Storage<Team>;
-  readonly _tasks: Storage<Task>;
+  readonly templates: Writable<Templates>;
+  readonly _properties: Storage<Property<unknown>>;
   readonly _people: Storage<Person>;
   readonly _locations: Storage<Location>;
+  readonly _tasks: Storage<Task>;
   readonly _assignments: Storage<Assignment>;
   readonly _shifts: Storage<Shift>;
 
   constructor(stateID?: string) {
     this.stateID = stateID || uuidv4();
-    this.settings = persisted("settings_" + this.stateID, { ...DEFAULTS });
-    this._qualifications = persisted("qualifications_" + this.stateID, new Map(), {
-      serializer: this.mkSerializer(Qualification.fromJSON),
+    this.settings = persisted(
+      "settings_" + this.stateID,
+      { ...DefaultSettings },
+      {
+        serializer: SettingsSerializer,
+      },
+    );
+    this._properties = persisted("properties_" + this.stateID, new Map(), {
+      serializer: this.mkSerializer(Property.fromJSON),
     });
-    this._teams = persisted("teams_" + this.stateID, new Map(), {
-      serializer: this.mkSerializer(Team.fromJSON),
+    this.templates = persisted("templates_" + this.stateID, defaultTemplates(this), {
+      serializer: templatesSerializer(this),
     });
     this._tasks = persisted("tasks_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Task.fromJSON),
@@ -65,6 +71,7 @@ export class State {
         return map;
       });
     }
+    this.templates.set(defaultTemplates(this));
   }
 
   /**
@@ -119,9 +126,9 @@ export class State {
    * @throws Error if the object type is unknown
    */
   put<T extends Base>(obj: T): string {
-    if (obj instanceof Qualification) {
-      this._qualifications.update((map) => {
-        map.set(obj.uuid, obj as Qualification);
+    if (obj instanceof Property) {
+      this._properties.update((map) => {
+        map.set(obj.uuid, obj as Property<unknown>);
         return map;
       });
     } else if (obj instanceof Task) {
@@ -166,16 +173,16 @@ export class State {
     }
   }
 
-  get qualifications(): Writable<Qualification[]> {
-    return this.createWritable(this._qualifications);
-  }
-
-  get tasks(): Writable<Task[]> {
-    return this.createWritable(this._tasks);
+  get properties(): Writable<Property<unknown>[]> {
+    return this.createWritable(this._properties);
   }
 
   get people(): Writable<Person[]> {
     return this.createWritable(this._people);
+  }
+
+  get tasks(): Writable<Task[]> {
+    return this.createWritable(this._tasks);
   }
 
   get locations(): Writable<Location[]> {
@@ -190,13 +197,25 @@ export class State {
     return this.createWritable(this._shifts);
   }
 
+  get everything(): Readable<Base[]> {
+    return derived(this._stores, (stores) => {
+      const ans = [];
+      for (const store of stores) {
+        for (const val of store.values()) {
+          ans.push(val);
+        }
+      }
+      return ans;
+    });
+  }
+
   /**
    * Helper function to create a serializer for a given object type.
    * @param fromJSON Object's deserialization function
    * @returns Serializer for the object type
    */
   private mkSerializer<T extends Base>(
-    fromJSON: (json: JsonObject, state?: State) => T,
+    fromJSON: (json: JsonObject, state: State) => T,
   ): Serializer<Stored<T>> {
     return {
       stringify: (map: Stored<T>) => {
@@ -223,9 +242,9 @@ export class State {
    */
   private get _stores(): Storage<Base>[] {
     return [
-      this._qualifications,
-      this._tasks,
+      this._properties,
       this._people,
+      this._tasks,
       this._locations,
       this._assignments,
       this._shifts,
@@ -244,4 +263,61 @@ export class State {
     };
     return { subscribe: readable.subscribe, set, update };
   }
+}
+
+export function subset<T extends Base>(
+  source: Storage<T>,
+  uuids: Writable<string[]>,
+): Writable<T[]> {
+  const readable = derived([source, uuids], ([source, uuids]) => {
+    const ans = [];
+    for (const uuid of uuids) {
+      const val = source.get(uuid);
+      if (val) {
+        ans.push(val.copy() as T);
+      }
+    }
+    return ans;
+  });
+  const set = (items: T[]) => {
+    uuids.set(items.map((item) => item.uuid));
+    for (const item of items) {
+      source.update((map) => {
+        map.set(item.uuid, item.copy() as T);
+        return map;
+      });
+    }
+  };
+  const update: (fn: (items: T[]) => T[]) => void = (fn) => {
+    const current = _get(readable);
+    set(fn(current));
+  };
+  return { subscribe: readable.subscribe, set, update };
+}
+
+export function subsetOne<T extends Base>(
+  source: Storage<T>,
+  uuid: Writable<string | undefined>,
+): Writable<T | undefined> {
+  const readable = derived([source, uuid], ([source, uuid]) => {
+    if (uuid === undefined) {
+      return undefined;
+    }
+    const val = source.get(uuid);
+    return val ? (val.copy() as T) : undefined;
+  });
+  const set = (item: T | undefined) => {
+    uuid.set(item?.uuid);
+    if (item) {
+      source.update((map) => {
+        map.set(item.uuid, item.copy() as T);
+        return map;
+      });
+    }
+  };
+  const update: (fn: (item: T | undefined) => T | undefined) => void = (fn) => {
+    const current = _get(readable);
+    set(fn(current));
+  };
+  return { subscribe: readable.subscribe, set, update };
 }

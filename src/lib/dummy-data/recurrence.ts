@@ -4,7 +4,6 @@ import { faker } from "@faker-js/faker";
 import {
   CalendarDate,
   fromDate,
-  isSameDay,
   Time,
   toCalendarDate,
   type TimeDuration,
@@ -58,25 +57,25 @@ function mkDuration(): TimeDuration {
   };
 }
 
-function mkExDates(): CalendarDate[] {
-  const n = Math.floor(Math.random() * 5);
-  return Array.from({ length: n }, () => {
-    const dt = faker.date.between({
-      from: faker.date.recent({ days: 14 }),
-      to: faker.date.future(),
-    });
-    return toCalendarDate(fromDate(dt, "UTC"));
-  });
-}
+// function mkExDates(): CalendarDate[] {
+//   const n = Math.floor(Math.random() * 5);
+//   return Array.from({ length: n }, () => {
+//     const dt = faker.date.between({
+//       from: faker.date.recent({ days: 14 }),
+//       to: faker.date.future(),
+//     });
+//     return toCalendarDate(fromDate(dt, "UTC"));
+//   });
+// }
 
-function mkExceprions(): {
-  rdates: CalendarDate[];
-  exdates: CalendarDate[];
-} {
-  const exdates = mkExDates();
-  const rdates = mkExDates().filter((d) => !exdates.some((e) => isSameDay(d, e)));
-  return { rdates, exdates };
-}
+// function mkExceprions(): {
+//   rdates: CalendarDate[];
+//   exdates: CalendarDate[];
+// } {
+//   const exdates = mkExDates();
+//   const rdates = mkExDates().filter((d) => !exdates.some((e) => isSameDay(d, e)));
+//   return { rdates, exdates };
+// }
 
 function mkTime(when?: "Morning" | "Day" | "Evening" | "Night"): Time {
   switch (when) {

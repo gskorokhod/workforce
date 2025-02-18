@@ -1,30 +1,38 @@
 <script lang="ts">
-  import { state as GLOBAL_STATE, Person, Qualification, State } from "$lib/model";
+  import { EditDialog } from "$lib/components/edit-dialog";
+  import { ProfilePicture } from "$lib/components/profile";
+  import { Search } from "$lib/components/search";
+  import { Button } from "$lib/components/ui/button";
+  import { state as GLOBAL_STATE, Person, State } from "$lib/model";
   import type { Display } from "$lib/ui";
+  import { getLocalTimeZone } from "@internationalized/date";
   import { PlusIcon } from "lucide-svelte";
   import { createRender, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
-  import { type Writable, writable } from "svelte/store";
-  import { Button } from "../ui/button";
-  import { EditDialog } from "../edit-dialog";
-  import { ProfilePicture, ProfilesList } from "../profile-picture";
-  import { Search } from "../search";
+  import { get as _get, type Writable, writable } from "svelte/store";
+  import PropertyValue from "../property/property-value.svelte";
   import { type ColumnInitializer, DataTableCore } from "./core";
   import { ColumnHideSelector, TableHeader } from "./lib";
 
-  let data: ReadOrWritable<Person[]>;
-  let header = true;
-  let state: State = GLOBAL_STATE;
-  let rowActions = new Map<string, (item: Person) => void>();
-  let filterValue: Writable<string> = writable("");
-  let sortKeys: WritableSortKeys = createSortKeysStore([]);
-  let hideForId: Record<string, boolean> = {};
+  export let data: ReadOrWritable<Person[]>;
+  export let showHeader = true;
+  export let state: State = GLOBAL_STATE;
+  export let rowActions = new Map<string, (item: Person) => void>();
+  export let filterValue: Writable<string> = writable("");
+  export let sortKeys: WritableSortKeys = createSortKeysStore([]);
+  export let hideForId: Record<string, boolean> = {};
+
   let flatColumns: FlatColumn<Person, any, string>[]; // eslint-disable-line @typescript-eslint/no-explicit-any
   let className = "";
-
   let selected: Person | undefined = undefined;
   let dialogOpen = false;
   let dialogTitle = "Edit Person";
+  const dobFormatter = new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
   let columnInitializers: ColumnInitializer<Person>[] = [
     {
       accessor: (row) => row as Display,
@@ -46,31 +54,21 @@
       id: "name",
     },
     {
-      accessor: (row: Person) => row.age,
-      header: "Age",
-      id: "age",
-    },
-    {
-      accessor: (row: Person) => row.role,
-      header: "Role",
-      id: "role",
-    },
-    {
-      accessor: (row: Person) => row.qualifications,
-      cell: (cell) =>
-        createRender(ProfilesList, { items: cell.value, placeholder: "No Qualifications" }),
-      header: "Qualifications",
-      id: "qualifications",
-      plugins: {
-        sort: {
-          getSortValue: (value: Qualification[]) => value.map((val) => val.name).join(" "),
-        },
-        tableFilter: {
-          getFilterValue: (value: Qualification[]) => value.map((val) => val.name).join(" "),
-        },
-      },
+      accessor: (row: Person) =>
+        row.dob ? dobFormatter.format(row.dob.toDate(getLocalTimeZone())) : "Not Set",
+      header: "Date of Birth",
+      id: "dob",
     },
   ];
+
+  for (const prop of _get(state.templates).person.keys) {
+    columnInitializers.push({
+      accessor: (row: Person) => row.properties.get(prop),
+      cell: (cell) => createRender(PropertyValue, { property: prop, value: cell.value }),
+      header: prop.name,
+      id: prop.uuid,
+    });
+  }
 
   let actions = new Map([
     ...rowActions,
@@ -80,43 +78,45 @@
 
   function rowClick(item: Person) {
     dialogTitle = "Edit Person";
-    selected = item.get() as Person;
+    selected = item.pull() as Person;
     dialogOpen = true;
   }
 
   function newPerson() {
     dialogTitle = "Create new Person";
-    selected = new Person({}, state);
+    selected = new Person({ name: "" }, state);
     dialogOpen = true;
   }
 
-  export { data, actions, header, state, className as class };
+  export { className as class };
 </script>
 
 <div class="flex flex-col items-start justify-start {className}">
-  {#if header}
-    <TableHeader sticky={true}>
-      <svelte:fragment slot="start">
-        <Button
-          class="text-muted-foreground hover:text-accent-foreground"
-          on:click={newPerson}
-          size="icon-xl"
-          variant="ghost"
-        >
-          <PlusIcon />
-        </Button>
-        <slot name="start" />
-      </svelte:fragment>
+  {#if showHeader}
+    <slot name="header">
+      <TableHeader sticky={true}>
+        <svelte:fragment slot="start">
+          <Button
+            class="text-muted-foreground hover:text-accent-foreground"
+            on:click={newPerson}
+            size="icon-xl"
+            variant="ghost"
+          >
+            <PlusIcon />
+          </Button>
+          <slot name="start" />
+        </svelte:fragment>
 
-      <svelte:fragment slot="middle">
-        <slot name="middle" />
-      </svelte:fragment>
+        <svelte:fragment slot="middle">
+          <slot name="middle" />
+        </svelte:fragment>
 
-      <svelte:fragment slot="end">
-        <ColumnHideSelector bind:hideForId {flatColumns} />
-        <Search onInput={(s) => filterValue.set(s)} />
-      </svelte:fragment>
-    </TableHeader>
+        <svelte:fragment slot="end">
+          <ColumnHideSelector bind:hideForId {flatColumns} />
+          <Search onInput={(s) => filterValue.set(s)} />
+        </svelte:fragment>
+      </TableHeader>
+    </slot>
   {/if}
   <DataTableCore
     bind:filterValue

@@ -5,8 +5,7 @@
   import * as Popover from "$lib/components/ui/popover";
   import { Icon, type Display } from "$lib/ui";
   import { tick } from "svelte";
-  import type { Size } from "../profile-picture";
-  import ProfilePicture from "../profile-picture/profile-picture.svelte";
+  import { type Size, ProfilePicture } from "$lib/components/profile";
 
   const defaultIcon: Icon = Icon.fromString("lucide:image-plus");
 

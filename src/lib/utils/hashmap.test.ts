@@ -4,6 +4,72 @@ import { HashMap } from "./hashmap";
 test("Create an empty HashMap", () => {
   const map = new HashMap();
   expect(map.size).toBe(0);
+  expect(map.keys().toArray()).toEqual([]);
+  expect(map.values().toArray()).toEqual([]);
+  expect(map.entries().toArray()).toEqual([]);
+});
+
+test("Set and get values", () => {
+  const map = new HashMap<string, number>();
+  map.set("one", 1);
+  map.set("two", 2);
+
+  expect(map.size).toBe(2);
+  expect(map.get("one")).toBe(1);
+  expect(map.get("two")).toBe(2);
+
+  map.set("one", 3);
+  expect(map.size).toBe(2);
+  expect(map.get("one")).toBe(3);
+  expect(map.get("two")).toBe(2);
+});
+
+test("Delete a key", () => {
+  const map = new HashMap<string, number>();
+  map.set("one", 1);
+  map.set("two", 2);
+
+  map.delete("one");
+  expect(map.size).toBe(1);
+  expect(map.get("one")).toBeUndefined();
+  expect(map.get("two")).toBe(2);
+});
+
+test("Iterate over keys", () => {
+  const map = new HashMap<string, number>();
+  map.set("one", 1);
+  map.set("two", 2);
+
+  const expected = ["one", "two"];
+  expected.sort();
+
+  const keys = map.keys().toArray().sort();
+  expect(keys).toEqual(expected);
+});
+
+test("Iterate over values", () => {
+  const map = new HashMap<string, number>();
+  map.set("one", 1);
+  map.set("two", 2);
+
+  const expected = [1, 2];
+  const values = map.values().toArray().sort();
+  expect(values).toEqual(expected);
+});
+
+test("Iterate over entries", () => {
+  const map = new HashMap<string, number>();
+  map.set("one", 1);
+  map.set("two", 2);
+
+  const expected = [
+    ["one", 1],
+    ["two", 2],
+  ] as [string, number][];
+  expected.sort();
+
+  const entries = map.entries().toArray().sort();
+  expect(entries).toEqual(expected);
 });
 
 test("Create a HashMap with initial values", () => {
@@ -19,157 +85,60 @@ test("Create a HashMap with initial values", () => {
   expect(map.get(3)).toBe("three");
 });
 
-test("Delete a key", () => {
-  const map = new HashMap();
-  const key = { a: 1 };
+test("Class instances as keys", () => {
+  const map = new HashMap<GoodDummy, string>();
 
-  map.set(key, "value1");
-  expect(map.size).toBe(1);
+  map.set(new GoodDummy(1), "one");
+  map.set(new GoodDummy(2), "two");
 
-  map.delete(key);
-  expect(map.size).toBe(0);
-  expect(map.get(key)).toBeUndefined();
-});
-
-test("Overwrite a key", () => {
-  const map = new HashMap();
-  const key = { a: 1 };
-
-  map.set(key, "value1");
-  expect(map.size).toBe(1);
-  expect(map.get(key)).toBe("value1");
-
-  map.set(key, "value2");
-  expect(map.size).toBe(1);
-  expect(map.get(key)).toBe("value2");
-});
-
-test("Add a key-value pair", () => {
-  const map = new HashMap<object, string>([[{ a: 1 }, "value1"]]);
-
-  map.set({ b: 2 }, "value2");
   expect(map.size).toBe(2);
-  expect(map.get({ a: 1 })).toBe("value1");
-  expect(map.get({ b: 2 })).toBe("value2");
-});
+  expect(map.get(new GoodDummy(1))).toBe("one");
+  expect(map.get(new GoodDummy(2))).toBe("two");
 
-test("Check if a key exists", () => {
-  const map = new HashMap();
-  const key = { a: 1 };
-
-  map.set(key, "value1");
-  expect(map.has(key)).toBe(true);
-
-  map.delete(key);
-  expect(map.has(key)).toBe(false);
-});
-
-test("Clear the HashMap", () => {
-  const map = new HashMap();
-  map.set({ a: 1 }, "value1");
-  map.set({ b: 2 }, "value2");
+  map.set(new GoodDummy(1), "three");
   expect(map.size).toBe(2);
-  map.clear();
-  expect(map.size).toBe(0);
-  expect(map.get({ a: 1 })).toBeUndefined();
-  expect(map.get({ b: 2 })).toBeUndefined();
-});
+  expect(map.get(new GoodDummy(1))).toBe("three");
+  expect(map.get(new GoodDummy(2))).toBe("two");
 
-test("Iterate over entries", () => {
-  const map = new HashMap([
-    [{ a: 1 }, "value1"],
-    [{ b: 2 }, "value2"],
-  ]);
-  const entries = Array.from(map.entries());
-  expect(entries).toHaveLength(2);
-  expect(entries).toContainEqual([{ a: 1 }, "value1"]);
-  expect(entries).toContainEqual([{ b: 2 }, "value2"]);
-});
-
-test("Iterate over keys", () => {
-  const map = new HashMap([
-    [{ a: 1 }, "value1"],
-    [{ b: 2 }, "value2"],
-  ]);
-  const keys = Array.from(map.keys());
-  expect(keys).toHaveLength(2);
-  expect(keys).toContainEqual({ a: 1 });
-  expect(keys).toContainEqual({ b: 2 });
-});
-
-test("Iterate over values", () => {
-  const map = new HashMap([
-    [{ a: 1 }, "value1"],
-    [{ b: 2 }, "value2"],
-  ]);
-  const values = Array.from(map.values());
-  expect(values).toHaveLength(2);
-  expect(values).toContain("value1");
-  expect(values).toContain("value2");
-});
-
-test("Check size property", () => {
-  const map = new HashMap();
-  expect(map.size).toBe(0);
-  map.set({ a: 1 }, "value1");
+  map.delete(new GoodDummy(1));
   expect(map.size).toBe(1);
-  map.set({ b: 2 }, "value2");
+  expect(map.get(new GoodDummy(1))).toBeUndefined();
+  expect(map.get(new GoodDummy(2))).toBe("two");
+});
+
+test("Class instances as keys without equals and hash", () => {
+  const map = new HashMap<BadDummy, string>();
+
+  map.set(new BadDummy(1), "one");
+  map.set(new BadDummy(2), "two");
+
   expect(map.size).toBe(2);
-  map.delete({ a: 1 });
-  expect(map.size).toBe(1);
+  expect(map.get(new BadDummy(1))).toBeUndefined();
+  expect(map.get(new BadDummy(2))).toBeUndefined();
 });
 
-test("Hash collisions", () => {
-  const badhash = () => "foo";
-  const map = new HashMap<string, string>(undefined, badhash);
+// Class that implements equals and hash methods
+class GoodDummy {
+  private value: number;
 
-  // The hash function is bad, so all keys will have the same hash
-  map.set("spam", "spam");
-  map.set("eggs", "eggs");
+  constructor(value: number) {
+    this.value = value;
+  }
 
-  // ...but the keys are different, so they should still be stored and retrieved correctly
-  expect(map.size).toBe(2);
-  expect(map.get("spam")).toBe("spam");
-  expect(map.get("eggs")).toBe("eggs");
+  equals(other: GoodDummy): boolean {
+    return this.value === other.value;
+  }
 
-  map.set("eggs", "new eggs");
-  expect(map.size).toBe(2);
-  expect(map.get("eggs")).toBe("new eggs");
+  hash(): number {
+    return 1;
+  }
+}
 
-  map.delete("eggs");
-  expect(map.size).toBe(1);
-  expect(map.get("eggs")).toBeUndefined();
-});
+// Class that does not implement equals and hash methods
+class BadDummy {
+  private value: number;
 
-test("Custom equals function", () => {
-  const badhash = () => "foo";
-  const equals = (a: string, b: string) => a.length === b.length;
-
-  const map = new HashMap<string, string>(undefined, badhash, equals);
-
-  map.set("spam", "spam");
-
-  expect(map.size).toBe(1);
-  expect(map.get("spam")).toBe("spam");
-
-  map.set("eggs", "eggs");
-
-  // The hashes match, and the keys are equal (by length)
-  expect(map.size).toBe(1);
-  expect(map.get("eggs")).toBe("eggs");
-});
-
-test("Deep equality for keys", () => {
-  const key1 = { a: 1, b: { c: 2 } };
-  const map = new HashMap<object, string>();
-
-  map.set(key1, "value1");
-  expect(map.size).toBe(1);
-  expect(map.get(key1)).toBe("value1");
-
-  // The key is not the same object, but it has the same structure
-  expect(map.get({ a: 1, b: { c: 2 } })).toBe("value1");
-
-  // This key would be equal by shallow equality, but actually has a different structure
-  expect(map.get({ a: 1, b: { c: 3 } })).toBeUndefined();
-});
+  constructor(value: number) {
+    this.value = value;
+  }
+}

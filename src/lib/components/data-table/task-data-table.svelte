@@ -1,14 +1,15 @@
 <script lang="ts">
-  import { state as GLOBAL_STATE, Qualification, State, Task } from "$lib/model";
+  import { EditDialog } from "$lib/components/edit-dialog";
+  import { ProfilePicture } from "$lib/components/profile";
+  import { Search } from "$lib/components/search";
+  import { Button } from "$lib/components/ui/button";
+  import { state as GLOBAL_STATE, State, Task } from "$lib/model";
   import type { Display } from "$lib/ui";
   import { PlusIcon } from "lucide-svelte";
   import { createRender, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
-  import { type Writable, writable } from "svelte/store";
-  import { Button } from "../ui/button";
-  import { EditDialog } from "../edit-dialog";
-  import { ProfilePicture, ProfilesList } from "../profile-picture";
-  import { Search } from "../search";
+  import { get as _get, type Writable, writable } from "svelte/store";
+  import PropertyValue from "../property/property-value.svelte";
   import { type ColumnInitializer, DataTableCore } from "./core";
   import { ColumnHideSelector, mkCapacity, TableHeader } from "./lib";
 
@@ -24,7 +25,7 @@
 
   let selected: Task | undefined = undefined;
   let dialogOpen = false;
-  let dialogTitle = "Edit Person";
+  let dialogTitle = "Edit Task";
   let columnInitializers: ColumnInitializer<Task>[] = [
     {
       accessor: (row) => row as Display,
@@ -50,22 +51,16 @@
       header: "Required Workers",
       id: "capacity",
     },
-    {
-      accessor: (row: Task) => row.qualifications,
-      cell: (cell) =>
-        createRender(ProfilesList, { items: cell.value, placeholder: "No Qualifications" }),
-      header: "Required Qualifications",
-      id: "qualifications",
-      plugins: {
-        sort: {
-          getSortValue: (value: Qualification[]) => value.map((ql) => ql.name).join(" "),
-        },
-        tableFilter: {
-          getFilterValue: (value: Qualification[]) => value.map((ql) => ql.name).join(" "),
-        },
-      },
-    },
   ];
+
+  for (const prop of _get(state.templates).task.keys) {
+    columnInitializers.push({
+      accessor: (row: Task) => row.properties.get(prop),
+      cell: (cell) => createRender(PropertyValue, { property: prop, value: cell.value }),
+      header: prop.name,
+      id: prop.uuid,
+    });
+  }
 
   let actions = new Map([
     ...rowActions,
@@ -75,13 +70,13 @@
 
   function rowClick(item: Task) {
     dialogTitle = "Edit Task";
-    selected = item.get() as Task;
+    selected = item.pull() as Task;
     dialogOpen = true;
   }
 
   function newTask() {
-    dialogTitle = "Create new Location";
-    selected = new Task({}, state);
+    dialogTitle = "Create new Task";
+    selected = new Task({ name: "" }, state);
     dialogOpen = true;
   }
 

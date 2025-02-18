@@ -1,11 +1,11 @@
-<script lang="ts" generics="T extends Base & Display">
+<script lang="ts" generics="T extends HasUUID & Display">
+  import { type HasUUID } from "$lib/utils/misc";
   import { Button } from "$lib/components/ui/button";
   import * as Popover from "$lib/components/ui/popover";
   import * as Tooltip from "$lib/components/ui/tooltip";
-  import { Base } from "$lib/model/core";
   import { Icon, type Display } from "$lib/ui";
   import { ChevronDownIcon } from "lucide-svelte";
-  import { ProfilePicture, ProfileTooltip, type Size } from "../profile-picture";
+  import { ProfilePicture, ProfileTooltip, type Size } from "$lib/components/profile";
   import {
     BTN_SIZE,
     PLACEHOLDER,

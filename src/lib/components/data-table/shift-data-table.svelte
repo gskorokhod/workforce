@@ -2,15 +2,15 @@
   import { state as GLOBAL_STATE, Shift, State, Task } from "$lib/model";
   import type { Display } from "$lib/ui";
   import { capitalize } from "$lib/utils/misc";
-  import { DateFormatter, getLocalTimeZone } from "@internationalized/date";
+  import { DateFormatter, getLocalTimeZone, Time } from "@internationalized/date";
   import { PlusIcon } from "lucide-svelte";
   import { createRender, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
   import { type Writable, writable } from "svelte/store";
-  import { Button } from "../ui/button";
-  import { EditDialog } from "../edit-dialog";
-  import { ProfilePicture, ProfilesList } from "../profile-picture";
-  import { Search } from "../search";
+  import { Button } from "$lib/components/ui/button";
+  import { EditDialog } from "$lib/components/edit-dialog";
+  import { ProfilePicture, ProfilesList } from "$lib/components/profile";
+  import { Search } from "$lib/components/search";
   import { type ColumnInitializer, DataTableCore } from "./core";
   import { ColumnHideSelector, TableHeader } from "./lib";
   import { get } from "svelte/store";
@@ -108,13 +108,16 @@
 
   function rowClick(item: Shift) {
     dialogTitle = "Edit Shift";
-    selected = item.get() as Shift;
+    selected = item.pull() as Shift;
     dialogOpen = true;
   }
 
   function newShift() {
     dialogTitle = "Create new Shift";
-    selected = new Shift({}, state);
+    selected = new Shift(
+      { name: "", pattern: { start: new Time(9, 0), end: new Time(17, 0) } },
+      state,
+    );
     dialogOpen = true;
   }
 

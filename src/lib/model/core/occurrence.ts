@@ -1,7 +1,8 @@
 import { TimeSlot } from "$lib/model/temporal";
 import type { Display, Icon } from "$lib/ui";
-import { isSameDay, type ZonedDateTime } from "@internationalized/date";
-import { Assignment } from "./assignment";
+import { type ZonedDateTime } from "@internationalized/date";
+import { derived, type Readable } from "svelte/store";
+import { Assignment, SimpleAssignment } from "./assignment";
 import type { Shift } from "./shift";
 
 /**
@@ -15,24 +16,6 @@ export class ShiftOccurrence extends TimeSlot implements Display {
     this.shift = shift;
   }
 
-  /**
-   * Gets the assignments that are active during this occurrence.
-   * @returns The assignments that are active during this occurrence.
-   */
-  getAssignments(): Assignment[] {
-    if (!this.shift.state) {
-      return [];
-    }
-    const ans = Assignment.getAll(this.shift.state);
-    return ans.filter((assignment) => {
-      return (
-        assignment.shift?.eq(this.shift) &&
-        assignment.date &&
-        isSameDay(assignment.date, this.start)
-      );
-    });
-  }
-
   get name(): string {
     return this.shift.name;
   }
@@ -43,5 +26,20 @@ export class ShiftOccurrence extends TimeSlot implements Display {
 
   get icon(): Icon | undefined {
     return this.shift.icon;
+  }
+
+  get rAssignments(): Readable<Assignment[]> {
+    return derived(this.shift.state.assignments, (assignments) =>
+      assignments.filter((a) => {
+        if (!this.includes(a.date)) {
+          return false;
+        }
+        if (a instanceof SimpleAssignment) {
+          return a.shift?.eq(this.shift);
+        }
+        // TODO: Implement complex assignments
+        return false;
+      }),
+    );
   }
 }

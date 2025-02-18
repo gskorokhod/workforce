@@ -5,7 +5,7 @@
 
 <NavMenu />
 
-<div class="flex h-dvh w-dvw flex-col bg-gray-100 overflow-y-scroll pl-20">
+<div class="flex h-dvh w-dvw flex-col overflow-y-scroll bg-gray-100 pl-20">
   <div class="flex flex-col p-2">
     <slot />
   </div>
