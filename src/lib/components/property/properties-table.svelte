@@ -22,6 +22,7 @@
   import { createRender, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
   import { type Writable, writable } from "svelte/store";
+  import { v4 as uuidv4 } from "uuid";
   import Label from "../ui/label/label.svelte";
   import Separator from "../ui/separator/separator.svelte";
   import OptionsTable from "./options-table.svelte";
@@ -93,8 +94,9 @@
     item.delete();
   }
 
-  function newProperty(type: PropertyType, props?: Partial<SelectPropertyProps>) {
+  function newProperty(type: PropertyType, props?: Partial<SelectPropertyProps>, uuid?: string) {
     dialogTitle = "Add Property";
+    uuid = uuid || uuidv4();
     switch (type) {
       case "single": {
         selected = new SelectProperty(
@@ -104,6 +106,7 @@
             ...props,
           },
           state,
+          uuid
         );
         break;
       }
@@ -115,6 +118,7 @@
             ...props,
           },
           state,
+          uuid
         );
         break;
       }
@@ -125,6 +129,7 @@
             ...props,
           },
           state,
+          uuid
         );
         break;
       }
@@ -157,7 +162,7 @@
     }
     console.log("New Props", oldProps);
     const newType = v as PropertyType;
-    newProperty(newType, oldProps);
+    newProperty(newType, oldProps, selected?.uuid);
     dialogTitle = "Edit Property";
   }
 

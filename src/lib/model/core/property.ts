@@ -160,9 +160,16 @@ export abstract class ASelectProperty<T> extends Property<T> {
 
 export class SelectProperty extends ASelectProperty<SelectOption> {
   type: z.infer<typeof types> = "single";
+  schema = z.union([
+    this.optSchema,
+    z
+      .array(this.optSchema)
+      .nonempty()
+      .transform((a) => a[0]),
+  ]);
 
   parse(value: unknown) {
-    return this.optSchema.safeParse(value);
+    return this.schema.safeParse(value);
   }
 
   serialize(value: SelectOption): JsonValue {
@@ -194,12 +201,15 @@ export class SelectProperty extends ASelectProperty<SelectOption> {
 
 export class MultiSelectProperty extends ASelectProperty<SelectOption[]> {
   type: z.infer<typeof types> = "multiple";
+  schema = z.union([
+    z
+      .array(z.optional(this.optSchema).catch(undefined))
+      .transform((a) => a.filter((v) => v !== undefined) as SelectOption[]),
+    this.optSchema.transform((v) => (v ? [v] : [])),
+  ]);
 
   parse(value: unknown) {
-    return z
-      .array(z.optional(this.optSchema).catch(undefined))
-      .transform((a) => a.filter((v) => v !== undefined) as SelectOption[])
-      .safeParse(value);
+    return this.schema.safeParse(value);
   }
 
   serialize(value: SelectOption[]): JsonValue {
