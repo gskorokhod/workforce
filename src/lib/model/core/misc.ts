@@ -24,3 +24,22 @@ export function displayToJSON(display: Display): JsonObject {
 export function displayFromJSON(json: JsonObject): Display {
   return displaySchema.parse(json);
 }
+
+export function displayToJSON(display: Display): JsonObject {
+  return {
+    name: display.name,
+    description: display.description || null,
+    icon: display.icon?.toJSON() || null,
+    avatar: display.avatar?.href || null,
+  };
+}
+
+export function displayFromJSON(json: JsonValue): Display {
+  const { name, description, icon, avatar } = json as JsonObject;
+  return {
+    name: name as string,
+    description: description ? (description as string) : undefined,
+    icon: icon ? Icon.fromJSON(icon as JsonObject) : undefined,
+    avatar: avatar ? new URL(avatar as string) : undefined,
+  };
+}

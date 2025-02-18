@@ -1,6 +1,7 @@
 import { State } from "$lib/model";
 import { generateLocation, generateLocations, generateTrueLocation } from "./location";
 import { generatePeople, generatePerson } from "./person";
+import { generateQualification, generateQualifications } from "./qualification";
 import { generateShift, generateShifts } from "./shift";
 import { generateTask, generateTasks } from "./task";
 
