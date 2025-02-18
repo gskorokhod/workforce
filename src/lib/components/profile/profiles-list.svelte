@@ -2,7 +2,6 @@
   import { Icon, type Display } from "$lib/ui";
   import { v4 as uuid } from "uuid";
   import { PFP_HEIGHT, PFP_WIDTH, Profile, type ProfileSize, type Size } from ".";
-  import { v4 as uuid } from "uuid";
 
   const COMPACT_WIDTH: ProfileSize = {
     xs: "w-4 hover:w-5",

@@ -15,9 +15,10 @@
   import Search from "$lib/components/search/search.svelte";
   import { Selector } from "$lib/components/selector";
   import SelectorMany from "$lib/components/selector/selector-many.svelte";
-  import * as Tabs from "$lib/components/ui/tabs";
   import TimePicker from "$lib/components/time-picker/time-picker.svelte";
   import { Button } from "$lib/components/ui/button";
+  import * as Tabs from "$lib/components/ui/tabs";
+  import { dummyState } from "$lib/dummy-data";
   import { fmtTime } from "$lib/model/temporal/utils";
   import { Icon, type Display } from "$lib/ui";
   import { randomColor } from "$lib/utils/misc";
@@ -32,7 +33,6 @@
   import Color from "color";
   import { GraduationCapIcon, XIcon } from "lucide-svelte";
   import { v4 as uuid } from "uuid";
-  import { dummyState } from "$lib/dummy-data";
 
   const schedules: ComboboxItem[] = [
     { label: "Schedule 1", value: "schedule1" },
@@ -172,7 +172,6 @@
       <Profile item={$people[0]} placeholder="Select person..." />
       <Profile variant="full" item={$people[0]} placeholder="Select person..." />
       <Profile variant="text" item={$people[0]} placeholder="Select person..." />
-      <Profile item={$properties[0]} placeholder="Select qualification..." />
     </section>
     <section class="flex w-full flex-col gap-3">
       <h2 class="text-xl">Selector (One)</h2>
@@ -218,8 +217,8 @@
       <EditDialog item={$people[0]} title="Edit Person">
         <Button>Edit Person</Button>
       </EditDialog>
-      <EditDialog item={$properties[0]} title="Edit Qualification">
-        <Button>Edit Qualification</Button>
+      <EditDialog item={$properties[0]} title="Edit Property">
+        <Button>Edit Property</Button>
       </EditDialog>
       <EditDialog item={$tasks[0]} title="Edit Task">
         <Button>Edit Task</Button>

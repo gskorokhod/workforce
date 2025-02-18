@@ -12,13 +12,6 @@ export class Displayable extends Base implements Display {
   icon?: Icon;
   avatar?: URL;
 
-  /**
-   * Creates a new qualification.
-   * @param props Properties of the qualification.
-   * @param state State to bind the qualification to.
-   * @param uuid UUID of the qualification. If not provided, a new UUID is generated
-   * @see LabelProps
-   */
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(props: Display, state: any, uuid?: string) {
     super(state, uuid);

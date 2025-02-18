@@ -77,11 +77,4 @@ export class Person extends WithProperties {
       assignments.filter((a) => a.person?.eq(this)),
     );
   }
-
-  /**
-   * Get the team that the person is a part of
-   */
-  get team(): Team | undefined {
-    return this._team?.get() as Team | undefined;
-  }
 }
