@@ -106,7 +106,7 @@
             ...props,
           },
           state,
-          uuid
+          uuid,
         );
         break;
       }
@@ -118,7 +118,7 @@
             ...props,
           },
           state,
-          uuid
+          uuid,
         );
         break;
       }
@@ -129,7 +129,7 @@
             ...props,
           },
           state,
-          uuid
+          uuid,
         );
         break;
       }
