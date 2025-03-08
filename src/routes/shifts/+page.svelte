@@ -2,6 +2,6 @@
   import Shifts from "$lib/components/views/shifts.svelte";
 </script>
 
-<div class="w-full bg-gray-50">
-  <Shifts />
+<div class="w-full">
+  <Shifts class="rounded-md bg-card shadow-md" />
 </div>

@@ -2,6 +2,7 @@ import ProfilePicture from "./profile-picture.svelte";
 import ProfileTooltip from "./profile-tooltip.svelte";
 import Profile from "./profile.svelte";
 import ProfilesList from "./profiles-list.svelte";
+import Color from "color";
 
 export interface ProfileSize {
   xs: string;
@@ -26,6 +27,8 @@ export const PFP_WIDTH: ProfileSize = {
   lg: "w-12 px-1.5",
   xl: "w-16 px-2",
 };
+
+export const DEFAULT_COLOR = Color("#64748b");
 
 type Size = keyof ProfileSize;
 

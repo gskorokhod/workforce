@@ -8,6 +8,7 @@
   import { state } from "$lib/model";
   import { type Settings } from "$lib/model/core";
   import { RefreshCwIcon, TrashIcon } from "lucide-svelte";
+  import { setMode, mode } from "mode-watcher";
 
   const settings = state.settings;
 
@@ -25,10 +26,44 @@
     ],
     ["simple", { name: "Simple", description: "Employees are assigned to shifts as a whole" }],
   ]);
+
+  function setTheme(theme: string) {
+    setMode(theme as "light" | "dark" | "system");
+  }
 </script>
 
 <div class="flex flex-col gap-8 px-6 pt-4">
   <h1 class="text-2xl font-semibold">Settings</h1>
+
+  <Card.Root>
+    <Card.Header>
+      <Card.Title>Appearance</Card.Title>
+      <Card.Description>Tweak the appearance of this app</Card.Description>
+    </Card.Header>
+    <Card.Content>
+      <div class="flex flex-col gap-2">
+        <Label class="text-md mb-1 font-semibold" for="theme">Theme</Label>
+        <RadioGroup.Root
+          value={$mode || "system"}
+          id="theme"
+          onValueChange={(val) => setTheme(val)}
+        >
+          <div class="flex items-center space-x-2">
+            <RadioGroup.Item value="light" id="light" />
+            <Label for="light">Light</Label>
+          </div>
+          <div class="flex items-center space-x-2">
+            <RadioGroup.Item value="dark" id="dark" />
+            <Label for="dark">Dark</Label>
+          </div>
+          <div class="flex items-center space-x-2">
+            <RadioGroup.Item value="system" id="system" />
+            <Label for="system">System</Label>
+          </div>
+        </RadioGroup.Root>
+      </div>
+    </Card.Content>
+  </Card.Root>
 
   <Card.Root>
     <Card.Header>

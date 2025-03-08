@@ -121,6 +121,10 @@ export class PropertyValues {
     });
   }
 
+  has<T>(property: IdOr<Property<T>>): boolean {
+    return this.get(uuidOf(property)) !== undefined;
+  }
+
   get<T>(property: IdOr<Property<T>>): T | undefined | null {
     return _get(this.rGet(property));
   }

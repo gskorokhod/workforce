@@ -127,6 +127,7 @@
     {columnInitializers}
     {data}
     {actions}
+    header={showHeader}
     defaultAction={rowClick}
   />
 </div>

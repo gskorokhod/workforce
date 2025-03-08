@@ -5,6 +5,7 @@
   import type { MapMouseEvent } from "maplibre-gl";
   import MapMarker from "./map-marker.svelte";
   import { debounce } from "$lib/utils/misc";
+  import { mode } from "mode-watcher";
 
   export let locations: (Location | Geopoint)[] = [];
   export let draggable = false;
@@ -17,6 +18,10 @@
   let className = "";
 
   $: coords = locations.map((l) => getCoords(l)).filter((c) => c !== undefined) as LngLat[];
+  $: mapTheme =
+    $mode === "dark"
+      ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+      : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
   function getCoords(l: Location | Geopoint): LngLat | undefined {
     if (l instanceof Location) {
@@ -41,7 +46,7 @@
     bounds={findBoundingBox(coords)}
     class="aspect-auto h-full w-full"
     standardControls
-    style={"https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
+    style={mapTheme}
     on:click={handleClick}
   >
     {#each locations as location}

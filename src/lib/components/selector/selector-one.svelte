@@ -22,7 +22,7 @@
   export let variant: "compact" | "default" | "text" | "full" = "default";
   export let size: Size = "md";
   export let placeholderIcon: Icon = PLACEHOLDER;
-  export let placeholderText = "Not Selected";
+  export let placeholderText = "Select";
   export let allowUnselect = true;
   export let id: string | undefined = undefined;
   export let transition: TransitionFn<T> = (_old, _new) => _new;
@@ -66,7 +66,7 @@
           builders={[popoverTrigger]}
           class="group/selector !h-max !w-max {BTN_SIZE[
             size
-          ]} overflow-visible rounded-full outline-none transition-all hover:outline-accent-foreground {variant ===
+          ]} overflow-visible rounded-full font-normal outline-none transition-all hover:outline-accent-foreground {variant ===
           'full'
             ? 'px-1.5 py-1'
             : 'p-0.5'} {variant === 'compact' && 'aspect-square !p-0'} {open &&
@@ -75,15 +75,29 @@
           variant={colors}
         >
           {#if showImage}
-            <ProfilePicture item={value} class="!pointer-events-none" {size} />
+            <ProfilePicture
+              item={value}
+              class="!pointer-events-none"
+              {size}
+              emptyIcon={placeholderIcon}
+              defaultIcon={placeholderIcon}
+            />
           {/if}
 
           {#if showName}
-            <span>{value?.name || placeholderText}</span>
+            {#if value?.name}
+              <span>{value?.name}</span>
+            {:else}
+              <span class="text-muted-foreground">{placeholderText}</span>
+            {/if}
           {/if}
 
           {#if showIcon}
-            <ChevronDownIcon class="transition-all {open ? 'rotate-180' : ''}" />
+            <ChevronDownIcon
+              class="text-muted-foreground transition-all group-hover/selector:text-foreground {open
+                ? 'rotate-180'
+                : ''}"
+            />
           {/if}
         </Button>
       </Popover.Trigger>

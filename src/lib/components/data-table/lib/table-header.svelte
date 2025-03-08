@@ -4,7 +4,7 @@
 </script>
 
 <div
-  class="z-10 flex h-fit w-full flex-row items-center justify-between bg-gray-200 px-4 py-3 {sticky
+  class="z-10 flex h-fit w-full flex-row items-center justify-between bg-secondary px-4 py-3 {sticky
     ? 'sticky top-0'
     : ''}"
 >

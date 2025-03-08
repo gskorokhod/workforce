@@ -76,7 +76,7 @@
   export { className as class };
 </script>
 
-<div class="flex flex-col {className}" style="">
+<div class="flex flex-col {className}">
   <div class="z-20 flex flex-row items-center gap-4 p-2 shadow">
     <Button on:click={shiftLeft} size="icon" variant="ghost">
       <ChevronLeft />
@@ -101,9 +101,9 @@
         hLineWidth={line}
         showTime={true}
         vLineWidth="0px"
-        class="w-14 bg-secondary"
+        class="w-14 bg-accent"
       >
-        <div class="bg-secondary" style="grid-row: 1; grid-column: 1 / span all" />
+        <div class="bg-accent" style="grid-row: 1; grid-column: 1 / span all" />
       </TimeGrid>
       <slot {context} />
     </div>

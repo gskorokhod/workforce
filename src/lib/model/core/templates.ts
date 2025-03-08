@@ -8,6 +8,7 @@ export interface Templates {
   location: PropertyValues;
   shift: PropertyValues;
   task: PropertyValues;
+  [key: string]: PropertyValues;
 }
 
 // Can't import State due to circular dependency. Using any until I figure out a better way.

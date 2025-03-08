@@ -29,13 +29,21 @@
           class={className}
           on:click={() => onClick(item)}
         >
-          {item?.name || placeholder}
+          {#if item?.name}
+            <span>{item?.name}</span>
+          {:else}
+            <span class="text-muted-foreground">{placeholder}</span>
+          {/if}
         </Button>
       </Tooltip.Trigger>
     {:else}
       <Tooltip.Trigger class="w-max {className}">
         <span class="decoration-2 {hoverEffects && 'hover:underline'}">
-          {item?.name || placeholder}
+          {#if item?.name}
+            <span>{item?.name}</span>
+          {:else}
+            <span class="text-muted-foreground">{placeholder}</span>
+          {/if}
         </span>
       </Tooltip.Trigger>
     {/if}
@@ -50,7 +58,11 @@
           on:click={() => onClick(item)}
         >
           <ProfilePicture {item} {size} {defaultIcon} {emptyIcon} class="!pointer-events-none" />
-          <span>{item?.name || placeholder}</span>
+          {#if item?.name}
+            <span>{item?.name}</span>
+          {:else}
+            <span class="text-muted-foreground">{placeholder}</span>
+          {/if}
         </Button>
       </Tooltip.Trigger>
     {:else}
@@ -59,7 +71,11 @@
           'outline-none hover:bg-accent hover:outline-accent-foreground'} {className}"
       >
         <ProfilePicture {item} {size} {defaultIcon} {emptyIcon} class="!pointer-events-none" />
-        <span>{item?.name || placeholder}</span>
+        {#if item?.name}
+          <span>{item?.name}</span>
+        {:else}
+          <span class="text-muted-foreground">{placeholder}</span>
+        {/if}
       </Tooltip.Trigger>
     {/if}
   {:else if onClick !== undefined}

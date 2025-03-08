@@ -11,7 +11,7 @@
 </script>
 
 <nav
-  class="fixed bottom-0 top-0 z-50 flex h-dvh shrink-0 grow-0 flex-col items-center justify-between overflow-hidden bg-gray-300 p-2 transition-all duration-300 ease-in-out {className}"
+  class="fixed bottom-0 top-0 z-50 flex h-dvh shrink-0 grow-0 flex-col items-center justify-between overflow-hidden bg-accent p-2 transition-all duration-300 ease-in-out {className}"
 >
   <div class="flex w-full justify-start">
     <slot name="top" />

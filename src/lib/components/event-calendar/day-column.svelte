@@ -41,7 +41,7 @@
     class="h-full w-full"
   >
     <div
-      class="flex items-center justify-center bg-secondary"
+      class="flex items-center justify-center bg-accent"
       style="grid-row: 1; grid-column: 1 / span all"
     >
       <DayHeader {day} class="" />

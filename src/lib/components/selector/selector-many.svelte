@@ -59,7 +59,7 @@
       {id}
       aria-expanded={open}
       builders={[builder]}
-      class="group/selector !h-max w-max px-2 py-2 {BTN_SIZE[
+      class="group/selector !h-max w-max py-0.5 pl-0 pr-2 font-normal {BTN_SIZE[
         size
       ]} overflow-visible rounded-full outline-none transition-all hover:outline-accent-foreground {open &&
         'outline-accent-foreground'}"
@@ -72,10 +72,12 @@
         placeholder={placeholderText}
         emptyIcon={plusIcon}
         defaultIcon={placeholderIcon}
+        class="pr-0"
       />
 
       <ChevronDownIcon
-        class="transition-all {open && 'rotate-180'} {variant === 'compact' && 'ml-5'}"
+        class="text-muted-foreground transition-all group-hover/selector:text-foreground {open &&
+          'rotate-180'} {variant === 'compact' && 'ml-5'}"
       />
     </Button>
   </Popover.Trigger>

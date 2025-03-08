@@ -27,6 +27,7 @@
   import Separator from "../ui/separator/separator.svelte";
   import OptionsTable from "./options-table.svelte";
   import PropertyOptions from "./property-options.svelte";
+  import { describeType } from "./misc";
 
   export let data: ReadOrWritable<Property<unknown>[]>;
   export let state: State = GLOBAL_STATE;
@@ -166,67 +167,56 @@
     dialogTitle = "Edit Property";
   }
 
-  function describeType(v: PropertyType) {
-    switch (v) {
-      case "single":
-        return "Single-Select";
-      case "multiple":
-        return "Multi-Select";
-      case "text":
-        return "Text Field";
-      default:
-        return "Unknown";
-    }
-  }
-
   export { className as class };
 </script>
 
 <div class="flex flex-col items-start justify-start {className}">
-  <div class="mt-4 flex h-max w-full flex-col items-start justify-start overflow-y-scroll">
+  <div class="flex h-max w-full flex-col items-start justify-start overflow-y-scroll">
     {#if header}
       <TableHeader sticky={true}>
         <div
-          class="group flex flex-row items-center rounded-md transition-all hover:bg-muted hover:bg-opacity-20"
+          class="group flex flex-row items-center rounded-md transition-all hover:bg-accent hover:bg-opacity-20"
           slot="start"
         >
-          <Button
-            variant="ghost"
-            size="icon-xl"
-            class="text-muted-foreground hover:!bg-opacity-100 hover:text-primary group-hover:bg-muted group-hover:bg-opacity-20"
-            on:click={() => newProperty(nextType)}
-          >
-            <PlusIcon />
-          </Button>
-          <Separator
-            orientation="vertical"
-            class="h-7 w-[1px] bg-muted-foreground bg-opacity-50 transition-all group-hover:bg-transparent"
-          />
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger
-              class="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-muted hover:!bg-opacity-100 hover:text-primary group-hover:bg-muted group-hover:bg-opacity-20"
+          <slot name="add">
+            <Button
+              variant="ghost"
+              size="icon-xl"
+              class="text-muted-foreground hover:text-primary"
+              on:click={() => newProperty(nextType)}
             >
-              <ChevronDownIcon />
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Content>
-              <DropdownMenu.Group>
-                <DropdownMenu.Label class="text-center">Choose a Type</DropdownMenu.Label>
-                <DropdownMenu.Separator />
-                <DropdownMenu.Item on:click={() => newProperty("single")}>
-                  <TagIcon class="mr-2 w-8 text-muted-foreground" />
-                  {describeType("single")}
-                </DropdownMenu.Item>
-                <DropdownMenu.Item on:click={() => newProperty("multiple")}>
-                  <TagsIcon class="mr-2 w-8 text-muted-foreground" />
-                  {describeType("multiple")}
-                </DropdownMenu.Item>
-                <DropdownMenu.Item on:click={() => newProperty("text")}>
-                  <TextIcon class="mr-2 w-8 text-muted-foreground" />
-                  {describeType("text")}
-                </DropdownMenu.Item>
-              </DropdownMenu.Group>
-            </DropdownMenu.Content>
-          </DropdownMenu.Root>
+              <PlusIcon />
+            </Button>
+            <Separator
+              orientation="vertical"
+              class="h-7 w-[1px] bg-muted-foreground bg-opacity-50 transition-all group-hover:bg-transparent"
+            />
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger
+                class="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-accent hover:text-primary"
+              >
+                <ChevronDownIcon />
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Content>
+                <DropdownMenu.Group>
+                  <DropdownMenu.Label class="text-center">Choose a Type</DropdownMenu.Label>
+                  <DropdownMenu.Separator />
+                  <DropdownMenu.Item on:click={() => newProperty("single")}>
+                    <TagIcon class="mr-2 w-8 text-muted-foreground" />
+                    {describeType("single")}
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item on:click={() => newProperty("multiple")}>
+                    <TagsIcon class="mr-2 w-8 text-muted-foreground" />
+                    {describeType("multiple")}
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item on:click={() => newProperty("text")}>
+                    <TextIcon class="mr-2 w-8 text-muted-foreground" />
+                    {describeType("text")}
+                  </DropdownMenu.Item>
+                </DropdownMenu.Group>
+              </DropdownMenu.Content>
+            </DropdownMenu.Root>
+          </slot>
           <slot name="start" />
         </div>
 
@@ -248,6 +238,7 @@
       {columnInitializers}
       {data}
       {actions}
+      {header}
       defaultAction={rowClick}
     />
   </div>
