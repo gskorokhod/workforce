@@ -7,6 +7,7 @@ function dToday() {
 
 const settingsSchema = z.object({
   development: z.boolean().default(true),
+  askDeleteConfirmation: z.boolean().default(true),
   assignmentMode: z.enum(["simple", "granular"]).default("simple"),
   planningHorizonStart: z.string().default(dToday().toString()).transform(parseDate),
   planningHorizonEnd: z
@@ -23,6 +24,7 @@ export const SettingsSerializer = {
   stringify: (val: Settings): string =>
     JSON.stringify({
       development: val.development,
+      askDeleteConfirmation: val.askDeleteConfirmation,
       assignmentMode: val.assignmentMode,
       planningHorizonStart: val.planningHorizonStart.toString(),
       planningHorizonEnd: val.planningHorizonEnd.toString(),

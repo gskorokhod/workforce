@@ -9,20 +9,9 @@ export const BTN_SIZE: ProfileSize = {
   xl: "h-16 gap-2",
 };
 
-export const PLUS = new Icon({
-  pack: "lucide",
-  name: "plus",
-});
-
-export const PLACEHOLDER = new Icon({
-  pack: "lucide",
-  name: "circle-help",
-});
-
-export const CLEAR = new Icon({
-  pack: "lucide",
-  name: "x",
-});
+export const PLUS = Icon.fromString("lucide:plus");
+export const PLACEHOLDER = Icon.fromString("lucide:circle-help");
+export const CLEAR = Icon.fromString("lucide:x");
 
 export type TransitionFn<T> = (_old: T | undefined, _new: T | undefined) => T | undefined;
 export type OnSelect<T> = (selected: T | undefined) => void;

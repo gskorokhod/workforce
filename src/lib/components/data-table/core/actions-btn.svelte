@@ -21,7 +21,12 @@
   </DropdownMenu.Trigger>
   <DropdownMenu.Content>
     {#each Array.from(actions.entries()) as [key, fn]}
-      <DropdownMenu.Item on:click={() => fn(item)}>{key}</DropdownMenu.Item>
+      <DropdownMenu.Item
+        on:click={() => fn(item)}
+        class="transition-all {key.toLowerCase() === 'delete'
+          ? 'text-destructive hover:!bg-destructive hover:!text-destructive-foreground'
+          : ''}">{key}</DropdownMenu.Item
+      >
     {/each}
   </DropdownMenu.Content>
 </DropdownMenu.Root>

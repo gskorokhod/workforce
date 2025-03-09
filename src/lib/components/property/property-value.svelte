@@ -5,22 +5,29 @@
 
   export let property: Property<T>;
   export let value: unknown | undefined;
+
+  function isTruthy(value: unknown | undefined): boolean {
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
+    return !!value;
+  }
 </script>
 
 {#if property instanceof SelectProperty}
-  {#if value}
+  {#if isTruthy(value)}
     <Profile item={property.parse(value).data} />
   {:else}
     <span class="text-muted-foreground">Not set</span>
   {/if}
 {:else if property instanceof MultiSelectProperty}
-  {#if value}
+  {#if isTruthy(value)}
     <ProfilesList items={property.parse(value).data} />
   {:else}
     <span class="text-muted-foreground">Not set</span>
   {/if}
 {:else if property instanceof TextProperty}
-  {#if value}
+  {#if isTruthy(value)}
     <span>{property.parse(value).data}</span>
   {:else}
     <span class="text-muted-foreground">Not set</span>

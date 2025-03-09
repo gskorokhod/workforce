@@ -6,5 +6,5 @@
 </script>
 
 <main class="h-full w-full">
-  <PersonDataTable data={people} class="h-full w-full" />
+  <PersonDataTable data={people} class="h-full w-full shadow-md" />
 </main>

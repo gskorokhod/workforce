@@ -10,11 +10,7 @@
 </script>
 
 <TabsPrimitive.Root
-  class={cn(
-    "flex gap-4 rounded-md",
-    orientation === "vertical" ? "flex-row" : "flex-col",
-    className,
-  )}
+  class={cn("flex rounded-md", orientation === "vertical" ? "flex-row" : "flex-col", className)}
   {orientation}
   {...$$restProps}
 >

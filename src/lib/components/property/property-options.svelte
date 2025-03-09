@@ -13,5 +13,5 @@
     <span class="text-muted-foreground">No options configured</span>
   {/if}
 {:else if property instanceof TextProperty}
-  <!-- Text Field -->
+  <span class="text-muted-foreground">Freeform text field</span>
 {/if}

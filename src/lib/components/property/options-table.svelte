@@ -117,7 +117,7 @@
   </div>
 </div>
 <EditDialog
-  item={selected}
+  {selected}
   bind:open={dialogOpen}
   title={dialogTitle}
   onSubmit={(opt) => putOption(opt)}

@@ -8,6 +8,7 @@
   import { state } from "$lib/model";
   import { type Settings } from "$lib/model/core";
   import { RefreshCwIcon, TrashIcon } from "lucide-svelte";
+  import { setMode, mode } from "mode-watcher";
 
   const settings = state.settings;
 
@@ -25,6 +26,10 @@
     ],
     ["simple", { name: "Simple", description: "Employees are assigned to shifts as a whole" }],
   ]);
+
+  function setTheme(theme: string) {
+    setMode(theme as "light" | "dark" | "system");
+  }
 </script>
 
 <div class="flex flex-col gap-8 px-6 pt-4">
@@ -32,8 +37,38 @@
 
   <Card.Root>
     <Card.Header>
-      <Card.Title>Workflow</Card.Title>
-      <Card.Description>Customize the app to reflect your organisation's workflow</Card.Description>
+      <Card.Title>Appearance</Card.Title>
+      <Card.Description>Tweak the appearance of the app</Card.Description>
+    </Card.Header>
+    <Card.Content>
+      <div class="flex flex-col gap-2">
+        <Label class="text-md mb-1 font-semibold" for="theme">Theme</Label>
+        <RadioGroup.Root
+          value={$mode || "system"}
+          id="theme"
+          onValueChange={(val) => setTheme(val)}
+        >
+          <div class="flex items-center space-x-2">
+            <RadioGroup.Item value="light" id="light" />
+            <Label for="light">Light</Label>
+          </div>
+          <div class="flex items-center space-x-2">
+            <RadioGroup.Item value="dark" id="dark" />
+            <Label for="dark">Dark</Label>
+          </div>
+          <div class="flex items-center space-x-2">
+            <RadioGroup.Item value="system" id="system" />
+            <Label for="system">System</Label>
+          </div>
+        </RadioGroup.Root>
+      </div>
+    </Card.Content>
+  </Card.Root>
+
+  <Card.Root>
+    <Card.Header>
+      <Card.Title>Behaviour</Card.Title>
+      <Card.Description>Customize the app's behaviour</Card.Description>
     </Card.Header>
     <Card.Content>
       {#if assignmentOptions.size > 0}
@@ -68,6 +103,10 @@
     </Card.Header>
     <Card.Content>
       <div class="flex items-center space-x-2">
+        <Switch id="askDeleteConfirmation" bind:checked={$settings.askDeleteConfirmation} />
+        <Label for="askDeleteConfirmation">Always ask me to confirm destructive operations</Label>
+      </div>
+      <div class="mt-4 flex items-center space-x-2">
         <Switch id="development" bind:checked={$settings.development} />
         <Label for="development">Development Mode</Label>
       </div>
@@ -79,7 +118,7 @@
       <Card.Header>
         <Card.Title>Developer Zone</Card.Title>
         <Card.Description
-          >This section contains developer utilities and settings. Don't touch it unless you know
+          >This section contains developer utilities and settings. Don't change them unless you know
           what you are doing!</Card.Description
         >
       </Card.Header>

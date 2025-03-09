@@ -6,5 +6,9 @@
 </script>
 
 <main class="h-full w-full">
-  <LocationDataTable data={locations} class="h-full w-full" mapClass="w-full h-[50%]" />
+  <LocationDataTable
+    data={locations}
+    class="h-full w-full rounded-md border shadow-md"
+    mapClass="w-full h-[40vh]"
+  />
 </main>

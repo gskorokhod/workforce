@@ -37,7 +37,7 @@
     </div>
   {/if}
   {#if item instanceof WithProperties}
-    <PropertiesInput {item} />
+    <PropertiesInput properties={item.properties} />
   {/if}
   {#if item instanceof Location}
     <EditLocation {item} locations={$locations} />

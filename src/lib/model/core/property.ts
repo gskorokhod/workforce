@@ -17,8 +17,11 @@ const selectOptionSchema = z.object({
 export type PropertyType = z.infer<typeof types>;
 export type SelectOption = z.infer<typeof selectOptionSchema>;
 
-export interface SelectPropertyProps extends Display {
+interface PropertyProps extends Display {
   type?: PropertyType;
+}
+
+export interface SelectPropertyProps extends PropertyProps {
   options: SelectOption[];
 }
 
@@ -27,6 +30,21 @@ export abstract class Property<T> extends Displayable {
   abstract parse(value: unknown): SafeParseReturnType<unknown, T>;
   abstract serialize(value: T): JsonValue;
 
+  static propsFromJSON(json: JsonObject): PropertyProps {
+    return {
+      ...displayFromJSON(json),
+      type: types.parse(json.type),
+    };
+  }
+
+  /**
+   * Create a concrete Property instance from JSON data.
+   * @warning This method must NEVER be called by subclasses (e.g. via `super` to avoid infinite recursion).
+              It is meant as a "factory" that calls their respective deserialisation methods instead.
+   * @param json JSON data
+   * @param state State to bind the Property instance to.
+   * @returns A concrete Property instance (SelectProperty, TextProperty, etc.)
+   */
   static fromJSON(json: JsonObject, state: State) {
     const type = types.parse(json.type);
     switch (type) {
@@ -61,8 +79,7 @@ export abstract class ASelectProperty<T> extends Property<T> {
 
   static propsFromJSON(json: JsonObject): SelectPropertyProps {
     return {
-      ...displayFromJSON(json),
-      type: types.parse(json.type),
+      ...super.propsFromJSON(json),
       options: z.array(selectOptionSchema).parse(json.options),
     };
   }
@@ -253,7 +270,7 @@ export class TextProperty extends Property<string> {
   static fromJSON(json: JsonObject, state: State): TextProperty {
     return new TextProperty(
       {
-        ...super.fromJSON(json, state),
+        ...super.propsFromJSON(json),
       },
       state,
       z.optional(z.string()).parse(json.uuid),
