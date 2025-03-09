@@ -8,6 +8,7 @@ import { Shift } from "./shift";
 import { State } from "./state";
 import { Task } from "./task";
 import { WithProperties } from "./with-properties";
+import type { Templates } from "./templates";
 
 export {
   Assignment,
@@ -20,4 +21,5 @@ export {
   Task,
   WithProperties,
   type Settings,
+  type Templates,
 };

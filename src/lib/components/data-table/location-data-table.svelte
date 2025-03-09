@@ -14,6 +14,7 @@
   import PropertyValue from "../property/property-value.svelte";
   import { type ColumnInitializer, DataTableCore } from "./core";
   import { ColumnHideSelector, mkCapacity, TableHeader } from "./lib";
+  import DeleteDialog from "./lib/delete-dialog.svelte";
 
   let data: ReadOrWritable<Location[]>;
   let header = true;
@@ -27,6 +28,7 @@
   let mapClass = "h-[300px] w-full";
 
   let selected: Location | undefined = undefined;
+  let alertOpen = false;
   let dialogOpen = false;
   let dialogTitle = "Edit Location";
   let columnInitializers: ColumnInitializer<Location>[] = [
@@ -76,11 +78,16 @@
     });
   }
 
-  let actions = new Map([
-    ...rowActions,
-    ["Edit", (item: Location) => rowClick(item)],
-    ["Delete", (item: Location) => item.delete()],
-  ]);
+  let actions = new Map([...rowActions, ["Edit", rowClick], ["Delete", rowDelete]]);
+
+  function rowDelete(item: Location) {
+    if (_get(state.settings).askDeleteConfirmation) {
+      selected = item;
+      alertOpen = true;
+    } else {
+      item.delete();
+    }
+  }
 
   function rowClick(item: Location) {
     dialogTitle = "Edit Location";
@@ -146,4 +153,5 @@
     />
   </div>
 </div>
-<EditDialog item={selected} bind:open={dialogOpen} title={dialogTitle} />
+<EditDialog {selected} bind:open={dialogOpen} title={dialogTitle} />
+<DeleteDialog {selected} bind:open={alertOpen} />

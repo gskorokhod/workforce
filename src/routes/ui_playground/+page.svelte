@@ -107,7 +107,7 @@
   ];
 </script>
 
-<div class="h-dvh w-full overflow-y-scroll bg-gray-50">
+<div class="h-dvh w-full overflow-y-scroll bg-background">
   <main class="flex w-full flex-col gap-6 pl-6 pt-4">
     <h1 class="text-2xl font-semibold">Components playground</h1>
     <section class="flex w-full flex-col gap-3">
@@ -214,13 +214,13 @@
     </section>
     <section>
       <h2 class="mb-1.5 text-xl">Edit Dialog</h2>
-      <EditDialog item={$people[0]} title="Edit Person">
+      <EditDialog selected={$people[0]} title="Edit Person">
         <Button>Edit Person</Button>
       </EditDialog>
-      <EditDialog item={$properties[0]} title="Edit Property">
+      <EditDialog selected={$properties[0]} title="Edit Property">
         <Button>Edit Property</Button>
       </EditDialog>
-      <EditDialog item={$tasks[0]} title="Edit Task">
+      <EditDialog selected={$tasks[0]} title="Edit Task">
         <Button>Edit Task</Button>
       </EditDialog>
     </section>
@@ -260,7 +260,7 @@
           {precision}
           {step}
           {showTime}
-          class="h-[600px] w-[350px] bg-white"
+          class="h-[600px] w-[350px]"
         >
           {#each events as event (event)}
             <TimeGridItem {tgContext} start={event.start} end={event.end}>

@@ -1,13 +1,15 @@
 <script lang="ts">
   import * as Tabs from "$lib/components/ui/tabs";
   import PropertiesTable from "$lib/components/property/properties-table.svelte";
-  import { Button } from "$lib/components/ui/button";
+  // import PropertyValue from "$lib/components/property/property-value.svelte";
   import * as Popover from "$lib/components/ui/popover";
   import * as Command from "$lib/components/ui/command";
   import * as Tooltip from "$lib/components/ui/tooltip";
-  import { ChevronDownIcon, PlusIcon } from "lucide-svelte";
-  import Separator from "$lib/components/ui/separator/separator.svelte";
+  import { CheckIcon, ChevronDownIcon } from "lucide-svelte";
   import ProfilePicture from "$lib/components/profile/profile-picture.svelte";
+  import { type ColumnInitializer } from "$lib/components/data-table/core";
+  // import { createRender } from "svelte-headless-table";
+  import { Property, type Templates } from "$lib/model/core";
   import { persisted } from "svelte-persisted-store";
 
   import { state as GLOBAL_STATE } from "$lib/model";
@@ -22,12 +24,60 @@
   const templates = state.templates;
   const selectedTemplate = persisted("templateEditorTab", Object.keys(get(templates))[0]);
 
+  function forceUpdate() {
+    templates.update((t) => t);
+    allProperties.update((p) => p);
+  }
+
+  function mkRowActions(templateId: keyof Templates) {
+    const unlink = (item: Property<unknown>) => {
+      const template = $templates[templateId];
+      if (!template) return;
+      template.delete(item);
+      forceUpdate();
+    };
+    return new Map<string, (item: Property<unknown>) => void>([["Unlink", unlink]]);
+  }
+
+  function mkExtraColumns(templateId: keyof Templates): ColumnInitializer<Property<unknown>>[] {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const propValues = $templates[templateId];
+    return [
+      // {
+      //   accessor: (row: Property<unknown>) => row,
+      //   cell: (cell) =>
+      //     createRender(PropertyValue, { property: cell.value, value: propValues.get(cell.value) }),
+      //   header: "Default Value",
+      //   id: "default",
+      // },
+    ];
+  }
+
+  $: extraColumnsAll = [
+    {
+      accessor: (row: Property<unknown>) => {
+        const entries = Object.entries($templates);
+        const filtered = entries.filter(([_, template]) => template.has(row));
+        const count = filtered.length;
+        if (count === entries.length) return "All existing templates";
+        else if (count > 1) {
+          return `${count} templates`;
+        } else if (count === 1) {
+          return `1 template (${capitalize(filtered[0][0])})`;
+        }
+        return "No templates";
+      },
+      header: "Used By",
+      id: "usedCount",
+    },
+  ];
+
   export { className as class };
 </script>
 
 {#if Object.keys($templates).length > 0}
   <Tabs.Root value={$selectedTemplate} class={className} orientation="vertical">
-    <Tabs.List class="min-h-80 w-44 bg-secondary p-4">
+    <Tabs.List class="min-h-[40rem] w-44 bg-secondary p-4">
       {#each Object.keys($templates) as templateId}
         <Tabs.Trigger
           value={templateId}
@@ -37,144 +87,85 @@
           class="w-full justify-start pl-4 text-base">{capitalize(templateId)}</Tabs.Trigger
         >
       {/each}
+      <Tabs.Trigger
+        value="all"
+        on:click={() => {
+          selectedTemplate.set("all");
+        }}
+        class="mt-auto w-full justify-start pl-4 text-base"
+      >
+        All Properties
+      </Tabs.Trigger>
     </Tabs.List>
     {#each Object.keys($templates) as templateId}
       {@const templateProperties = $templates[templateId]}
       <Tabs.Content value={templateId} class="w-full p-4">
-        <PropertiesTable data={templateProperties.rKeys}>
-          <div
-            slot="add"
-            class="group flex flex-row items-center rounded-md transition-all hover:bg-accent hover:bg-opacity-20"
+        <PropertiesTable
+          data={templateProperties.rKeys}
+          hiddenColumns={[]}
+          extraColumns={mkExtraColumns(templateId)}
+          rowActions={mkRowActions(templateId)}
+          onEditSubmit={(prop) => {
+            prop.push();
+            templates.update((templates) => {
+              templates[templateId].put(prop, null);
+              return templates;
+            });
+          }}
+        >
+          <Tooltip.Root
+            openDelay={100}
+            closeDelay={100}
+            group="template-editor-add-property"
+            slot="add-dropdown"
           >
-            <Tooltip.Root openDelay={100} closeDelay={100} group="template-editor-add-property">
-              <Tooltip.Trigger>
-                <Button
-                  variant="ghost"
-                  size="icon-xl"
-                  class="text-muted-foreground hover:text-primary"
-                  on:click={() => {}}
+            <Tooltip.Trigger>
+              <Popover.Root bind:open={propertySelectStates[templateId]}>
+                <Popover.Trigger
+                  class="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-accent hover:text-primary"
                 >
-                  <PlusIcon />
-                </Button>
-              </Tooltip.Trigger>
-              <Tooltip.Content>Create a new property</Tooltip.Content>
-            </Tooltip.Root>
-            <Separator
-              orientation="vertical"
-              class="h-7 w-[1px] bg-muted-foreground bg-opacity-50 transition-all group-hover:bg-transparent"
-            />
-            <Tooltip.Root openDelay={100} closeDelay={100} group="template-editor-add-property">
-              <Tooltip.Trigger>
-                <Popover.Root bind:open={propertySelectStates[templateId]}>
-                  <Popover.Trigger
-                    class="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-accent hover:text-primary"
-                  >
-                    <ChevronDownIcon />
-                  </Popover.Trigger>
-                  <Popover.Content class="p-2">
-                    <Command.Root>
-                      <Command.Input placeholder="Search properties..." />
-                      <Command.List class="mt-2">
-                        <Command.Empty>No results found.</Command.Empty>
-                        {#each $allProperties.filter((p) => !templateProperties.has(p)) as option}
-                          <Command.Item
-                            value={option.uuid}
-                            onSelect={(uuid) => {
+                  <ChevronDownIcon />
+                </Popover.Trigger>
+                <Popover.Content class="p-2">
+                  <Command.Root>
+                    <Command.Input placeholder="Search properties..." />
+                    <Command.List class="mt-2">
+                      <Command.Empty>No results found.</Command.Empty>
+                      <!-- {#each $allProperties.filter((p) => !templateProperties.has(p)) as option} -->
+                      {#each $allProperties as option}
+                        {@const selected = templateProperties.has(option.uuid)}
+                        <Command.Item
+                          value={option.uuid}
+                          onSelect={(uuid) => {
+                            if (selected) {
+                              templateProperties.delete(uuid);
+                            } else {
                               templateProperties.put(uuid, null);
-                              templates.update((t) => t);
-                              propertySelectStates[templateId] = false;
-                            }}
-                          >
-                            <ProfilePicture item={option} />
-                            <span class="ml-3">{option.name}</span>
-                          </Command.Item>
-                        {/each}
-                      </Command.List>
-                    </Command.Root>
-                  </Popover.Content>
-                </Popover.Root>
-              </Tooltip.Trigger>
-              <Tooltip.Content>
-                <span> Link existing property to this template </span>
-              </Tooltip.Content>
-            </Tooltip.Root>
-            <!-- <DropdownMenu.Root>
-              <DropdownMenu.Trigger
-                class="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-accent hover:text-primary"
-              >
-                <ChevronDownIcon />
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Content>
-                <DropdownMenu.Group>
-                  <DropdownMenu.Label class="text-center">Select a Property</DropdownMenu.Label>
-                  <DropdownMenu.Separator />
-                </DropdownMenu.Group>
-              </DropdownMenu.Content>
-            </DropdownMenu.Root> -->
-          </div>
+                            }
+                            forceUpdate();
+                            // propertySelectStates[templateId] = false;
+                          }}
+                        >
+                          <ProfilePicture item={option} />
+                          <span class="ml-3">{option.name}</span>
+                          <CheckIcon class="ml-auto {selected ? 'opacity-100' : 'opacity-0'}" />
+                        </Command.Item>
+                      {/each}
+                    </Command.List>
+                  </Command.Root>
+                </Popover.Content>
+              </Popover.Root>
+            </Tooltip.Trigger>
+            <Tooltip.Content>
+              <span> Link existing property to this template </span>
+            </Tooltip.Content>
+          </Tooltip.Root>
         </PropertiesTable>
-        <!-- <Table.Root class="w-full border">
-          <Table.Header>
-            <Table.Row>
-              <Table.Head>Property</Table.Head>
-              <Table.Head>Default Value</Table.Head>
-              <Table.Head>Actions</Table.Head>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {#each properties.keys as property}
-              <Table.Row>
-                <Table.Cell>
-                  <div class="flex flex-row items-center gap-3">
-                    <ProfilePicture item={property} />
-                    <span class="text-base">{property.name}</span>
-                  </div>
-                </Table.Cell>
-                <Table.Cell>
-                  <PropertyInput {property} {properties} placeholderText="Empty by default" />
-                </Table.Cell>
-                <Table.Cell>
-                  <!-- <DropdownMenu.Root>
-                    <DropdownMenu.Trigger asChild let:builder>
-                      <Button
-                        builders={[builder]}
-                        class="relative h-8 w-8 p-0"
-                        size="icon"
-                        variant="ghost"
-                      >
-                        <span class="sr-only">Open menu</span>
-                        <EllipsisIcon class="h-4 w-4" />
-                      </Button>
-                    </DropdownMenu.Trigger>
-                    <DropdownMenu.Content>
-                      <DropdownMenu.Item on:click={() => {}} class="transition-all">
-                        <EditIcon class="mr-2 h-4 w-4" />
-                        <span>Edit</span>
-                      </DropdownMenu.Item>
-                      <DropdownMenu.Item
-                        on:click={() => {}}
-                        class="text-destructive transition-all hover:!bg-destructive hover:!text-destructive-foreground"
-                      >
-                        <ListXIcon class="mr-2 h-4 w-4" />
-                        <span>Unlink</span>
-                      </DropdownMenu.Item>
-                    </DropdownMenu.Content>
-                  </DropdownMenu.Root>
-                </Table.Cell>
-              </Table.Row>
-            {/each}
-          </Table.Body> -->
-        <!-- <Table.Body>
-          <Table.Row>
-           <Table.Cell class="font-medium">INV001</Table.Cell>
-           <Table.Cell>Paid</Table.Cell>
-           <Table.Cell>Credit Card</Table.Cell>
-           <Table.Cell class="text-right">$250.00</Table.Cell>
-          </Table.Row>
-         </Table.Body> -->
-        <!-- </Table.Root> -->
       </Tabs.Content>
     {/each}
+    <Tabs.Content value="all" class="w-full p-4">
+      <PropertiesTable data={allProperties} extraColumns={extraColumnsAll} />
+    </Tabs.Content>
   </Tabs.Root>
 {:else}
   <div class="flex h-full flex-col items-center justify-center">

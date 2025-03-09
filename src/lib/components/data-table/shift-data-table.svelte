@@ -13,7 +13,8 @@
   import { Search } from "$lib/components/search";
   import { type ColumnInitializer, DataTableCore } from "./core";
   import { ColumnHideSelector, TableHeader } from "./lib";
-  import { get } from "svelte/store";
+  import { get as _get } from "svelte/store";
+  import DeleteDialog from "./lib/delete-dialog.svelte";
 
   const timeFormatter = new DateFormatter(navigator.language || "en", {
     timeZone: getLocalTimeZone(),
@@ -38,6 +39,7 @@
   let className = "";
 
   let selected: Shift | undefined = undefined;
+  let alertOpen = false;
   let dialogOpen = false;
   let dialogTitle = "Edit Person";
   let columnInitializers: ColumnInitializer<Shift>[] = [
@@ -83,7 +85,7 @@
   ];
 
   const settings = state.settings;
-  if (get(settings).assignmentMode === "granular") {
+  if (_get(settings).assignmentMode === "granular") {
     columnInitializers.push({
       accessor: (row: Shift) => Array.from(row.tasks.values()),
       cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No Tasks" }),
@@ -100,11 +102,16 @@
     });
   }
 
-  let actions = new Map([
-    ...rowActions,
-    ["Edit", (item: Shift) => rowClick(item)],
-    ["Delete", (item: Shift) => item.delete()],
-  ]);
+  let actions = new Map([...rowActions, ["Edit", rowClick], ["Delete", rowDelete]]);
+
+  function rowDelete(item: Shift) {
+    if (_get(state.settings).askDeleteConfirmation) {
+      selected = item;
+      alertOpen = true;
+    } else {
+      item.delete();
+    }
+  }
 
   function rowClick(item: Shift) {
     dialogTitle = "Edit Shift";
@@ -162,4 +169,5 @@
     defaultAction={rowClick}
   />
 </div>
-<EditDialog item={selected} bind:open={dialogOpen} title={dialogTitle} />
+<EditDialog {selected} bind:open={dialogOpen} title={dialogTitle} />
+<DeleteDialog {selected} bind:open={alertOpen} />

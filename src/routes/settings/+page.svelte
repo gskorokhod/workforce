@@ -38,7 +38,7 @@
   <Card.Root>
     <Card.Header>
       <Card.Title>Appearance</Card.Title>
-      <Card.Description>Tweak the appearance of this app</Card.Description>
+      <Card.Description>Tweak the appearance of the app</Card.Description>
     </Card.Header>
     <Card.Content>
       <div class="flex flex-col gap-2">
@@ -67,8 +67,8 @@
 
   <Card.Root>
     <Card.Header>
-      <Card.Title>Workflow</Card.Title>
-      <Card.Description>Customize the app to reflect your organisation's workflow</Card.Description>
+      <Card.Title>Behaviour</Card.Title>
+      <Card.Description>Customize the app's behaviour</Card.Description>
     </Card.Header>
     <Card.Content>
       {#if assignmentOptions.size > 0}
@@ -103,6 +103,10 @@
     </Card.Header>
     <Card.Content>
       <div class="flex items-center space-x-2">
+        <Switch id="askDeleteConfirmation" bind:checked={$settings.askDeleteConfirmation} />
+        <Label for="askDeleteConfirmation">Always ask me to confirm destructive operations</Label>
+      </div>
+      <div class="mt-4 flex items-center space-x-2">
         <Switch id="development" bind:checked={$settings.development} />
         <Label for="development">Development Mode</Label>
       </div>
@@ -114,7 +118,7 @@
       <Card.Header>
         <Card.Title>Developer Zone</Card.Title>
         <Card.Description
-          >This section contains developer utilities and settings. Don't touch it unless you know
+          >This section contains developer utilities and settings. Don't change them unless you know
           what you are doing!</Card.Description
         >
       </Card.Header>
