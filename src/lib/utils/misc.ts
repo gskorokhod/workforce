@@ -94,3 +94,11 @@ export function randVaryColor(
 
   return Color.hsl(newH, newS, newL);
 }
+
+export function range(end: number, start = 0, step = 1): number[] {
+  const result = [];
+  for (let i = start; i < end; i += step) {
+    result.push(i);
+  }
+  return result;
+}

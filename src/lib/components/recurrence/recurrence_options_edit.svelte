@@ -25,11 +25,12 @@
   ]);
 
   export let recurrence: Partial<RecurrenceOptions>;
-
+  export let onChange: (recurrence: Partial<RecurrenceOptions>) => void = () => {};
   let prevByweekday: Weekday[] | undefined = undefined;
   let until = recurrence.until || undefined;
   let count = recurrence.count || 1;
   let endVal = recurrence.count ? "count" : recurrence.until ? "until" : "infinite";
+
   $: freqSelected = {
     value: recurrence.freq,
     label: mkFreqLabel(recurrence.freq, recurrence.interval),
@@ -55,6 +56,7 @@
       }
 
       recurrence.freq = fval;
+      onChange(recurrence);
     }
   }
 
@@ -73,6 +75,7 @@
 
     const byweekday = WEEKDAYS.filter((day) => val.includes(day.toString()));
     recurrence.byweekday = byweekday;
+    onChange(recurrence);
   }
 
   function onDtstartChange(val: DateValue | undefined) {
@@ -83,6 +86,32 @@
     } else {
       recurrence.dtstart = toZoned(val, getLocalTimeZone());
     }
+
+    onChange(recurrence);
+  }
+
+  function onEndValChange(
+    end: string | undefined,
+    until: DateValue | undefined,
+    count: number | undefined,
+  ) {
+    if (!end) {
+      return;
+    }
+
+    endVal = end;
+    if (end === "infinite") {
+      recurrence.until = undefined;
+      recurrence.count = undefined;
+    } else if (end === "until") {
+      recurrence.until = until;
+      recurrence.count = undefined;
+    } else if (end === "count") {
+      recurrence.count = count;
+      recurrence.until = undefined;
+    }
+
+    onChange(recurrence);
   }
 
   function pluralise(unit: string, n?: number | string) {
@@ -93,26 +122,6 @@
   function mkFreqLabel(freq?: SupportedFrequency, n?: number) {
     if (!freq) return "";
     return pluralise(FREQUENCIES.get(freq) || "", n);
-  }
-
-  function onEndValChange(
-    end: string | undefined,
-    until: DateValue | undefined,
-    count: number | undefined,
-  ) {
-    if (end) {
-      endVal = end;
-      if (end === "infinite") {
-        recurrence.until = undefined;
-        recurrence.count = undefined;
-      } else if (end === "until") {
-        recurrence.until = until;
-        recurrence.count = undefined;
-      } else if (end === "count") {
-        recurrence.count = count;
-        recurrence.until = undefined;
-      }
-    }
   }
 </script>
 

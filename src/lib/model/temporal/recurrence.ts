@@ -15,7 +15,13 @@ import { Frequency, RRule, RRuleSet } from "rrule";
 import type { JsonObject, JsonValue } from "type-fest";
 import { fromRecurrenceOptions, toRecurrenceOptions, type RecurrenceOptions } from "./options";
 import { TimeSlot } from "./timeslot";
-import { cdSchema, timeDurationBetween, timeDurationSchema, toUTCDate } from "./utils";
+import {
+  cdSchema,
+  formattedDuration,
+  timeDurationBetween,
+  timeDurationSchema,
+  toUTCDate,
+} from "./utils";
 import { z } from "zod";
 
 interface RecurrenceProps {
@@ -120,12 +126,14 @@ class Recurrence implements Copy<Recurrence> {
     startDate: CalendarDate;
     endDate?: CalendarDate;
     times?: number;
-    start: Time;
-    end: Time;
+    start?: Time;
+    end?: Time;
     tzid?: string;
   }) {
     const tzid = props.tzid || getLocalTimeZone();
     const dtstart = toZoned(toCalendarDateTime(props.startDate, props.start), tzid);
+    const duration =
+      props.start && props.end ? timeDurationBetween(props.start, props.end) : undefined;
     if (props.endDate) {
       return new Recurrence({
         tzid,
@@ -134,6 +142,7 @@ class Recurrence implements Copy<Recurrence> {
           dtstart,
           until: toZoned(toCalendarDateTime(props.endDate, props.end), tzid),
         },
+        duration,
       });
     } else {
       return new Recurrence({
@@ -143,7 +152,7 @@ class Recurrence implements Copy<Recurrence> {
           dtstart,
           count: props.times,
         },
-        duration: timeDurationBetween(props.start, props.end),
+        duration,
       });
     }
   }
@@ -403,10 +412,7 @@ class Recurrence implements Copy<Recurrence> {
   }
 
   formattedDuration(): string {
-    if (!this.duration) return "All day";
-    const fmtHours = (this.duration.hours || 0).toString().padStart(2, "0");
-    const fmtMinutes = (this.duration.minutes || 0).toString().padStart(2, "0");
-    return `${fmtHours}h ${fmtMinutes}m`;
+    return formattedDuration(this.duration);
   }
 
   /**

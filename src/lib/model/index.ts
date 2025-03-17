@@ -1,5 +1,14 @@
-import { Assignment, Location, Person, Property, Shift, State, Task } from "./core";
+import {
+  Assignments,
+  Location,
+  Person,
+  Property,
+  Shift,
+  State,
+  Task,
+  AssignmentPattern,
+} from "./core";
 
 export const state = new State("app_state");
 
-export { Assignment, Location, Person, Property, Shift, State, Task };
+export { Assignments, Location, Person, Property, Shift, State, Task, AssignmentPattern };

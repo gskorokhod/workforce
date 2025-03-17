@@ -3,7 +3,7 @@ import { persisted, type Serializer } from "svelte-persisted-store";
 import { get as _get, derived, type Readable, type Writable } from "svelte/store";
 import type { JsonObject } from "type-fest";
 import { v4 as uuidv4 } from "uuid";
-import { Assignment } from "./assignment";
+import { Assignments, AssignmentPattern, assignmentsSerializer } from "./assignment";
 import { Base } from "./base";
 import { Location } from "./location";
 import { Person } from "./person";
@@ -22,11 +22,12 @@ export class State {
   private readonly stateID: string;
   readonly settings: Writable<Settings>;
   readonly templates: Writable<Templates>;
+  readonly assignments: Writable<Assignments>;
+  readonly _assignmentPatterns: Storage<AssignmentPattern>;
   readonly _properties: Storage<Property<unknown>>;
   readonly _people: Storage<Person>;
   readonly _locations: Storage<Location>;
   readonly _tasks: Storage<Task>;
-  readonly _assignments: Storage<Assignment>;
   readonly _shifts: Storage<Shift>;
 
   constructor(stateID?: string) {
@@ -44,6 +45,12 @@ export class State {
     this.templates = persisted("templates_" + this.stateID, defaultTemplates(this), {
       serializer: templatesSerializer(this),
     });
+    this.assignments = persisted("assignments_" + this.stateID, new Assignments(this), {
+      serializer: assignmentsSerializer(this),
+    });
+    this._assignmentPatterns = persisted("assignment_patterns_" + this.stateID, new Map(), {
+      serializer: this.mkSerializer(AssignmentPattern.fromJSON),
+    });
     this._tasks = persisted("tasks_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Task.fromJSON),
     });
@@ -52,9 +59,6 @@ export class State {
     });
     this._locations = persisted("locations_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Location.fromJSON),
-    });
-    this._assignments = persisted("assignments_" + this.stateID, new Map(), {
-      serializer: this.mkSerializer(Assignment.fromJSON),
     });
     this._shifts = persisted("shifts_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Shift.fromJSON),
@@ -146,14 +150,14 @@ export class State {
         map.set(obj.uuid, obj as Location);
         return map;
       });
-    } else if (obj instanceof Assignment) {
-      this._assignments.update((map) => {
-        map.set(obj.uuid, obj as Assignment);
-        return map;
-      });
     } else if (obj instanceof Shift) {
       this._shifts.update((map) => {
         map.set(obj.uuid, obj as Shift);
+        return map;
+      });
+    } else if (obj instanceof AssignmentPattern) {
+      this._assignmentPatterns.update((map) => {
+        map.set(obj.uuid, obj as AssignmentPattern);
         return map;
       });
     } else {
@@ -173,6 +177,10 @@ export class State {
     }
   }
 
+  get assignmentPatterns(): Writable<AssignmentPattern[]> {
+    return this.createWritable(this._assignmentPatterns);
+  }
+
   get properties(): Writable<Property<unknown>[]> {
     return this.createWritable(this._properties);
   }
@@ -187,10 +195,6 @@ export class State {
 
   get locations(): Writable<Location[]> {
     return this.createWritable(this._locations);
-  }
-
-  get assignments(): Writable<Assignment[]> {
-    return this.createWritable(this._assignments);
   }
 
   get shifts(): Writable<Shift[]> {
@@ -246,8 +250,8 @@ export class State {
       this._people,
       this._tasks,
       this._locations,
-      this._assignments,
       this._shifts,
+      this._assignmentPatterns,
     ];
   }
 

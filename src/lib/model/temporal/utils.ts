@@ -1,6 +1,7 @@
 import {
   CalendarDate,
   CalendarDateTime,
+  getDayOfWeek,
   isSameDay,
   isSameMonth,
   isSameYear,
@@ -12,6 +13,7 @@ import {
   toTimeZone,
   toZoned,
   ZonedDateTime,
+  getLocalTimeZone,
   type DateTimeDuration,
   type DateValue,
   type TimeDuration,
@@ -97,6 +99,15 @@ export function dtDurationBetween(a: DateValue, b: DateValue) {
     seconds,
     milliseconds: millis,
   };
+}
+
+/**
+ * Get the start of the week for a given date.
+ */
+export function getWeekStart<T extends DateValue>(date: T, lang = navigator.language || "en"): T {
+  return date.subtract({
+    days: getDayOfWeek(date, lang),
+  }) as T;
 }
 
 /**
@@ -287,7 +298,10 @@ export function toMinutes(dur: TimeDuration | Time): number {
  */
 export function timeDurationBetween<T extends DateValue | Time>(a: T, b: T): TimeDuration {
   if (a instanceof Time && b instanceof Time) {
-    const mins = Math.abs(toMinutes(b as Time) - toMinutes(a as Time));
+    let mins = toMinutes(b as Time) - toMinutes(a as Time);
+    if (mins < 0) {
+      mins += 24 * 60;
+    }
     const [hours, minutes] = divMod(mins, 60);
     return { hours, minutes, seconds: 0, milliseconds: 0 };
   }
@@ -344,6 +358,53 @@ export function timeComponent(time: WithTime | undefined | null): Time {
     return new Time(time.hour, time.minute, time.second, time.millisecond);
   }
   return new Time(time.hours, time.minutes, time.seconds, time.milliseconds);
+}
+
+export function fmtDateRange(
+  from: CalendarDate,
+  to: CalendarDate,
+  options: Intl.DateTimeFormatOptions = {},
+  lang = navigator.language || "en",
+  tzid = getLocalTimeZone(),
+) {
+  const head =
+    `${from.year}, ${from.toDate(tzid).toLocaleDateString(lang, { month: "long", ...options })} ` +
+    `${from.day}`.padStart(2, "0") +
+    " - ";
+  if (isSameMonth(from, to)) {
+    return head + `${to.day}`.padStart(2, "0");
+  } else {
+    return (
+      head +
+      `${to.toDate(tzid).toLocaleDateString(lang, { month: "long", ...options })} ` +
+      `${to.day}`.padStart(2, "0")
+    );
+  }
+}
+
+/**
+ * Format an interval of time as a string.
+ * @param interval Interval in the form {start?: Time, end?: Time}
+ * @param options Intl.DateTimeFormatOptions overrides
+ * @param locale Locale to use. Defaults to the user's preferred languages, or "en" as a fallback.
+ * @returns Formatted interval string
+ */
+export function fmtInterval(
+  interval: { start: Time | undefined | null; end: Time | undefined | null },
+  options: Intl.DateTimeFormatOptions = {},
+  locale = navigator.languages || "en",
+) {
+  const { start, end } = interval;
+  let ans = `from ${fmtTime(start, options, locale)} to ${fmtTime(end, options, locale)}`;
+  if (start && end) {
+    const cmp = cmpTime(start, end);
+    if (cmp === 0) {
+      ans = fmtTime(start, options, locale);
+    } else if (cmp > 0) {
+      ans += " (overnight)";
+    }
+  }
+  return ans;
 }
 
 /**
@@ -512,4 +573,11 @@ export function getClash(a: Event, b: Event): Event | null {
   }
 
   return { start, end };
+}
+
+export function formattedDuration(duration: TimeDuration | undefined): string {
+  if (!duration) return "All day";
+  const fmtHours = (duration.hours || 0).toString().padStart(2, "0");
+  const fmtMinutes = (duration.minutes || 0).toString().padStart(2, "0");
+  return `${fmtHours}h ${fmtMinutes}m`;
 }
