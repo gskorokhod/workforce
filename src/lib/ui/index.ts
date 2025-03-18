@@ -25,10 +25,6 @@ export type Display = z.infer<typeof displaySchema>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isDisplay(obj: any): obj is Display {
   const res = displaySchema.safeParse(obj);
-  if (!res.success) {
-    console.error(res.error);
-    console.error(obj);
-  }
   return res.success;
 }
 

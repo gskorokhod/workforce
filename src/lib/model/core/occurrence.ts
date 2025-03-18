@@ -2,7 +2,7 @@ import { TimeSlot } from "$lib/model/temporal";
 import type { Display, Icon } from "$lib/ui";
 import { type ZonedDateTime } from "@internationalized/date";
 import { derived, type Readable } from "svelte/store";
-import { Assignment, SimpleAssignment } from "./assignment";
+import { type Assignment } from "./assignment";
 import type { Shift } from "./shift";
 
 /**
@@ -29,17 +29,13 @@ export class ShiftOccurrence extends TimeSlot implements Display {
   }
 
   get rAssignments(): Readable<Assignment[]> {
-    return derived(this.shift.state.assignments, (assignments) =>
-      assignments.filter((a) => {
-        if (!this.includes(a.date)) {
-          return false;
-        }
-        if (a instanceof SimpleAssignment) {
-          return a.shift?.eq(this.shift);
-        }
-        // TODO: Implement complex assignments
-        return false;
-      }),
-    );
+    return derived(this.shift.state.assignments, (assignments) => {
+      let ans: Assignment[] = [];
+      for (const date of this.getDates()) {
+        const res = assignments.byDate.get(date);
+        ans = ans.concat(res || []);
+      }
+      return ans;
+    });
   }
 }

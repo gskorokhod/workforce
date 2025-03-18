@@ -10,6 +10,7 @@
   export let open = false;
   export let extraDescription = "";
   export let state = GLOBAL_STATE;
+  export let onDelete: () => void = () => {};
 
   const settings = state.settings;
 </script>
@@ -54,6 +55,7 @@
               selected.delete();
               selected = undefined;
             }
+            onDelete();
             open = false;
           }}>Delete</AlertDialog.Action
         >

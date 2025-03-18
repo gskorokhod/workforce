@@ -24,7 +24,7 @@ export class PropertyValues {
   }
 
   static fromJSON(json: JsonValue, state: State): PropertyValues {
-    console.log("PropertyValues.fromJSON", json);
+    // console.log("PropertyValues.fromJSON", json);
     const obj = z.object({
       values: z
         .array(
@@ -36,7 +36,7 @@ export class PropertyValues {
         .optional(),
     });
 
-    console.log("PropertyValues.fromJSON - parsed", obj);
+    // console.log("PropertyValues.fromJSON - parsed", obj);
     const parsed = obj.parse(json);
 
     const propertyValues = new PropertyValues({ state });
@@ -45,7 +45,7 @@ export class PropertyValues {
         if (value !== null) {
           // Parse the value through the property to ensure correct deserialization
           const result = property.parse(value);
-          console.log("PropertyValues.fromJSON - parsed value for " + property.uuid, result);
+          // console.log("PropertyValues.fromJSON - parsed value for " + property.uuid, result);
           if (result.success) {
             propertyValues.put(property, result.data);
           }
@@ -59,7 +59,7 @@ export class PropertyValues {
   }
 
   toJSON(): JsonObject {
-    console.log("PropertyValues.toJSON");
+    // console.log("PropertyValues.toJSON");
     return {
       values: this.keys.map((p) => {
         const val = this.get(p);
@@ -79,7 +79,7 @@ export class PropertyValues {
   }
 
   put<T>(property: IdOr<Property<T>>, value?: unknown) {
-    console.log("PropertyValues.put", property, value);
+    // console.log("PropertyValues.put", property, value);
     const id = uuidOf(property);
     const props = _get(this._state._properties);
     if (!props.has(id)) {
@@ -92,7 +92,7 @@ export class PropertyValues {
     }
 
     if (value === null || value === undefined) {
-      console.warn("PropertyValues.put: Null value", id);
+      // console.warn("PropertyValues.put: Null value", id);
       this._values.update((values) => {
         values.set(id, null);
         return values;
@@ -108,7 +108,7 @@ export class PropertyValues {
     }
 
     this._values.update((values) => {
-      console.log("PropertyValues.put: Setting value", id, value);
+      // console.log("PropertyValues.put: Setting value", id, value);
       values.set(id, res.data);
       return values;
     });
@@ -140,7 +140,7 @@ export class PropertyValues {
       const prop = properties.get(id) as Property<T>;
       const value = values.get(id);
       if (value === null) {
-        console.warn("PropertyValues.get: Null value", id);
+        // console.warn("PropertyValues.get: Null value", id);
         return null;
       }
       const parsed = prop.parse(value);

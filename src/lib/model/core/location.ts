@@ -60,98 +60,9 @@ export class Location extends WithProperties {
     this.max = maxSchema.parse(props.max || {});
   }
 
-  // /**
-  //  * Get a location by UUID from a state or array of locations.
-  //  * @param from State or array of locations to search.
-  //  * @param uuid UUID of the location to get.
-  //  * @returns Location with the specified UUID, or undefined if not found.
-  //  */
-  // static get(from: State | Location[], uuid: string): Location | undefined {
-  //   if (from instanceof State) {
-  //     return get(from._locations).get(uuid)?.copy();
-  //   }
-  //   return from.find((location) => location.uuid === uuid)?.copy();
-  // }
-
-  // /**
-  //  * Get all locations from a state
-  //  * @param from State to get all locations from.
-  //  * @returns Array of locations.
-  //  */
-  // static getAll(from: State | Location[]): Location[] {
-  //   if (from instanceof State) {
-  //     return copyArr(Array.from(get(from._locations).values()));
-  //   }
-  //   return copyArr(from);
-  // }
-
-  // /**
-  //  * Get locations within a certain radius of a point.
-  //  * @param from State or array of locations to search.
-  //  * @param point The point to search around. One of: `Location`, `Geopoint`, or `[longitude, latitude]`.
-  //  * @param radius Search radius in meters.
-  //  * @param accuracy Accuracy of the distance calculation in meters. Default is 1.
-  //  * @returns Array of locations within the search radius. If `point` is not a valid location, an empty array is returned.
-  //  * Note: `Location` objects without a valid point are also excluded from the result.
-  //  */
-  // static getAround(
-  //   from: State | Location[],
-  //   point: Location | Geopoint | LngLat,
-  //   radius: number,
-  //   accuracy = 1,
-  // ): Location[] {
-  //   let coords: LngLat | undefined;
-  //   if (point instanceof Location) {
-  //     coords = point.point?.coords;
-  //   } else if (point instanceof Geopoint) {
-  //     coords = point.coords;
-  //   } else {
-  //     coords = point;
-  //   }
-
-  //   if (!coords) {
-  //     return [];
-  //   }
-
-  //   const locations = Location.getAll(from);
-  //   return locations.filter((location) => {
-  //     const dst = location.point?.distanceTo(coords, accuracy);
-  //     return dst !== undefined && dst <= radius;
-  //   });
-  // }
-
-  // /**
-  //  * Get locations that can accommodate a certain number of people and tasks.
-  //  * @param from State or array of locations to search.
-  //  * @param people Number of people to accommodate. If not provided, the number of people is not considered.
-  //  * @param tasks Number of tasks to accommodate. If not provided, the number of tasks is not considered.
-  //  * @returns Array of locations that can accommodate the specified number of people and tasks.
-  //  */
-  // static getByCapacity(from: State | Location[], people?: number, tasks?: number): Location[] {
-  //   const locations = Location.getAll(from);
-  //   return locations.filter((location) => {
-  //     const { min, max } = location;
-  //     return (
-  //       (!people || (people >= min.people && people <= max.people)) &&
-  //       (!tasks || (tasks >= min.tasks && tasks <= max.tasks))
-  //     );
-  //   });
-  // }
-
-  // /**
-  //  * Get locations that meet a predicate.
-  //  * @param from State or array of locations to search.
-  //  * @param filter Predicate function to filter locations.
-  //  * @returns Array of locations that meet the predicate.
-  //  */
-  // static getBy(from: State | Location[], filter: (location: Location) => boolean): Location[] {
-  //   const locations = Location.getAll(from);
-  //   return locations.filter(filter);
-  // }
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static fromJSON(json: JsonObject, state: any): Location {
-    console.log("Location.fromJSON");
+    // console.log("Location.fromJSON");
     return new Location(
       {
         ...super.fromJSON(json, state),

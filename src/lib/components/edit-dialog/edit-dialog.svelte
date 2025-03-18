@@ -36,7 +36,8 @@
       <EditForm bind:item={selected} {state}>
         <slot name="options" />
       </EditForm>
-      <Dialog.Footer>
+      <Dialog.Footer class="mt-4">
+        <slot name="actions" />
         <Button on:click={handleSubmit} type="submit">Save changes</Button>
       </Dialog.Footer>
     {:else}

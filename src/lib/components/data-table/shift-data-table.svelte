@@ -15,6 +15,7 @@
   import { ColumnHideSelector, TableHeader } from "./lib";
   import { get as _get } from "svelte/store";
   import DeleteDialog from "./lib/delete-dialog.svelte";
+  import { formattedDuration } from "$lib/model/temporal/utils";
 
   const timeFormatter = new DateFormatter(navigator.language || "en", {
     timeZone: getLocalTimeZone(),
@@ -63,22 +64,27 @@
       id: "name",
     },
     {
-      accessor: (row: Shift) => timeFormatter.format(row.pattern.dtStart.toDate()),
+      accessor: (row: Shift) => timeFormatter.format(row.recurrence.dtStart.toDate()),
       header: "Start Time",
       id: "timestart",
     },
     {
-      accessor: (row: Shift) => `${row.pattern.formattedDuration()} hours`,
-      header: "Duration",
-      id: "duration",
+      accessor: (row: Shift) => `${formattedDuration(row.recurrence.duration)}`,
+      header: "Actual Duration",
+      id: "actualDuration",
     },
     {
-      accessor: (row: Shift) => dateFormatter.format(row.pattern.dtStart.toDate()),
+      accessor: (row: Shift) => `${formattedDuration(row.paidDuration)}`,
+      header: "Contracted Duration",
+      id: "contractedDuration",
+    },
+    {
+      accessor: (row: Shift) => dateFormatter.format(row.recurrence.dtStart.toDate()),
       header: "Start Date",
       id: "datestart",
     },
     {
-      accessor: (row: Shift) => capitalize(row.pattern.toText()),
+      accessor: (row: Shift) => capitalize(row.recurrence.toText()),
       header: "Recurrence",
       id: "recurrence",
     },

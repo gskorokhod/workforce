@@ -10,16 +10,18 @@
   export let variant: "default" | "text" | "full" = "default";
   export let defaultIcon: Icon | undefined = undefined;
   export let emptyIcon: Icon | undefined = undefined;
-  export let placeholder = "";
+  export let placeholder = "Not Selected";
   export let group: string | undefined = undefined;
   export let hoverEffects = true;
+  export let showTooltip = true;
+  export let tooltipSide: "top" | "bottom" | "left" | "right" | undefined = undefined;
   export let onClick: ((item: T | undefined) => void) | undefined = undefined;
   let className = "";
 
   export { className as class };
 </script>
 
-<Tooltip.Root openDelay={200} closeDelay={200} {group}>
+<Tooltip.Root openDelay={100} closeDelay={100} {group}>
   {#if variant === "text"}
     {#if onClick !== undefined}
       <Tooltip.Trigger asChild let:builder>
@@ -105,9 +107,11 @@
       />
     </Tooltip.Trigger>
   {/if}
-  <Tooltip.Content>
-    <slot name="tooltip">
-      <ProfileTooltip {item} />
-    </slot>
-  </Tooltip.Content>
+  {#if showTooltip}
+    <Tooltip.Content side={tooltipSide}>
+      <slot name="tooltip">
+        <ProfileTooltip {item} />
+      </slot>
+    </Tooltip.Content>
+  {/if}
 </Tooltip.Root>

@@ -25,7 +25,7 @@ describe("Recurrence", () => {
     const recurrence = new Recurrence(sampleProps);
     expect(recurrence).toBeDefined();
     expect(recurrence.tzid).toBe(sampleProps.tzid);
-    expect(recurrence.duration).toEqual(sampleProps.duration);
+    expect(recurrence._duration).toEqual(sampleProps.duration);
     expect(recurrence.rdates).toEqual(sampleProps.rdates);
     expect(recurrence.exdates).toEqual(sampleProps.exdates);
   });
@@ -86,7 +86,7 @@ describe("Recurrence", () => {
   it("should update properties correctly", () => {
     const recurrence = new Recurrence(sampleProps);
     const updated = recurrence.update({ duration: { hours: 2 } });
-    expect(updated.duration).toEqual({ hours: 2 });
+    expect(updated._duration).toEqual({ hours: 2 });
   });
 
   it("should return a human-readable string", () => {

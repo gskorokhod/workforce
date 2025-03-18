@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { CalendarDate, getLocalTimeZone, isSameMonth, Time } from "@internationalized/date";
+  import { CalendarDate, Time } from "@internationalized/date";
   import { ChevronLeft, ChevronRight } from "lucide-svelte";
   import { writable, type Writable } from "svelte/store";
   import Button from "../ui/button/button.svelte";
   import TimeGrid from "./time-grid.svelte";
   import type { CalendarContext, CalendarProps } from "./types";
+  import { fmtDateRange } from "$lib/model/temporal/utils";
 
   export let startDate: CalendarDate;
   export let endDate: CalendarDate;
@@ -57,22 +58,6 @@
     console.log(startDate, endDate);
   }
 
-  function displayRange(from: CalendarDate, to: CalendarDate) {
-    const head =
-      `${from.year}, ${from.toDate(getLocalTimeZone()).toLocaleDateString(navigator.language || "en", { month: "long" })} ` +
-      `${from.day}`.padStart(2, "0") +
-      " - ";
-    if (isSameMonth(from, to)) {
-      return head + `${to.day}`.padStart(2, "0");
-    } else {
-      return (
-        head +
-        `${to.toDate(getLocalTimeZone()).toLocaleDateString(navigator.language || "en", { month: "long" })} ` +
-        `${to.day}`.padStart(2, "0")
-      );
-    }
-  }
-
   export { className as class };
 </script>
 
@@ -85,7 +70,7 @@
       <ChevronRight />
     </Button>
     <h2 class="text-lg font-semibold text-primary">
-      {displayRange(startDate, endDate)}
+      {fmtDateRange(startDate, endDate)}
     </h2>
   </div>
   <div class="flex h-full w-full flex-col overflow-y-scroll">
