@@ -29,6 +29,7 @@
   import { Recurrence } from "$lib/model/temporal";
   import { fmtDateRange, getWeekStart } from "$lib/model/temporal/utils";
   import EditDialog from "../edit-dialog/edit-dialog.svelte";
+  import DeleteDialog from "../data-table/lib/delete-dialog.svelte";
 
   export let state: State = GLOBAL_STATE;
   export let people: ReadOrWritable<Person[]> = state.people;
@@ -42,8 +43,9 @@
   let currSearch = "";
   let currStart = start;
   let selectedPattern: AssignmentPattern | undefined;
-  let dialogOpen = false;
-  let dialogTitle = "";
+  let deleteDialogOpen = false;
+  let editDialogOpen = false;
+  let editDialogTitle = "";
 
   const oneOffAssignments = state.assignments;
   const assignmentPatterns = state.assignmentPatterns;
@@ -91,8 +93,8 @@
     if (!res) return;
     if (res.source instanceof AssignmentPattern) {
       selectedPattern = res.source;
-      dialogTitle = "Edit Assignment Pattern";
-      dialogOpen = true;
+      editDialogTitle = "Edit Assignment Pattern";
+      editDialogOpen = true;
     }
   }
 
@@ -106,8 +108,8 @@
       },
       state,
     );
-    dialogTitle = "New Assignment Pattern";
-    dialogOpen = true;
+    editDialogTitle = "New Assignment Pattern";
+    editDialogOpen = true;
   }
 
   function nextWeek() {
@@ -242,8 +244,32 @@
     </Table.Body>
   </Table.Root>
 </div>
-<EditDialog {state} selected={selectedPattern} bind:open={dialogOpen} title={dialogTitle}>
-  <Button class="mx-2" variant="destructive" slot="actions" on:click={() => {}}>
+<EditDialog
+  {state}
+  selected={selectedPattern}
+  bind:open={editDialogOpen}
+  title={editDialogTitle}
+  onSubmit={() => {
+    assignments = resolveAssignments($oneOffAssignments, $assignmentPatterns, currStart, end);
+  }}
+>
+  <Button
+    class="mx-2"
+    variant="destructive"
+    slot="actions"
+    on:click={() => {
+      deleteDialogOpen = true;
+    }}
+  >
     <TrashIcon /> Delete Pattern</Button
   >
 </EditDialog>
+<DeleteDialog
+  {state}
+  selected={selectedPattern}
+  bind:open={deleteDialogOpen}
+  onDelete={() => {
+    editDialogOpen = false;
+    selectedPattern = undefined;
+  }}
+/>

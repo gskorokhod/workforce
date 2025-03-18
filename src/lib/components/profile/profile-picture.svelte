@@ -50,7 +50,7 @@
   <Chip
     {size}
     color={emptyIcon.color ?? DEFAULT_COLOR}
-    variant="default"
+    variant="outline"
     class="my-0.5 {className}"
   >
     <IconElement slot="icon" icon={emptyIcon} />
@@ -59,7 +59,7 @@
   <Chip
     {size}
     color={defaultIcon.color ?? DEFAULT_COLOR}
-    variant="default"
+    variant="outline"
     class="my-0.5 {className}"
   >
     <IconElement slot="icon" icon={defaultIcon} />
