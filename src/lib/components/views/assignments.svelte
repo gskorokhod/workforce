@@ -174,7 +174,7 @@
       <Tooltip.Root openDelay={500} closeDelay={100} group="assignments">
         <Tooltip.Trigger>
           <Button variant="ghost" class="ml-2 text-xl font-medium" on:click={resetWeek}
-            >{fmtDateRange(start, end)}</Button
+            >{fmtDateRange(currStart, end)}</Button
           >
         </Tooltip.Trigger>
         <Tooltip.Content class="" side="top">Click to go to the current week</Tooltip.Content>
