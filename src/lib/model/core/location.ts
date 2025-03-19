@@ -76,7 +76,7 @@ export class Location extends WithProperties {
   }
 
   toJSON(): JsonObject {
-    console.log("Location.toJSON");
+    // console.log("Location.toJSON");
     return {
       ...super.toJSON(),
       point: this.point?.toJSON() || null,

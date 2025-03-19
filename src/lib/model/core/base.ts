@@ -29,7 +29,6 @@ export abstract class Base implements Copy<Base>, Eq<Base> {
    * Convert the object to a JSON value for serialization.
    */
   toJSON(): JsonObject {
-    console.log("Base toJSON");
     return {
       uuid: this.uuid,
     };

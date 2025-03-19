@@ -6,7 +6,6 @@
   import { Label } from "$lib/components/ui/label";
   import { Recurrence } from "$lib/model/temporal";
   import { toRecurrence, toSimplePattern, type SimplePattern } from "$lib/model/core/shift";
-  import { fmtInterval } from "$lib/model/temporal/utils";
 
   export let item: Shift;
 
@@ -70,7 +69,9 @@
     <Label class="font-semibold" for="start">End Time</Label>
     <TimePicker id="start" bind:value={$pattern.end} />
   </div>
-  <p class="text-muted-foreground">
-    Lasts every day {fmtInterval($pattern)}
-  </p>
+  {#key $pattern}
+    <p class="text-muted-foreground">
+      Lasts {item.describePattern()} from {item.fmtStartTime()} to {item.fmtEndTime()}
+    </p>
+  {/key}
 {/if}

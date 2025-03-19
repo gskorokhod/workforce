@@ -2,7 +2,7 @@
   import { state as GLOBAL_STATE, Shift, State, Task } from "$lib/model";
   import type { Display } from "$lib/ui";
   import { capitalize } from "$lib/utils/misc";
-  import { DateFormatter, getLocalTimeZone, Time } from "@internationalized/date";
+  import { Time } from "@internationalized/date";
   import { PlusIcon } from "lucide-svelte";
   import { createRender, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
@@ -16,18 +16,6 @@
   import { get as _get } from "svelte/store";
   import DeleteDialog from "./lib/delete-dialog.svelte";
   import { formattedDuration } from "$lib/model/temporal/utils";
-
-  const timeFormatter = new DateFormatter(navigator.language || "en", {
-    timeZone: getLocalTimeZone(),
-    timeStyle: "short",
-    dateStyle: undefined,
-  });
-
-  const dateFormatter = new DateFormatter(navigator.language || "en", {
-    timeZone: getLocalTimeZone(),
-    timeStyle: undefined,
-    dateStyle: "long",
-  });
 
   let data: ReadOrWritable<Shift[]>;
   let header = true;
@@ -64,27 +52,27 @@
       id: "name",
     },
     {
-      accessor: (row: Shift) => timeFormatter.format(row.recurrence.dtStart.toDate()),
+      accessor: (row: Shift) => row.fmtStartTime(),
       header: "Start Time",
-      id: "timestart",
+      id: "timeStart",
     },
     {
-      accessor: (row: Shift) => `${formattedDuration(row.recurrence.duration)}`,
-      header: "Actual Duration",
-      id: "actualDuration",
+      accessor: (row: Shift) => row.fmtEndTime(),
+      header: "End Time",
+      id: "timeEnd",
     },
+    // {
+    //   accessor: (row: Shift) => `${formattedDuration(row.duration)}`,
+    //   header: "Actual Duration",
+    //   id: "actualDuration",
+    // },
     {
       accessor: (row: Shift) => `${formattedDuration(row.paidDuration)}`,
       header: "Contracted Duration",
       id: "contractedDuration",
     },
     {
-      accessor: (row: Shift) => dateFormatter.format(row.recurrence.dtStart.toDate()),
-      header: "Start Date",
-      id: "datestart",
-    },
-    {
-      accessor: (row: Shift) => capitalize(row.recurrence.toText()),
+      accessor: (row: Shift) => capitalize(row.describePattern()),
       header: "Recurrence",
       id: "recurrence",
     },

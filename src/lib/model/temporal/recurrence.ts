@@ -407,8 +407,14 @@ class Recurrence implements Copy<Recurrence> {
    * @returns A human-readable string representing the recurrence pattern.
    */
   toText(): string {
+    const start = this.dtStart.toDate().toLocaleDateString(undefined, {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
     const rrule = new RRule(fromRecurrenceOptions(this.recurrenceOptions));
-    return rrule.toText();
+    const pattern = rrule.toText();
+    return `starting ${start}, occurs ${pattern}`;
   }
 
   formattedDuration(): string {

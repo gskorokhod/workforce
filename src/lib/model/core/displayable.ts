@@ -34,7 +34,6 @@ export class Displayable extends Base implements Display {
   }
 
   toJSON(): JsonObject {
-    console.log("Displayable toJSON");
     return {
       ...super.toJSON(),
       ...displayToJSON(this),

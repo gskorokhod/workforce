@@ -75,6 +75,10 @@ export class State {
         return map;
       });
     }
+    this.assignments.update((a) => {
+      a.clear();
+      return a;
+    });
     this.templates.set(defaultTemplates(this));
   }
 
@@ -256,7 +260,7 @@ export class State {
   }
 
   private createWritable<T extends Base & Copy<T>>(storage: Storage<T>): Writable<T[]> {
-    const readable = derived(storage, (map) => copyArr(Array.from(map.values())));
+    const readable = derived(storage, (map) => copyArr(map.values()));
     const set = (items: T[]) => {
       const copied = copyArr(items);
       storage.set(new Map(copied.map((item) => [item.uuid, item])));

@@ -4,7 +4,7 @@ import { Icon } from "$lib/ui";
 import { faker } from "@faker-js/faker";
 import { get } from "svelte/store";
 import { sample, select } from "./misc";
-import { generateRecurrence } from "./recurrence";
+import { generateRecurrence, generateSimplePattern } from "./recurrence";
 import { sampleTasks } from "./task";
 
 const SHIFTS = new Map<string, Icon>([
@@ -21,14 +21,17 @@ function randomShift(): [string, Icon] {
   return [key, icon];
 }
 
-export function generateShift(state: State): Shift {
+export function generateShift(state: State, patternKind: "simple" | "complex" = "simple"): Shift {
   const [name, icon] = randomShift();
   const description = faker.lorem.sentence();
   const tasks = sampleTasks(state, 3);
 
+  const opts = { whenStart: name as "Morning" | "Day" | "Evening" | "Night" };
+  const pattern = patternKind === "simple" ? generateSimplePattern(opts) : generateRecurrence(opts);
+
   return new Shift(
     {
-      pattern: generateRecurrence({ whenStart: name as "Morning" | "Day" | "Evening" | "Night" }),
+      pattern,
       tasks,
       name,
       description,
