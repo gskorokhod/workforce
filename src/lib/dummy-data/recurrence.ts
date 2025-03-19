@@ -10,6 +10,7 @@ import {
 } from "@internationalized/date";
 import { RRule, Weekday } from "rrule";
 import { select, weighedSelect } from "./misc";
+import type { SimplePattern } from "$lib/model/core/shift";
 
 const FREQS = [RRule.DAILY, RRule.WEEKLY, RRule.MONTHLY];
 
@@ -113,4 +114,12 @@ export function generateRecurrence(opts?: {
   };
 
   return new Recurrence(props);
+}
+
+export function generateSimplePattern(opts?: {
+  whenStart?: "Morning" | "Day" | "Evening" | "Night";
+}): SimplePattern {
+  const start = mkTime(opts?.whenStart);
+  const end = start.add(mkDuration());
+  return { start, end };
 }

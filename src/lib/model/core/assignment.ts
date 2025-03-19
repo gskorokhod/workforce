@@ -28,7 +28,7 @@ export type Assignment = {
 
 export class Assignments {
   protected _state: State;
-  protected data = new HashMap<string, HashMap<CalendarDate, AssignmentEntry>>();
+  data = new Map<string, HashMap<CalendarDate, AssignmentEntry>>();
 
   constructor(state: State, assignments?: Iterable<Assignment | RawAssignment>) {
     this._state = state;
@@ -219,10 +219,11 @@ export class Assignments {
   }
 }
 
-export type AssignmentPatternProps = {
+export interface AssignmentPatternProps {
   pattern: Recurrence;
   person: IdOr<Person>;
-} & AssignmentEntry;
+  params: AssignmentEntry;
+}
 
 export class AssignmentPattern extends Base {
   pattern: Recurrence;
@@ -233,7 +234,7 @@ export class AssignmentPattern extends Base {
     super(state, uuid);
     this.pattern = props.pattern;
     this._person = uuidOf(props.person);
-    this.params = props as AssignmentEntry;
+    this.params = props.params;
   }
 
   static fromJSON(json: JsonObject, state: State): AssignmentPattern {
@@ -241,7 +242,7 @@ export class AssignmentPattern extends Base {
       {
         pattern: Recurrence.fromJSON(json.pattern),
         person: z.string().parse(json.person),
-        ...assignmentEntrySchema.parse(json.params),
+        params: assignmentEntrySchema.parse(json.params),
       },
       state,
     );
@@ -251,7 +252,7 @@ export class AssignmentPattern extends Base {
     return {
       ...super.toJSON(),
       pattern: this.pattern.toJSON(),
-      person: uuidOf(this._person),
+      person: this._person,
       params: {
         type: this.params.type,
         reason: this.params.reason ?? null,
@@ -263,9 +264,9 @@ export class AssignmentPattern extends Base {
   copy(): AssignmentPattern {
     return new AssignmentPattern(
       {
+        params: { ...this.params },
         pattern: this.pattern.copy(),
-        person: uuidOf(this._person),
-        ...this.params,
+        person: this._person,
       },
       this.state,
       this.uuid,

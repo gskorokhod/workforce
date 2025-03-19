@@ -49,6 +49,7 @@
 
   const oneOffAssignments = state.assignments;
   const assignmentPatterns = state.assignmentPatterns;
+  const _assignmentPatterns = state._assignmentPatterns;
 
   function mkOnSelect(person: Person, date: CalendarDate): (a?: AssignmentEntry) => void {
     return (a) => {
@@ -103,8 +104,10 @@
       {
         pattern: Recurrence.daily({ startDate: currStart, endDate: end }),
         person: _get(people)[0],
-        type: "SHIFT",
-        shift: _get(shifts)[0],
+        params: {
+          type: "SHIFT",
+          shift: _get(shifts)[0],
+        },
       },
       state,
     );
@@ -250,7 +253,7 @@
   bind:open={editDialogOpen}
   title={editDialogTitle}
   onSubmit={() => {
-    assignments = resolveAssignments($oneOffAssignments, $assignmentPatterns, currStart, end);
+    //assignments = resolveAssignments($oneOffAssignments, $assignmentPatterns, currStart, end);
   }}
 >
   <Button

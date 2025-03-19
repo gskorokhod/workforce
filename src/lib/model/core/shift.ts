@@ -1,5 +1,10 @@
 import { Recurrence } from "$lib/model/temporal";
-import { timeDurationSchema } from "$lib/model/temporal/utils";
+import {
+  cmpTime,
+  fmtTime,
+  timeDurationBetween,
+  timeDurationSchema,
+} from "$lib/model/temporal/utils";
 import { type Display } from "$lib/ui";
 import {
   CalendarDate,
@@ -203,15 +208,22 @@ export class Shift extends Displayable {
     return subset(this.state._tasks, this._task_uuids);
   }
 
-  get paidDuration(): TimeDuration {
-    if (this._paidDuration) {
-      return this._paidDuration;
+  get duration(): TimeDuration {
+    const pattern = _get(this.rPattern);
+    if (pattern instanceof Recurrence) {
+      return (
+        pattern.duration || {
+          hours: 23,
+          minutes: 59,
+        }
+      );
+    } else {
+      return timeDurationBetween(pattern.start, pattern.end);
     }
-    const dur = this.recurrence.duration || {
-      hours: 23,
-      minutes: 59,
-    };
-    return dur;
+  }
+
+  get paidDuration(): TimeDuration {
+    return this._paidDuration || this.duration;
   }
 
   set paidDuration(duration: TimeDuration) {
@@ -220,6 +232,45 @@ export class Shift extends Displayable {
 
   get recurrence(): Recurrence {
     return toRecurrence(_get(this.rPattern), this.state);
+  }
+
+  get startTime(): Time {
+    const pattern = _get(this.rPattern);
+    if (pattern instanceof Recurrence) {
+      return toTime(pattern.dtStart);
+    } else {
+      return pattern.start;
+    }
+  }
+
+  get endTime(): Time {
+    const pattern = _get(this.rPattern);
+    if (pattern instanceof Recurrence) {
+      return toTime(pattern.dtStart.add(this.duration));
+    } else {
+      return pattern.end;
+    }
+  }
+
+  fmtEndTime(): string {
+    let ans = fmtTime(this.endTime);
+    if (cmpTime(this.startTime, this.endTime) > 0) {
+      ans += " (overnight)";
+    }
+    return ans;
+  }
+
+  fmtStartTime(): string {
+    return fmtTime(this.recurrence.dtStart);
+  }
+
+  describePattern(): string {
+    const pattern = _get(this.rPattern);
+    if (pattern instanceof Recurrence) {
+      return pattern.toText();
+    } else {
+      return "every day";
+    }
   }
 }
 
