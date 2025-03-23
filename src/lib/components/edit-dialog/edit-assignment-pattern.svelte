@@ -4,6 +4,9 @@
   import * as Select from "$lib/components/ui/select";
   import { Selector } from "../selector";
   import Separator from "../ui/separator/separator.svelte";
+  import Checkbox from "../ui/checkbox/checkbox.svelte";
+  import Label from "../ui/label/label.svelte";
+  import { uuidOf } from "$lib/model/core/misc";
 
   export let item: AssignmentPattern;
 
@@ -36,10 +39,13 @@
 
   const people = item.state.people;
   const shifts = item.state.shifts;
+  const _shifts = item.state._shifts;
+
+  $: shift = item.params.shift ? $_shifts.get(uuidOf(item.params.shift)) : undefined;
 </script>
 
 <div class="gap- flex w-full flex-row gap-8">
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-5">
     <div class="flex w-full flex-col gap-1.5">
       <span class="text-sm font-semibold">Assignment Type</span>
       <Select.Root selected={mkTypeSelect(item)} onSelectedChange={onTypeChange}>
@@ -62,6 +68,37 @@
         <Selector bind:value={item.shift} options={$shifts} allowUnselect={false} variant="full" />
       </div>
     {/if}
+    <div class="flex w-full flex-col gap-1.5">
+      <div class="flex w-full space-x-2">
+        <Checkbox
+          id="preference"
+          checked={item.params.preference === "required"}
+          onCheckedChange={(value) => (item.params.preference = value ? "required" : "preferred")}
+        />
+        <Label
+          for="preference"
+          class="text-sm font-semibold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >"Hard" assignment</Label
+        >
+      </div>
+      <p class="text-sm text-muted-foreground">
+        {item.person?.name}
+        {#if item.params.preference === "required"}
+          {#if item.params.type === "DAY_OFF"}
+            cannot work
+          {:else if shift}
+            must be assigned to {shift.name}
+            {shift.name.toLowerCase().endsWith("shift") ? "" : "Shift"}
+          {/if}
+        {:else if item.params.type === "DAY_OFF"}
+          would prefer to take a day off
+        {:else if shift}
+          would prefer to work {shift.name}
+          {shift.name.toLowerCase().endsWith("shift") ? "" : "Shift"}
+        {/if}
+        on these dates
+      </p>
+    </div>
   </div>
   <Separator orientation="vertical" />
   <div class="flex flex-col gap-6" style="padding-top: 0.29rem;">

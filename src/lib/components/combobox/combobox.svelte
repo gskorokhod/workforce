@@ -21,6 +21,7 @@
   export let onSelect: (val: T | undefined) => void = () => {};
   export let open = false;
   export let allowUnselect = true;
+  export let closeOnSelect = true;
   export let value: T | undefined = undefined;
   export let placeholder: string | undefined = undefined;
   export let options: T[] = [];
@@ -75,7 +76,9 @@
               onChange(value, undefined);
               onSelect(undefined);
               value = undefined;
-              closeAndFocusTrigger(ids.trigger);
+              if (closeOnSelect) {
+                closeAndFocusTrigger(ids.trigger);
+              }
             }}
           >
             <Profile
@@ -98,7 +101,9 @@
               onChange(value, option);
               onSelect(option);
               value = option;
-              closeAndFocusTrigger(ids.trigger);
+              if (closeOnSelect) {
+                closeAndFocusTrigger(ids.trigger);
+              }
             }}
           >
             <Profile
@@ -113,5 +118,6 @@
         {/each}
       </Command.Group>
     </Command.Root>
+    <slot name="footer" />
   </Popover.Content>
 </Popover.Root>
