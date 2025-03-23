@@ -10,9 +10,12 @@ import { Base } from "./base";
 import { HashMap } from "$lib/utils";
 import { Recurrence } from "../temporal";
 
+// ---- Assignment type ----
+
 export type Assignment = {
   person: Person;
   date: CalendarDate;
+  preference: AssignmentPreference;
 } & (
   | {
       type: "DAY_OFF";
@@ -25,6 +28,8 @@ export type Assignment = {
       reason?: string;
     }
 );
+
+// ---- Map of one-off Assignments ----
 
 export class Assignments {
   protected _state: State;
@@ -40,40 +45,34 @@ export class Assignments {
   }
 
   static fromJSON(json: unknown, state: State): Assignments {
-    const res = z.array(assignmentSchema).parse(json);
+    const res: RawAssignment[] = z.array(assignmentSchema).parse(json);
     return new Assignments(state, res);
   }
 
   toJSON(): JsonArray {
     const ans = [];
-    for (const [personId, assignments] of this.data.entries()) {
-      for (const [date, assignment] of assignments.entries()) {
-        ans.push({
-          type: assignment.type,
-          person: personId,
-          date: date.toString(),
-          shift: assignment.shift ? uuidOf(assignment.shift) : null,
-          reason: assignment.reason || null,
-        });
+    for (const [person, assignments] of this.data.entries()) {
+      for (const [date, entry] of assignments.entries()) {
+        ans.push(
+          assignmentJSON({
+            ...entry,
+            person,
+            date,
+          }),
+        );
       }
     }
     return ans;
   }
 
-  put(person: IdOr<Person>, date: CalendarDate, to: IdOr<Shift> | AssignmentEntry | undefined) {
+  put(person: IdOr<Person>, date: CalendarDate, entry: AssignmentEntry) {
     // console.log("put", person, date, to);
-    if (!to) {
-      this.delete(person, date);
-      return;
-    }
-
     const personId = uuidOf(person);
     if (!this.data.has(personId)) {
       this.data.set(personId, new HashMap());
     }
-    const val: AssignmentEntry = isAssignmentEntry(to) ? to : { type: "SHIFT", shift: uuidOf(to) };
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.data.get(personId)!.set(date, val as AssignmentEntry);
+    this.data.get(personId)!.set(date, entry);
   }
 
   delete(person: IdOr<Person>, date: CalendarDate) {
@@ -162,28 +161,28 @@ export class Assignments {
     const readable = derived([this._state._people, this._state._shifts], ([people, shifts]) => {
       const ans: Assignment[] = [];
       for (const [personID, dates] of this.data) {
-        for (const [date, to] of dates) {
+        for (const [date, entry] of dates) {
           const person = people.get(personID);
           if (!person) {
             continue;
           }
 
-          switch (to.type) {
+          switch (entry.type) {
             case "DAY_OFF": {
               ans.push({
-                ...to,
+                ...entry,
                 person,
                 date,
               });
               break;
             }
             case "SHIFT": {
-              const shift = shifts.get(uuidOf(to.shift));
+              const shift = shifts.get(uuidOf(entry.shift));
               if (!shift) {
                 continue;
               }
               ans.push({
-                ...to,
+                ...entry,
                 person,
                 date,
                 shift,
@@ -203,7 +202,7 @@ export class Assignments {
         if (entry.shift) {
           this._state.put(entry.shift);
         }
-        this.put(entry.person, entry.date, toAssignmentEntry(entry));
+        this.put(entry.person, entry.date, entry);
       }
     };
 
@@ -218,6 +217,8 @@ export class Assignments {
     };
   }
 }
+
+// ---- Assignment Pattern ----
 
 export interface AssignmentPatternProps {
   pattern: Recurrence;
@@ -253,11 +254,7 @@ export class AssignmentPattern extends Base {
       ...super.toJSON(),
       pattern: this.pattern.toJSON(),
       person: this._person,
-      params: {
-        type: this.params.type,
-        reason: this.params.reason ?? null,
-        shift: this.params.shift ? uuidOf(this.params.shift) : null,
-      },
+      params: assignmentEntryJSON(this.params),
     };
   }
 
@@ -307,6 +304,8 @@ export class AssignmentPattern extends Base {
   }
 }
 
+// ---- Resolving Assignments ----
+
 export type ResolvedAssignment = Assignment & {
   source: Assignments | AssignmentPattern;
 };
@@ -350,12 +349,31 @@ export function resolveAssignments(
   return ans;
 }
 
-export function dayOff(reason?: string): AssignmentEntry {
+// ---- Shorthands for constructing AssignmentEntry ----
+
+export function toShift(
+  shift: IdOr<Shift>,
+  preference: AssignmentPreference = "preferred",
+): AssignmentEntry {
+  return {
+    type: "SHIFT",
+    shift,
+    preference,
+  };
+}
+
+export function dayOff(
+  preference: AssignmentPreference = "preferred",
+  reason?: string,
+): AssignmentEntry {
   return {
     type: "DAY_OFF",
+    preference,
     reason,
   };
 }
+
+// ---- Serialization ----
 
 export function assignmentsSerializer(state: State) {
   return {
@@ -364,63 +382,58 @@ export function assignmentsSerializer(state: State) {
   };
 }
 
-export function assignmentJSON(assignment: Assignment): JsonObject {
+function assignmentEntryJSON(entry: AssignmentEntry): JsonObject {
   return {
-    person: uuidOf(assignment.person),
-    date: assignment.date.toString(),
-    type: assignment.type,
-    shift: assignment.shift ? uuidOf(assignment.shift) : null,
-    reason: assignment.reason || null,
+    type: entry.type,
+    preference: entry.preference,
+    shift: entry.shift ? uuidOf(entry.shift) : null,
+    reason: entry.reason || null,
   };
 }
 
+export function assignmentJSON(assignment: Assignment | RawAssignment): JsonObject {
+  return {
+    person: uuidOf(assignment.person),
+    date: assignment.date.toString(),
+    ...assignmentEntryJSON(assignment),
+  };
+}
+
+// ---- Zod Schemas ----
+
 export type AssignmentEntry = z.infer<typeof assignmentEntrySchema>;
+export type AssignmentPreference = z.infer<typeof preferenceSchema>;
 type RawAssignment = z.infer<typeof assignmentSchema>;
 
-function isAssignmentEntry(obj: unknown): obj is AssignmentEntry {
-  return assignmentEntrySchema.safeParse(obj).success;
-}
+const preferenceSchema = z.enum(["preferred", "required"]);
 
-function toAssignmentEntry(assignment: Assignment): AssignmentEntry {
-  return {
-    type: assignment.type,
-    shift: assignment.shift ? uuidOf(assignment.shift) : undefined,
-    reason: assignment.reason,
-  } as AssignmentEntry;
-}
-
-const assignmentEntrySchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("DAY_OFF"),
-    shift: z
-      .never()
-      .nullish()
-      .transform((x) => x ?? undefined),
+const assignmentEntrySchema = z
+  .object({
+    preference: preferenceSchema,
     reason: z
       .string()
       .nullish()
       .transform((x) => x ?? undefined),
-  }),
-  z.object({
-    type: z.literal("SHIFT"),
-    shift: z.string().or(z.any().refine((val) => val instanceof Shift)),
-    reason: z
-      .string()
-      .nullish()
-      .transform((x) => x ?? undefined),
-  }),
-]);
+  })
+  .and(
+    z.discriminatedUnion("type", [
+      z.object({
+        type: z.literal("DAY_OFF"),
+        shift: z
+          .never()
+          .nullish()
+          .transform((x) => x ?? undefined),
+      }),
+      z.object({
+        type: z.literal("SHIFT"),
+        shift: z.string().or(z.any().refine((val) => val instanceof Shift)),
+      }),
+    ]),
+  );
 
-const assignmentSchema = z.object({
-  person: z.string(),
-  date: z.string().transform(parseDate),
-  type: z.enum(["DAY_OFF", "SHIFT"]),
-  reason: z
-    .string()
-    .nullish()
-    .transform((x) => x ?? undefined),
-  shift: z
-    .string()
-    .nullish()
-    .transform((x) => x ?? undefined),
-});
+const assignmentSchema = z
+  .object({
+    person: z.string().or(z.any().refine((val) => val instanceof Person)),
+    date: z.string().transform(parseDate),
+  })
+  .and(assignmentEntrySchema);
