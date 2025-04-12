@@ -29,7 +29,7 @@
   let alertOpen = false;
   let dialogOpen = false;
   let dialogTitle = "Edit Person";
-  const dobFormatter = new Intl.DateTimeFormat("en-GB", {
+  const dobFormatter = new Intl.DateTimeFormat(navigator.language || "en", {
     day: "numeric",
     month: "short",
     year: "numeric",
