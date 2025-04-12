@@ -2,15 +2,14 @@
   lang="ts"
   generics="T extends ZonedDateTime | CalendarDateTime | Date | TimeDuration | Time"
 >
-  import { fmtTime } from "$lib/model/temporal/utils";
-
+  import { htmlTime } from "$lib/model/temporal/utils";
   import {
     CalendarDateTime,
     Time,
     ZonedDateTime,
     type TimeDuration,
   } from "@internationalized/date";
-  import { Input } from "../ui/input";
+  import { Input } from "$lib/components/ui/input";
 
   export let value: T | undefined = undefined;
   export let onChange: (val: T) => void = () => {};
@@ -19,6 +18,7 @@
 
   function handleInput(event: Event) {
     const input = event.target as HTMLInputElement;
+    console.log("Setting time:", input.value);
     const [hours, minutes] = input.value.split(":").map(Number);
 
     if (value instanceof ZonedDateTime || value instanceof CalendarDateTime) {
@@ -37,10 +37,4 @@
   export { className as class };
 </script>
 
-<Input
-  {id}
-  class="max-w-20 {className}"
-  type="time"
-  value={fmtTime(value)}
-  on:input={handleInput}
-/>
+<Input {id} class="w-max {className}" type="time" value={htmlTime(value)} on:input={handleInput} />

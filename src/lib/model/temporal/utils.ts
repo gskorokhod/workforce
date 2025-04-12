@@ -392,7 +392,7 @@ export function fmtDateRange(
 export function fmtInterval(
   interval: { start: Time | undefined | null; end: Time | undefined | null },
   options: Intl.DateTimeFormatOptions = {},
-  locale = navigator.languages || "en",
+  locale = navigator.language || "en",
 ) {
   const { start, end } = interval;
   let ans = `from ${fmtTime(start, options, locale)} to ${fmtTime(end, options, locale)}`;
@@ -410,25 +410,35 @@ export function fmtInterval(
 /**
  * Format a Time object as a string.
  * @param time Time object to format
- * @param options Intl.DateTimeFormatOptions overrides
+ * @param options Intl.DateTimeFormatOptions overridestimeComponent
  * @param locale Locale to use. Defaults to the user's preferred languages, or "en" as a fallback.
  * @returns Formatted time string
  */
 export function fmtTime(
   time: WithTime | undefined | null,
   options: Intl.DateTimeFormatOptions = {},
-  locale = navigator.languages || "en",
+  locale = navigator.language || "en",
 ): string {
   const tc = timeComponent(time);
   const dt = new Date();
   dt.setHours(tc.hour);
   dt.setMinutes(tc.minute);
-
+  console.log(locale);
   return dt.toLocaleTimeString(locale, {
     hour: "numeric",
     minute: "numeric",
     ...options,
   });
+}
+
+export function htmlTime(time: WithTime | undefined | null): string {
+  return fmtTime(
+    time,
+    {
+      hour12: false,
+    },
+    "en",
+  );
 }
 
 /**

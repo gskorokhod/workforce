@@ -39,10 +39,10 @@
   export let state: State = GLOBAL_STATE;
   export let people: ReadOrWritable<Person[]> = state.people;
   export let shifts: ReadOrWritable<Shift[]> = state.shifts;
-  export let start: CalendarDate = getWeekStart(today(getLocalTimeZone()));
+  export let locale: string = navigator.language || "en";
+  export let start: CalendarDate = getWeekStart(today(getLocalTimeZone()), locale);
   export let days = 7;
   export let options: Intl.DateTimeFormatOptions = {};
-  export let locale: string | string[] = Array.from(navigator.languages) || "en";
   let className = "";
 
   let currSearch = "";
@@ -53,6 +53,7 @@
   let editDialogOpen = false;
   let editDialogTitle = "";
 
+  const settings = state.settings;
   const oneOffAssignments = state.assignments;
   const assignmentPatterns = state.assignmentPatterns;
   const comboboxesOpen: Record<string, boolean> = {};
@@ -151,6 +152,8 @@
   $: filteredPeople = $people.filter((person) =>
     person.name.toLowerCase().includes(currSearch.toLowerCase()),
   );
+  $: horizonStart = $settings.planningHorizonStart;
+  $: horizonEnd = $settings.planningHorizonEnd;
 
   export { className as class };
 </script>
