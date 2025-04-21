@@ -18,7 +18,7 @@
     type SelectPropertyProps,
     TextProperty,
   } from "$lib/model/core/property";
-  import type { Display } from "$lib/ui";
+  import { Icon, type Display } from "$lib/ui";
   import { ChevronDownIcon, PlusIcon, TagIcon, TagsIcon, TextIcon } from "lucide-svelte";
   import { createRender, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
@@ -54,7 +54,11 @@
   let columnInitializers: ColumnInitializer<Property<unknown>>[] = [
     {
       accessor: (row) => row as Display,
-      cell: (cell) => createRender(ProfilePicture, { item: cell.value }),
+      cell: (cell) =>
+        createRender(ProfilePicture, {
+          item: cell.value,
+          defaultIcon: Icon.fromString("lucide:tag"),
+        }),
       header: "Picture",
       id: "picture",
       plugins: {
@@ -108,14 +112,17 @@
     }
   }
 
-  function newProperty(type: PropertyType, props?: Partial<SelectPropertyProps>, uuid?: string) {
+  function newProperty(type: PropertyType, aProps?: Partial<SelectPropertyProps>, uuid?: string) {
     dialogTitle = "Add Property";
     uuid = uuid || uuidv4();
+    const props = {
+      name: "",
+      ...aProps,
+    };
     switch (type) {
       case "single": {
         selected = new SelectProperty(
           {
-            name: "",
             options: [],
             ...props,
           },
@@ -127,7 +134,6 @@
       case "multiple": {
         selected = new MultiSelectProperty(
           {
-            name: "",
             options: [],
             ...props,
           },
@@ -137,14 +143,7 @@
         break;
       }
       case "text": {
-        selected = new TextProperty(
-          {
-            name: "",
-            ...props,
-          },
-          state,
-          uuid,
-        );
+        selected = new TextProperty(props, state, uuid);
         break;
       }
       default: {
