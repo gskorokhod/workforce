@@ -17,6 +17,7 @@ import {
   type DateTimeDuration,
   type DateValue,
   type TimeDuration,
+  today,
 } from "@internationalized/date";
 
 import { datetime } from "rrule";
@@ -99,6 +100,17 @@ export function dtDurationBetween(a: DateValue, b: DateValue) {
     seconds,
     milliseconds: millis,
   };
+}
+
+/**
+ * Get index of day that the week starts on for a given locale.
+ */
+export function weekStartsOn(
+  lang = navigator.language || "en",
+  tzid = getLocalTimeZone(),
+): 0 | 1 | 2 | 3 | 4 | 5 | 6 {
+  const wkStart = getWeekStart(today(tzid), lang).toDate(tzid);
+  return wkStart.getDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 /**
@@ -360,26 +372,45 @@ export function timeComponent(time: WithTime | undefined | null): Time {
   return new Time(time.hours, time.minutes, time.seconds, time.milliseconds);
 }
 
+export function fmtDate(
+  date: CalendarDate,
+  options: Intl.DateTimeFormatOptions = {},
+  lang = navigator.language || "en",
+  tzid = getLocalTimeZone(),
+): string {
+  return date.toDate(tzid).toLocaleDateString(lang, {
+    year: "numeric",
+    month: "long",
+    day: "2-digit",
+    ...options,
+  });
+}
+
 export function fmtDateRange(
-  from: CalendarDate,
-  to: CalendarDate,
+  from: DateValue | undefined | null,
+  to: DateValue | undefined | null,
   options: Intl.DateTimeFormatOptions = {},
   lang = navigator.language || "en",
   tzid = getLocalTimeZone(),
 ) {
-  const head =
-    `${from.year}, ${from.toDate(tzid).toLocaleDateString(lang, { month: "long", ...options })} ` +
-    `${from.day}`.padStart(2, "0") +
-    " - ";
-  if (isSameMonth(from, to)) {
-    return head + `${to.day}`.padStart(2, "0");
-  } else {
+  if (!from && !to) return "";
+
+  const head = from
+    ? `${from.year}, ${from.toDate(tzid).toLocaleDateString(lang, { month: "long", ...options })} ` +
+      `${from.day}`.padStart(2, "0") +
+      " - "
+    : "until ";
+
+  if (from && to && isSameMonth(from, to)) return head + `${to.day}`.padStart(2, "0");
+
+  if (to)
     return (
       head +
       `${to.toDate(tzid).toLocaleDateString(lang, { month: "long", ...options })} ` +
       `${to.day}`.padStart(2, "0")
     );
-  }
+
+  return "after " + head;
 }
 
 /**

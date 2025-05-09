@@ -1,4 +1,5 @@
 import Color from "color";
+import type { JsonObject } from "type-fest";
 
 export interface HasUUID {
   uuid: string;
@@ -101,4 +102,26 @@ export function range(end: number, start = 0, step = 1): number[] {
     result.push(i);
   }
   return result;
+}
+
+export function downloadJSON(json: JsonObject, fileName?: string) {
+  // 1. Convert the data to a Blob with the JSON pretty-printed string
+  const jsonString = JSON.stringify(json, null, 2);
+  const blob = new Blob([jsonString], { type: "application/json" });
+
+  // 2. Create a dummy link element to "download" the blob
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName || "data.json";
+
+  // 3. Append to the document, click, and remove
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+
+  // 4. Revoke the object URL to free up resources
+  URL.revokeObjectURL(url);
+
+  console.log(`${fileName || "data.json"} downloaded.`);
 }

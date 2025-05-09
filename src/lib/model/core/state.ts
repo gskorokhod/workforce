@@ -19,7 +19,7 @@ type Stored<T extends Base> = Map<string, T>;
 type Storage<T extends Base> = Writable<Stored<T>>;
 
 export class State {
-  private readonly stateID: string;
+  readonly stateID: string;
   readonly settings: Writable<Settings>;
   readonly templates: Writable<Templates>;
   readonly assignments: Writable<Assignments>;
@@ -63,6 +63,51 @@ export class State {
     this._shifts = persisted("shifts_" + this.stateID, new Map(), {
       serializer: this.mkSerializer(Shift.fromJSON),
     });
+  }
+
+  /**
+   * Clear the state and load a new one from a JSON dump.
+   */
+  load(other: JsonObject, loadSettings = false): void {
+    this.clear();
+    for (const key of Object.keys(other)) {
+      if (!loadSettings && key === "settings") continue;
+
+      const newKey = key + "_" + this.stateID;
+      const val = other[key];
+      if (val) {
+        localStorage.setItem(newKey, JSON.stringify(val));
+      }
+    }
+  }
+
+  /**
+   * Dump the state to a JSON object.
+   */
+  dump(pretty = false): JsonObject {
+    const ans: JsonObject = {};
+    ans.stateID = this.stateID;
+    for (const key of Object.keys(localStorage)) {
+      if (key.includes(this.stateID)) {
+        const val = localStorage.getItem(key);
+        if (val) {
+          const newKey = key.replace("_" + this.stateID, "");
+          if (pretty) {
+            ans[newKey] = JSON.parse(val);
+          } else {
+            ans[newKey] = val;
+          }
+        }
+      }
+    }
+    return ans;
+  }
+
+  /**
+   * Reset settings to default values.
+   */
+  resetSettings(): void {
+    this.settings.set({ ...DefaultSettings });
   }
 
   /**

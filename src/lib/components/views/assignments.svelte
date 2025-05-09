@@ -30,11 +30,12 @@
   import { Icon, type Display } from "$lib/ui";
   import { uuidOf } from "$lib/model/core/misc";
   import { Recurrence } from "$lib/model/temporal";
-  import { fmtDateRange, getWeekStart } from "$lib/model/temporal/utils";
+  import { fmtDate, fmtDateRange, getWeekStart } from "$lib/model/temporal/utils";
   import EditDialog from "../edit-dialog/edit-dialog.svelte";
   import DeleteDialog from "../data-table/lib/delete-dialog.svelte";
   import { Separator } from "../ui/separator";
   import CornerHighlight from "../corner-highlight/corner-highlight.svelte";
+  import { getPlanningHorizon } from "$lib/model/core/settings";
 
   export let state: State = GLOBAL_STATE;
   export let people: ReadOrWritable<Person[]> = state.people;
@@ -152,8 +153,11 @@
   $: filteredPeople = $people.filter((person) =>
     person.name.toLowerCase().includes(currSearch.toLowerCase()),
   );
-  $: horizonStart = $settings.planningHorizonStart;
-  $: horizonEnd = $settings.planningHorizonEnd;
+  $: planningHorizon = getPlanningHorizon($settings.planningHorizon);
+  $: outOfBounds =
+    currStart.compare(planningHorizon.start) < 0 || currStart.compare(planningHorizon.end) > 0;
+  $: prevDisabled = currStart.compare(planningHorizon.start) <= 0;
+  $: nextDisabled = currStart.compare(planningHorizon.end) >= 0;
 
   export { className as class };
 </script>
@@ -174,20 +178,46 @@
     <div class="flex w-[30%] flex-row items-center">
       <Tooltip.Root openDelay={500} closeDelay={100} group="assignments">
         <Tooltip.Trigger>
-          <Button class="text-muted-foreground" size="icon" variant="ghost" on:click={prevWeek}
-            ><ChevronLeftIcon /></Button
+          <Button
+            class="text-muted-foreground"
+            size="icon"
+            variant="ghost"
+            on:click={prevWeek}
+            disabled={prevDisabled}><ChevronLeftIcon /></Button
           >
         </Tooltip.Trigger>
-        <Tooltip.Content class="" side="top">Previous Week</Tooltip.Content>
+        <Tooltip.Content class="" side="top">
+          {#if prevDisabled}
+            <p class="text-muted-foreground">
+              Planning Horizon starts on {fmtDate(planningHorizon.start)}. Change in
+              <a href="/settings" class="underline transition-all hover:text-primary">Settings</a>.
+            </p>
+          {:else}
+            Previous Week
+          {/if}
+        </Tooltip.Content>
       </Tooltip.Root>
 
       <Tooltip.Root openDelay={500} closeDelay={100} group="assignments">
         <Tooltip.Trigger>
-          <Button class="text-muted-foreground" size="icon" variant="ghost" on:click={nextWeek}
-            ><ChevronRightIcon /></Button
+          <Button
+            class="text-muted-foreground"
+            size="icon"
+            variant="ghost"
+            on:click={nextWeek}
+            disabled={nextDisabled}><ChevronRightIcon /></Button
           >
         </Tooltip.Trigger>
-        <Tooltip.Content class="" side="top">Next Week</Tooltip.Content>
+        <Tooltip.Content class="" side="top">
+          {#if nextDisabled}
+            <p class="text-muted-foreground">
+              Planning Horizon ends on {fmtDate(planningHorizon.end)}. Change in
+              <a href="/settings" class="underline transition-all hover:text-primary">Settings</a>.
+            </p>
+          {:else}
+            Next Week
+          {/if}
+        </Tooltip.Content>
       </Tooltip.Root>
 
       <Tooltip.Root openDelay={500} closeDelay={100} group="assignments">
@@ -203,141 +233,152 @@
       <Search bind:value={currSearch} />
     </div>
   </div>
-  <Table.Root class="w-full">
-    <Table.Header class="font-semibold text-muted-foreground">
-      <Table.Row>
-        <Table.Cell class="border">Employee</Table.Cell>
-        {#each cols as date}
-          <Table.Cell class="border">{formatter.format(date.toDate(getLocalTimeZone()))}</Table.Cell
-          >
-        {/each}
-      </Table.Row>
-    </Table.Header>
-    <Table.Body>
-      {#each filteredPeople as person}
+  {#if outOfBounds}
+    <div class="flex w-full items-center justify-center p-6" style="height: calc(100vh - 9rem)">
+      <p class="text-lg font-medium text-muted-foreground">
+        You are currently viewing a week outside of the planning horizon.<br /> Please adjust the
+        planning horizon in the
+        <a href="/settings" class="underline transition-all hover:text-primary">Settings</a> menu.
+      </p>
+    </div>
+  {:else}
+    <Table.Root class="w-full">
+      <Table.Header class="font-semibold text-muted-foreground">
         <Table.Row>
-          <Table.Cell class="border p-0">
-            <!-- <CornerHighlight class="p-0" contentClass="p-1"> -->
-            <Profile
-              item={person}
-              group="assignments"
-              variant="full"
-              hoverEffects={false}
-              class="font-medium"
-            />
-            <!-- </CornerHighlight> -->
-          </Table.Cell>
+          <Table.Cell class="border">Employee</Table.Cell>
           {#each cols as date}
-            {#key assignments}
-              <Table.Cell class="border p-0">
-                {@const res = assignments.get(person)?.get(date)}
-                {@const shift = res?.shift}
-                {@const pref = res?.preference}
-                {@const type = res?.type}
-                {#if res && res.source instanceof AssignmentPattern}
-                  <CornerHighlight
-                    class="p-0"
-                    contentClass="p-1.5"
-                    cornerOpacity={pref === "required" ? 1 : 0}
-                    cornerSize="48px"
-                  >
-                    <LockIcon slot="corner" class="pb-0.5 pl-1 pr-0.5 pt-1 text-background" />
-                    <Button
-                      class="group h-12 w-full justify-between px-2 text-sm font-normal"
-                      variant="ghost"
-                      on:click={() => editPattern(res)}
-                    >
-                      <Profile
-                        item={mkDisplay(res)}
-                        variant="full"
-                        class="h-12 w-full text-sm font-normal"
-                        hoverEffects={false}
-                        showTooltip={false}
-                      />
-                      <RepeatIcon
-                        size={20}
-                        class="text-muted-foreground transition-all group-hover:text-primary"
-                      />
-                    </Button>
-                  </CornerHighlight>
-                {:else}
-                  {@const id = `${person.uuid}-${date.toString()}`}
-                  <CornerHighlight
-                    class="p-0"
-                    contentClass="p-1.5"
-                    cornerOpacity={pref === "required" ? 1 : 0}
-                    cornerSize={"48px"}
-                  >
-                    <LockIcon slot="corner" class="pb-0.5 pl-1 pr-0.5 pt-1 text-background" />
-                    <Combobox
-                      bind:open={comboboxesOpen[id]}
-                      value={res}
-                      closeOnSelect={false}
-                      onSelect={mkOnSelect(person, date)}
-                      options={mkOptions(date, $shifts)}
-                      display={mkDisplay}
-                      getId={mkId}
-                      class="h-12 w-full border-0 text-sm font-normal"
-                      placeholder="No Preference"
-                    >
-                      <div slot="footer" class="w-full">
-                        <Separator class="mb-3 mt-0.5" />
-                        <div class="flex w-full flex-col gap-2 px-3.5 pb-2">
-                          <div class="flex w-full items-center space-x-2">
-                            <Checkbox
-                              {id}
-                              checked={pref === "required"}
-                              onCheckedChange={(checked) => {
-                                oneOffAssignments.update((assignments) => {
-                                  const assignment = assignments.get(person, date);
-                                  if (assignment) {
-                                    assignment.preference = checked ? "required" : "preferred";
-                                    assignments.put(person, date, assignment);
-                                  }
-                                  return assignments;
-                                });
-                              }}
-                            />
-                            <Label
-                              for={id}
-                              class="font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              "Hard" assignment
-                            </Label>
-                          </div>
-                          {#if pref}
-                            <p class="text-sm font-normal text-muted-foreground">
-                              {person.name}
-                              {#if pref === "required"}
-                                {#if type === "DAY_OFF"}
-                                  cannot work
-                                {:else if shift}
-                                  must be assigned to {shift.name}
-                                  {shift.name.toLowerCase().endsWith("shift") ? "" : "Shift"}
-                                {/if}
-                              {:else if pref === "preferred"}
-                                {#if type === "DAY_OFF"}
-                                  would prefer to take a day off
-                                {:else if shift}
-                                  would prefer to work {shift.name}
-                                  {shift.name.toLowerCase().endsWith("shift") ? "" : "Shift"}
-                                {/if}
-                              {/if}
-                              on this day
-                            </p>
-                          {/if}
-                        </div>
-                      </div>
-                    </Combobox>
-                  </CornerHighlight>
-                {/if}
-              </Table.Cell>
-            {/key}
+            <Table.Cell class="border"
+              >{formatter.format(date.toDate(getLocalTimeZone()))}</Table.Cell
+            >
           {/each}
         </Table.Row>
-      {/each}
-    </Table.Body>
-  </Table.Root>
+      </Table.Header>
+      <Table.Body>
+        {#each filteredPeople as person}
+          <Table.Row>
+            <Table.Cell class="border p-0">
+              <!-- <CornerHighlight class="p-0" contentClass="p-1"> -->
+              <Profile
+                item={person}
+                group="assignments"
+                variant="full"
+                hoverEffects={false}
+                class="font-medium"
+              />
+              <!-- </CornerHighlight> -->
+            </Table.Cell>
+            {#each cols as date}
+              {#key assignments}
+                <Table.Cell class="border p-0">
+                  {@const res = assignments.get(person)?.get(date)}
+                  {@const shift = res?.shift}
+                  {@const pref = res?.preference}
+                  {@const type = res?.type}
+                  {#if res && res.source instanceof AssignmentPattern}
+                    <CornerHighlight
+                      class="p-0"
+                      contentClass="p-1.5"
+                      cornerOpacity={pref === "required" ? 1 : 0}
+                      cornerSize="48px"
+                    >
+                      <LockIcon slot="corner" class="pb-0.5 pl-1 pr-0.5 pt-1 text-background" />
+                      <Button
+                        class="group h-12 w-full justify-between px-2 text-sm font-normal"
+                        variant="ghost"
+                        on:click={() => editPattern(res)}
+                      >
+                        <Profile
+                          item={mkDisplay(res)}
+                          variant="full"
+                          class="h-12 w-full text-sm font-normal"
+                          hoverEffects={false}
+                          showTooltip={false}
+                        />
+                        <RepeatIcon
+                          size={20}
+                          class="text-muted-foreground transition-all group-hover:text-primary"
+                        />
+                      </Button>
+                    </CornerHighlight>
+                  {:else}
+                    {@const id = `${person.uuid}-${date.toString()}`}
+                    <CornerHighlight
+                      class="p-0"
+                      contentClass="p-1.5"
+                      cornerOpacity={pref === "required" ? 1 : 0}
+                      cornerSize={"48px"}
+                    >
+                      <LockIcon slot="corner" class="pb-0.5 pl-1 pr-0.5 pt-1 text-background" />
+                      <Combobox
+                        bind:open={comboboxesOpen[id]}
+                        value={res}
+                        closeOnSelect={false}
+                        onSelect={mkOnSelect(person, date)}
+                        options={mkOptions(date, $shifts)}
+                        display={mkDisplay}
+                        getId={mkId}
+                        class="h-12 w-full border-0 text-sm font-normal"
+                        placeholder="No Preference"
+                      >
+                        <div slot="footer" class="w-full">
+                          <Separator class="mb-3 mt-0.5" />
+                          <div class="flex w-full flex-col gap-2 px-3.5 pb-2">
+                            <div class="flex w-full items-center space-x-2">
+                              <Checkbox
+                                {id}
+                                checked={pref === "required"}
+                                onCheckedChange={(checked) => {
+                                  oneOffAssignments.update((assignments) => {
+                                    const assignment = assignments.get(person, date);
+                                    if (assignment) {
+                                      assignment.preference = checked ? "required" : "preferred";
+                                      assignments.put(person, date, assignment);
+                                    }
+                                    return assignments;
+                                  });
+                                }}
+                              />
+                              <Label
+                                for={id}
+                                class="font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                "Hard" assignment
+                              </Label>
+                            </div>
+                            {#if pref}
+                              <p class="text-sm font-normal text-muted-foreground">
+                                {person.name}
+                                {#if pref === "required"}
+                                  {#if type === "DAY_OFF"}
+                                    cannot work
+                                  {:else if shift}
+                                    must be assigned to {shift.name}
+                                    {shift.name.toLowerCase().endsWith("shift") ? "" : "Shift"}
+                                  {/if}
+                                {:else if pref === "preferred"}
+                                  {#if type === "DAY_OFF"}
+                                    would prefer to take a day off
+                                  {:else if shift}
+                                    would prefer to work {shift.name}
+                                    {shift.name.toLowerCase().endsWith("shift") ? "" : "Shift"}
+                                  {/if}
+                                {/if}
+                                on this day
+                              </p>
+                            {/if}
+                          </div>
+                        </div>
+                      </Combobox>
+                    </CornerHighlight>
+                  {/if}
+                </Table.Cell>
+              {/key}
+            {/each}
+          </Table.Row>
+        {/each}
+      </Table.Body>
+    </Table.Root>
+  {/if}
 </div>
 <EditDialog
   {state}
