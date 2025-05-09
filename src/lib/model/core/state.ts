@@ -66,6 +66,13 @@ export class State {
   }
 
   /**
+   * Reset settings to default values.
+   */
+  resetSettings(): void {
+    this.settings.set({ ...DefaultSettings });
+  }
+
+  /**
    * Clear all objects from the state.
    */
   clear(): void {

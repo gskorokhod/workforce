@@ -23,6 +23,7 @@ import { uuidsOf, type IdOr } from "./misc";
 import { ShiftOccurrence } from "./occurrence";
 import { subset, type State } from "./state";
 import type { Task } from "./task";
+import { getPlanningHorizon } from "./settings";
 
 export interface SimplePattern {
   start: Time;
@@ -278,10 +279,11 @@ export function toRecurrence(pattern: Recurrence | SimplePattern, state: State) 
   if (pattern instanceof Recurrence) {
     return pattern;
   } else {
-    const { planningHorizonEnd, planningHorizonStart } = _get(state.settings);
+    const settings = _get(state.settings);
+    const { start: startDate, end: endDate } = getPlanningHorizon(settings.planningHorizon);
     return Recurrence.daily({
-      startDate: planningHorizonStart,
-      endDate: planningHorizonEnd,
+      startDate: startDate,
+      endDate: endDate,
       start: pattern.start,
       end: pattern.end,
     });
