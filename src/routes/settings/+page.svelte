@@ -1,7 +1,8 @@
 <script lang="ts">
   import { DateRangePicker } from "$lib/components/date-picker";
-  import { Button } from "$lib/components/ui/button";
+  import { Button, buttonVariants } from "$lib/components/ui/button";
   import * as Card from "$lib/components/ui/card";
+  import * as Dialog from "$lib/components/ui/dialog";
   import Input from "$lib/components/ui/input/input.svelte";
   import { Label } from "$lib/components/ui/label";
   import * as RadioGroup from "$lib/components/ui/radio-group";
@@ -13,8 +14,9 @@
   import type { PlanningHorizonSetting } from "$lib/model/core/settings";
   import { fmtDate } from "$lib/model/temporal/utils";
   import { toCalendarDate } from "@internationalized/date";
-  import { RefreshCwIcon, RotateCcwIcon, TrashIcon } from "lucide-svelte";
+  import { FileDownIcon, FileUpIcon, RefreshCwIcon, RotateCcwIcon, TrashIcon } from "lucide-svelte";
   import { setMode, mode } from "mode-watcher";
+  import { downloadJSON } from "$lib/utils/misc";
 
   const settings = state.settings;
 
@@ -34,6 +36,9 @@
   ]);
 
   let planningHorizonMode = $settings.planningHorizon?.mode ?? "floating";
+  let importDialogOpen = false;
+  let importSettings = false;
+  let selectedFiles: FileList | null = null; // Add this line
 
   function setTheme(theme: string) {
     setMode(theme as "light" | "dark" | "system");
@@ -72,6 +77,37 @@
       };
       return s;
     });
+  }
+
+  function downloadState() {
+    const fileName = `${state.stateID}_${new Date().toISOString()}.json`;
+    downloadJSON(state.dump(true), fileName);
+  }
+
+  function handleFileChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      selectedFiles = input.files;
+    } else {
+      selectedFiles = null;
+    }
+  }
+
+  async function importState() {
+    if (!selectedFiles || selectedFiles.length === 0) {
+      console.error("No file selected");
+      return;
+    }
+    const file = selectedFiles[0];
+    try {
+      const fileContent = await file.text();
+      const jsonData = JSON.parse(fileContent);
+      state.load(jsonData, importSettings);
+      importDialogOpen = false;
+      location.reload();
+    } catch (error) {
+      console.error("Failed to import data:", error);
+    }
   }
 </script>
 
@@ -169,6 +205,65 @@
           {/key}
         </div>
       </RadioGroup.Root>
+    </Card.Content>
+  </Card.Root>
+
+  <Card.Root>
+    <Card.Header>
+      <Card.Title>Data</Card.Title>
+      <Card.Description>Save or import the data you have entered.</Card.Description>
+    </Card.Header>
+    <Card.Content class="flex flex-wrap gap-4">
+      <Button
+        variant="secondary"
+        on:click={() => {
+          downloadState();
+        }}
+      >
+        <FileDownIcon />
+        Export Data
+      </Button>
+      <Dialog.Root bind:open={importDialogOpen}>
+        <Dialog.Trigger class={buttonVariants({ variant: "default" })}>
+          <FileUpIcon /> Import Data...
+        </Dialog.Trigger>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title>Import Data</Dialog.Title>
+            <Dialog.Description>
+              Discard all current data and load new data from a file. This action cannot be undone.
+            </Dialog.Description>
+          </Dialog.Header>
+          <div class="mb-4 mt-4 flex flex-col gap-6">
+            <div class="flex flex-col gap-2">
+              <Label for="importFile">Select a JSON file to import</Label>
+              <Input type="file" accept=".json" id="importFile" on:change={handleFileChange} />
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="flex flex-row items-center gap-2">
+                <Switch
+                  id="importSettings"
+                  checked={importSettings}
+                  onCheckedChange={(val) => (importSettings = val)}
+                />
+                <Label for="importSettings">Import settings</Label>
+              </div>
+              <p class="h-10 text-sm text-muted-foreground">
+                {#if importSettings}
+                  Your current settings will be replaced with the settings from the file.
+                {:else}
+                  Only the data will be imported. Your current settings will remain unchanged.
+                {/if}
+              </p>
+            </div>
+          </div>
+
+          <Dialog.Footer>
+            <Button variant="secondary" on:click={() => (importDialogOpen = false)}>Cancel</Button>
+            <Button type="submit" on:click={importState}>Apply</Button>
+          </Dialog.Footer>
+        </Dialog.Content>
+      </Dialog.Root>
     </Card.Content>
   </Card.Root>
 

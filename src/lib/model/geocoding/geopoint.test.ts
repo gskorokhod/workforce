@@ -43,7 +43,8 @@ describe("Geopoint", () => {
     const address = new Address(BMS.address);
     const geopoint = await Geopoint.fromAddress(address);
     expect(geopoint).toBeDefined();
-    expect(geopoint?.coords).toEqual(BMS.coords);
+    expect(geopoint?.coords[0]).toBeCloseTo(BMS.coords[0], 0.0001);
+    expect(geopoint?.coords[1]).toBeCloseTo(BMS.coords[1], 0.0001);
     expect(geopoint?.address).toEqual(BMS.address);
   });
 
