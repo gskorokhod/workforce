@@ -13,6 +13,7 @@
   export let property: Property<T>;
   export let value: T | undefined | null;
   export let onChanged: (property: Property<T>, value: T) => void;
+  export let variant: "compact" | "full" | "text" | "default" = "full";
 
   function putInputValue(property: Property<unknown>, e: Event) {
     onChanged(
@@ -28,7 +29,7 @@
 {#if property instanceof SelectProperty}
   <!-- {@const val = properties.get(property) || undefined} -->
   <Selector
-    variant="full"
+    {variant}
     value={property.parse(value).data}
     options={property.options}
     onSelected={(v) => {
@@ -41,7 +42,7 @@
 {:else if property instanceof MultiSelectProperty}
   <!-- {@const val = properties.get(property) || []} -->
   <SelectorMany
-    variant="full"
+    {variant}
     value={property.parse(value).data}
     options={property.options}
     onChanged={(v) => {
