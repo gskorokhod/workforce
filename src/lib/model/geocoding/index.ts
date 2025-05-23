@@ -3,7 +3,7 @@ import { Address } from "./types/address";
 
 export type LngLat = [number, number];
 
-export function findBoundingBox(coords: LngLat[], padding = 0.01): [LngLat, LngLat] | undefined {
+export function findBoundingBox(coords: LngLat[], padding = 0.03): [LngLat, LngLat] | undefined {
   if (coords.length === 0) return undefined;
 
   let minLng = coords[0][0];

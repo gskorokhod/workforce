@@ -1,9 +1,8 @@
 import { type Display } from "$lib/ui";
 import { CalendarDate, parseDate } from "@internationalized/date";
-import { derived, type Readable } from "svelte/store";
+import { get as _get } from "svelte/store";
 import type { JsonObject } from "type-fest";
 import { z } from "zod";
-import type { Assignment } from "./assignment";
 import { type InitialValues } from "./property_values";
 import type { State } from "./state";
 import { WithProperties } from "./with-properties";
@@ -69,12 +68,6 @@ export class Person extends WithProperties {
       },
       this.state,
       this.uuid,
-    );
-  }
-
-  get rAssignments(): Readable<Assignment[]> {
-    return derived(this.state.assignments, (assignments) =>
-      assignments.filter((a) => a.person?.eq(this)),
     );
   }
 }

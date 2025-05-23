@@ -1,6 +1,5 @@
 <script lang="ts">
   import Chip from "$lib/components/chip/chip.svelte";
-  import type { ComboboxItem } from "$lib/components/combobox";
   import Combobox from "$lib/components/combobox/combobox.svelte";
   import PersonDataTable from "$lib/components/data-table/person-data-table.svelte";
   import ShiftDataTable from "$lib/components/data-table/shift-data-table.svelte";
@@ -34,7 +33,7 @@
   import { GraduationCapIcon, XIcon } from "lucide-svelte";
   import { v4 as uuid } from "uuid";
 
-  const schedules: ComboboxItem[] = [
+  const schedules = [
     { label: "Schedule 1", value: "schedule1" },
     { label: "Schedule 2", value: "schedule2" },
   ];
@@ -107,7 +106,7 @@
   ];
 </script>
 
-<div class="h-dvh w-full overflow-y-scroll bg-gray-50">
+<div class="h-dvh w-full overflow-y-scroll bg-background">
   <main class="flex w-full flex-col gap-6 pl-6 pt-4">
     <h1 class="text-2xl font-semibold">Components playground</h1>
     <section class="flex w-full flex-col gap-3">
@@ -133,11 +132,21 @@
       </Chip>
     </section>
     <section class="flex w-full flex-col gap-3">
-      <h2 class="text-xl">Combobox</h2>
+      <h2 class="text-xl">Combobox (plain)</h2>
       <Combobox
-        icon={Icon.fromString("lucide:calendar")}
+        display={(item) => (item?.label ? { name: item.label } : { name: "Not selected" })}
+        getId={(item) => item?.value}
         options={schedules}
         placeholder="Select schedule..."
+        class="w-[250px]"
+      />
+      <h2 class="text-xl">Combobox (icons)</h2>
+      <Combobox
+        display={(item) => item}
+        getId={(item) => item?.uuid}
+        options={$people}
+        placeholder="Select person..."
+        class="h-14 w-[280px]"
       />
     </section>
     <section class="flex w-full flex-col gap-3">
@@ -214,13 +223,13 @@
     </section>
     <section>
       <h2 class="mb-1.5 text-xl">Edit Dialog</h2>
-      <EditDialog item={$people[0]} title="Edit Person">
+      <EditDialog selected={$people[0]} title="Edit Person">
         <Button>Edit Person</Button>
       </EditDialog>
-      <EditDialog item={$properties[0]} title="Edit Property">
+      <EditDialog selected={$properties[0]} title="Edit Property">
         <Button>Edit Property</Button>
       </EditDialog>
-      <EditDialog item={$tasks[0]} title="Edit Task">
+      <EditDialog selected={$tasks[0]} title="Edit Task">
         <Button>Edit Task</Button>
       </EditDialog>
     </section>
@@ -235,7 +244,7 @@
     <section>
       <h2 class="mb-1.5 text-xl">Recurrence Editor</h2>
       <div class="flex w-max flex-col gap-6 rounded-lg bg-card p-6">
-        <RecurrenceOptionsEdit recurrence={$shifts[0].pattern.recurrenceOptions} />
+        <RecurrenceOptionsEdit recurrence={$shifts[0].recurrence.recurrenceOptions} />
       </div>
     </section>
     <section>
@@ -260,7 +269,7 @@
           {precision}
           {step}
           {showTime}
-          class="h-[600px] w-[350px] bg-white"
+          class="h-[600px] w-[350px]"
         >
           {#each events as event (event)}
             <TimeGridItem {tgContext} start={event.start} end={event.end}>

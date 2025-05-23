@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { CalendarDate, getLocalTimeZone, isSameMonth, Time } from "@internationalized/date";
+  import { CalendarDate, Time } from "@internationalized/date";
   import { ChevronLeft, ChevronRight } from "lucide-svelte";
   import { writable, type Writable } from "svelte/store";
   import Button from "../ui/button/button.svelte";
   import TimeGrid from "./time-grid.svelte";
   import type { CalendarContext, CalendarProps } from "./types";
+  import { fmtDateRange } from "$lib/model/temporal/utils";
 
   export let startDate: CalendarDate;
   export let endDate: CalendarDate;
@@ -57,26 +58,10 @@
     console.log(startDate, endDate);
   }
 
-  function displayRange(from: CalendarDate, to: CalendarDate) {
-    const head =
-      `${from.year}, ${from.toDate(getLocalTimeZone()).toLocaleDateString(navigator.language || "en", { month: "long" })} ` +
-      `${from.day}`.padStart(2, "0") +
-      " - ";
-    if (isSameMonth(from, to)) {
-      return head + `${to.day}`.padStart(2, "0");
-    } else {
-      return (
-        head +
-        `${to.toDate(getLocalTimeZone()).toLocaleDateString(navigator.language || "en", { month: "long" })} ` +
-        `${to.day}`.padStart(2, "0")
-      );
-    }
-  }
-
   export { className as class };
 </script>
 
-<div class="flex flex-col {className}" style="">
+<div class="flex flex-col {className}">
   <div class="z-20 flex flex-row items-center gap-4 p-2 shadow">
     <Button on:click={shiftLeft} size="icon" variant="ghost">
       <ChevronLeft />
@@ -85,7 +70,7 @@
       <ChevronRight />
     </Button>
     <h2 class="text-lg font-semibold text-primary">
-      {displayRange(startDate, endDate)}
+      {fmtDateRange(startDate, endDate)}
     </h2>
   </div>
   <div class="flex h-full w-full flex-col overflow-y-scroll">
@@ -101,9 +86,9 @@
         hLineWidth={line}
         showTime={true}
         vLineWidth="0px"
-        class="w-14 bg-secondary"
+        class="w-14 bg-accent"
       >
-        <div class="bg-secondary" style="grid-row: 1; grid-column: 1 / span all" />
+        <div class="bg-accent" style="grid-row: 1; grid-column: 1 / span all" />
       </TimeGrid>
       <slot {context} />
     </div>

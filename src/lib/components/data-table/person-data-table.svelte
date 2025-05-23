@@ -13,6 +13,7 @@
   import PropertyValue from "../property/property-value.svelte";
   import { type ColumnInitializer, DataTableCore } from "./core";
   import { ColumnHideSelector, TableHeader } from "./lib";
+  import DeleteDialog from "./lib/delete-dialog.svelte";
 
   export let data: ReadOrWritable<Person[]>;
   export let showHeader = true;
@@ -25,9 +26,10 @@
   let flatColumns: FlatColumn<Person, any, string>[]; // eslint-disable-line @typescript-eslint/no-explicit-any
   let className = "";
   let selected: Person | undefined = undefined;
+  let alertOpen = false;
   let dialogOpen = false;
   let dialogTitle = "Edit Person";
-  const dobFormatter = new Intl.DateTimeFormat("en-GB", {
+  const dobFormatter = new Intl.DateTimeFormat(navigator.language || "en", {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -70,11 +72,16 @@
     });
   }
 
-  let actions = new Map([
-    ...rowActions,
-    ["Edit", (item: Person) => rowClick(item)],
-    ["Delete", (item: Person) => item.delete()],
-  ]);
+  let actions = new Map([...rowActions, ["Edit", rowClick], ["Delete", rowDelete]]);
+
+  function rowDelete(item: Person) {
+    if (_get(state.settings).askDeleteConfirmation) {
+      selected = item;
+      alertOpen = true;
+    } else {
+      item.delete();
+    }
+  }
 
   function rowClick(item: Person) {
     dialogTitle = "Edit Person";
@@ -127,7 +134,9 @@
     {columnInitializers}
     {data}
     {actions}
+    header={showHeader}
     defaultAction={rowClick}
   />
 </div>
-<EditDialog item={selected} bind:open={dialogOpen} title={dialogTitle} />
+<EditDialog {selected} bind:open={dialogOpen} title={dialogTitle} />
+<DeleteDialog {selected} bind:open={alertOpen} />

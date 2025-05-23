@@ -19,7 +19,7 @@ export class WithProperties extends Displayable {
   // Can't import State due to circular dependency. Using any until I figure out a better way.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(props: WithPropertiesProps, state: any, uuid?: string) {
-    console.log("WithProperties constructor", props);
+    // console.log("WithProperties constructor", props);
     super(props, state, uuid);
     this.template = props.template;
     this.properties = _get(state.templates as Writable<Templates>)[props.template].copy();
@@ -30,7 +30,7 @@ export class WithProperties extends Displayable {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static fromJSON(json: JsonObject, state: any): WithProperties {
-    console.log("WithProperties fromJSON");
+    // console.log("WithProperties fromJSON");
     return new WithProperties(
       {
         ...super.fromJSON(json, state),
@@ -48,7 +48,7 @@ export class WithProperties extends Displayable {
   }
 
   toJSON(): JsonObject {
-    console.log("WithProperties toJSON");
+    // console.log("WithProperties toJSON");
     return {
       ...super.toJSON(),
       template: this.template,

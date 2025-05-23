@@ -5,7 +5,7 @@
   import IconElement from "$lib/components/icon/icon.svelte";
   import { Icon, type Display } from "$lib/ui";
   import { misc } from "$lib/utils";
-  import { PFP_HEIGHT, PFP_WIDTH, type Size } from ".";
+  import { DEFAULT_COLOR, PFP_HEIGHT, PFP_WIDTH, type Size } from ".";
 
   let item: T | undefined = undefined;
   let size: Size = "md";
@@ -28,20 +28,40 @@
       <Avatar.Fallback>{misc.getInitials(item.name)}</Avatar.Fallback>
     </Avatar.Root>
   {:else if item.icon}
-    <Chip {size} color={item.icon.color} variant="default" class="my-0.5 {className}">
+    <Chip
+      {size}
+      color={item.icon.color ?? DEFAULT_COLOR}
+      variant="default"
+      class="my-0.5 {className}"
+    >
       <IconElement slot="icon" icon={item.icon} />
     </Chip>
   {:else if defaultIcon}
-    <Chip {size} color={defaultIcon.color} variant="default" class="my-0.5 {className}">
+    <Chip
+      {size}
+      color={defaultIcon.color ?? DEFAULT_COLOR}
+      variant="default"
+      class="my-0.5 {className}"
+    >
       <IconElement slot="icon" icon={defaultIcon} />
     </Chip>
   {/if}
 {:else if emptyIcon}
-  <Chip {size} color={emptyIcon.color} variant="default" class="my-0.5 {className}">
+  <Chip
+    {size}
+    color={emptyIcon.color ?? DEFAULT_COLOR}
+    variant="outline"
+    class="my-0.5 {className}"
+  >
     <IconElement slot="icon" icon={emptyIcon} />
   </Chip>
 {:else if defaultIcon}
-  <Chip {size} color={defaultIcon.color} variant="default" class="my-0.5 {className}">
+  <Chip
+    {size}
+    color={defaultIcon.color ?? DEFAULT_COLOR}
+    variant="outline"
+    class="my-0.5 {className}"
+  >
     <IconElement slot="icon" icon={defaultIcon} />
   </Chip>
 {/if}

@@ -2,7 +2,7 @@
   import { state as GLOBAL_STATE, Shift, State, Task } from "$lib/model";
   import type { Display } from "$lib/ui";
   import { capitalize } from "$lib/utils/misc";
-  import { DateFormatter, getLocalTimeZone, Time } from "@internationalized/date";
+  import { Time } from "@internationalized/date";
   import { PlusIcon } from "lucide-svelte";
   import { createRender, FlatColumn, type ReadOrWritable } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
@@ -13,19 +13,9 @@
   import { Search } from "$lib/components/search";
   import { type ColumnInitializer, DataTableCore } from "./core";
   import { ColumnHideSelector, TableHeader } from "./lib";
-  import { get } from "svelte/store";
-
-  const timeFormatter = new DateFormatter(navigator.language || "en", {
-    timeZone: getLocalTimeZone(),
-    timeStyle: "short",
-    dateStyle: undefined,
-  });
-
-  const dateFormatter = new DateFormatter(navigator.language || "en", {
-    timeZone: getLocalTimeZone(),
-    timeStyle: undefined,
-    dateStyle: "long",
-  });
+  import { get as _get } from "svelte/store";
+  import DeleteDialog from "./lib/delete-dialog.svelte";
+  import { formattedDuration } from "$lib/model/temporal/utils";
 
   let data: ReadOrWritable<Shift[]>;
   let header = true;
@@ -38,6 +28,7 @@
   let className = "";
 
   let selected: Shift | undefined = undefined;
+  let alertOpen = false;
   let dialogOpen = false;
   let dialogTitle = "Edit Person";
   let columnInitializers: ColumnInitializer<Shift>[] = [
@@ -61,29 +52,34 @@
       id: "name",
     },
     {
-      accessor: (row: Shift) => timeFormatter.format(row.pattern.dtStart.toDate()),
+      accessor: (row: Shift) => row.fmtStartTime(),
       header: "Start Time",
-      id: "timestart",
+      id: "timeStart",
     },
     {
-      accessor: (row: Shift) => `${row.pattern.formattedDuration()} hours`,
-      header: "Duration",
-      id: "duration",
+      accessor: (row: Shift) => row.fmtEndTime(),
+      header: "End Time",
+      id: "timeEnd",
+    },
+    // {
+    //   accessor: (row: Shift) => `${formattedDuration(row.duration)}`,
+    //   header: "Actual Duration",
+    //   id: "actualDuration",
+    // },
+    {
+      accessor: (row: Shift) => `${formattedDuration(row.paidDuration)}`,
+      header: "Contracted Duration",
+      id: "contractedDuration",
     },
     {
-      accessor: (row: Shift) => dateFormatter.format(row.pattern.dtStart.toDate()),
-      header: "Start Date",
-      id: "datestart",
-    },
-    {
-      accessor: (row: Shift) => capitalize(row.pattern.toText()),
+      accessor: (row: Shift) => capitalize(row.describePattern()),
       header: "Recurrence",
       id: "recurrence",
     },
   ];
 
   const settings = state.settings;
-  if (get(settings).assignmentMode === "granular") {
+  if (_get(settings).assignmentMode === "granular") {
     columnInitializers.push({
       accessor: (row: Shift) => Array.from(row.tasks.values()),
       cell: (cell) => createRender(ProfilesList, { items: cell.value, placeholder: "No Tasks" }),
@@ -100,11 +96,16 @@
     });
   }
 
-  let actions = new Map([
-    ...rowActions,
-    ["Edit", (item: Shift) => rowClick(item)],
-    ["Delete", (item: Shift) => item.delete()],
-  ]);
+  let actions = new Map([...rowActions, ["Edit", rowClick], ["Delete", rowDelete]]);
+
+  function rowDelete(item: Shift) {
+    if (_get(state.settings).askDeleteConfirmation) {
+      selected = item;
+      alertOpen = true;
+    } else {
+      item.delete();
+    }
+  }
 
   function rowClick(item: Shift) {
     dialogTitle = "Edit Shift";
@@ -158,7 +159,9 @@
     {columnInitializers}
     {data}
     {actions}
+    {header}
     defaultAction={rowClick}
   />
 </div>
-<EditDialog item={selected} bind:open={dialogOpen} title={dialogTitle} />
+<EditDialog {selected} bind:open={dialogOpen} title={dialogTitle} />
+<DeleteDialog {selected} bind:open={alertOpen} />

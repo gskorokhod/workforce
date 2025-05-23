@@ -5,6 +5,7 @@
   import { misc } from "$lib/utils";
   import {
     CalendarRangeIcon,
+    CalendarClockIcon,
     ClipboardListIcon,
     CodeXmlIcon,
     HomeIcon,
@@ -59,11 +60,22 @@
     <li class="w-full">
       <Button
         class="transition-all duration-300 {isExpanded ? 'w-full justify-start' : ''}"
+        href="{base}/assignments/"
+        size={isExpanded ? "xl" : "icon-xl"}
+        variant={isActive("/assignments/") ? "default" : "ghost"}
+      >
+        <CalendarRangeIcon class="min-w-8" />
+        <span class="overflow-hidden {isExpanded ? 'w-auto' : 'hidden w-0'}">Assignments</span>
+      </Button>
+    </li>
+    <li class="w-full">
+      <Button
+        class="transition-all duration-300 {isExpanded ? 'w-full justify-start' : ''}"
         href="{base}/shifts/"
         size={isExpanded ? "xl" : "icon-xl"}
         variant={isActive("/shifts/") ? "default" : "ghost"}
       >
-        <CalendarRangeIcon class="min-w-8" />
+        <CalendarClockIcon class="min-w-8" />
         <span class="overflow-hidden {isExpanded ? 'w-auto' : 'hidden w-0'}">Shifts</span>
       </Button>
     </li>

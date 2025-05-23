@@ -22,3 +22,7 @@ vite.config.ts.timestamp-*
 
 .idea
 test-results/.last-run.json
+
+coverage
+junit.xml
+.last-run.json

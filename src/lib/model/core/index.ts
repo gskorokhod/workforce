@@ -1,4 +1,4 @@
-import { Assignment } from "./assignment";
+import { type Assignment, Assignments, AssignmentPattern } from "./assignment";
 import { Base } from "./base";
 import { Location } from "./location";
 import { Person } from "./person";
@@ -8,9 +8,11 @@ import { Shift } from "./shift";
 import { State } from "./state";
 import { Task } from "./task";
 import { WithProperties } from "./with-properties";
+import type { Templates } from "./templates";
 
 export {
-  Assignment,
+  Assignments,
+  AssignmentPattern,
   Base,
   Location,
   Person,
@@ -19,5 +21,7 @@ export {
   State,
   Task,
   WithProperties,
+  type Assignment,
   type Settings,
+  type Templates,
 };

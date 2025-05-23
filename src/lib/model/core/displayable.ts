@@ -23,7 +23,7 @@ export class Displayable extends Base implements Display {
 
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
   static fromJSON(json: JsonObject, state: any): Displayable {
-    console.log("Displayable fromJSON");
+    // console.log("Displayable fromJSON");
     return new Displayable(
       {
         ...displayFromJSON(json),
@@ -34,7 +34,6 @@ export class Displayable extends Base implements Display {
   }
 
   toJSON(): JsonObject {
-    console.log("Displayable toJSON");
     return {
       ...super.toJSON(),
       ...displayToJSON(this),

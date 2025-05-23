@@ -131,7 +131,7 @@
       {group}
       {onClick}
       hoverEffects={false}
-      class={itemClass}
+      class="{className} {itemClass}"
     />
   </slot>
 {/if}

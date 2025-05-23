@@ -6,7 +6,7 @@
   import { Search } from "$lib/components/search";
   import { Button } from "$lib/components/ui/button";
   import type { ASelectProperty, SelectOption } from "$lib/model/core/property";
-  import type { Display } from "$lib/ui";
+  import { type Display, Icon } from "$lib/ui";
   import { PlusIcon } from "lucide-svelte";
   import { createRender, FlatColumn } from "svelte-headless-table";
   import { createSortKeysStore, type WritableSortKeys } from "svelte-headless-table/plugins";
@@ -27,7 +27,11 @@
   let columnInitializers: ColumnInitializer<SelectOption>[] = [
     {
       accessor: (row) => row as Display,
-      cell: (cell) => createRender(ProfilePicture, { item: cell.value }),
+      cell: (cell) =>
+        createRender(ProfilePicture, {
+          item: cell.value,
+          defaultIcon: Icon.fromString("lucide:tag"),
+        }),
       header: "Picture",
       id: "picture",
       plugins: {
@@ -117,7 +121,7 @@
   </div>
 </div>
 <EditDialog
-  item={selected}
+  {selected}
   bind:open={dialogOpen}
   title={dialogTitle}
   onSubmit={(opt) => putOption(opt)}

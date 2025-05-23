@@ -5,7 +5,7 @@
   import { Base } from "$lib/model/core";
   import EditForm from "./edit-form.svelte";
 
-  export let item: T | undefined;
+  export let selected: T | undefined;
   export let title = "Edit";
   export let open = false;
   export let state = GLOBAL_STATE;
@@ -13,9 +13,9 @@
   export let onOpenChange: (open: boolean) => void = () => {};
 
   function handleSubmit() {
-    if (item) {
-      if (item instanceof Base) item.push();
-      onSubmit(item);
+    if (selected) {
+      if (selected instanceof Base) selected.push();
+      onSubmit(selected);
     }
     open = false;
   }
@@ -32,11 +32,12 @@
         Click save to apply changes. Press ESC or close the dialog to cancel.
       </Dialog.Description>
     </Dialog.Header>
-    {#if item}
-      <EditForm bind:item {state}>
+    {#if selected}
+      <EditForm bind:item={selected} {state}>
         <slot name="options" />
       </EditForm>
-      <Dialog.Footer>
+      <Dialog.Footer class="mt-4">
+        <slot name="actions" />
         <Button on:click={handleSubmit} type="submit">Save changes</Button>
       </Dialog.Footer>
     {:else}

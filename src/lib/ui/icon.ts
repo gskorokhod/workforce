@@ -55,8 +55,16 @@ export class Icon implements Copy<Icon> {
     };
   }
 
-  with(props: { color?: Color; icon?: IconName }): Icon {
-    return new Icon(props.icon || this.icon, props.color || this.color);
+  with(props: { color?: Color | string | null; icon?: IconName }): Icon {
+    let clr = undefined;
+    if (props.color !== null) {
+      if (props.color) {
+        clr = new Color(props.color);
+      } else {
+        clr = this.color;
+      }
+    }
+    return new Icon(props.icon || this.icon, clr);
   }
 
   copy(): Icon {

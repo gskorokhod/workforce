@@ -22,7 +22,7 @@
   bind:value
   bind:placeholder
   {weekdayFormat}
-  class={cn("p-3", className)}
+  class={cn("p-3 disabled:pointer-events-none disabled:cursor-not-allowed", className)}
   {...$$restProps}
   on:keydown
   let:months

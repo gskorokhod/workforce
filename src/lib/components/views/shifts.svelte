@@ -19,6 +19,7 @@
   export let endDate: CalendarDate = startDate.add({ days: 7 });
   export let startTime: Time = new Time(0, 0);
   export let endTime: Time = new Time(23, 59);
+  let className = "";
 
   const shifts: Writable<Shift[]> = GLOBAL_STATE.shifts;
 
@@ -28,6 +29,8 @@
     const color = shift.icon?.color ?? new Color("#62748E");
     return color.lighten(0.3).hex();
   }
+
+  export { className as class };
 </script>
 
 <EventCalendar
@@ -36,7 +39,7 @@
   bind:endDate
   bind:startTime
   bind:endTime
-  class="h-dvh w-full"
+  class="h-dvh w-full {className}"
 >
   {#each days as day}
     <DayColumn let:tgContext {context} {day}>

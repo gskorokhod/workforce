@@ -1,6 +1,7 @@
 import {
   CalendarDate,
   CalendarDateTime,
+  getDayOfWeek,
   isSameDay,
   isSameMonth,
   isSameYear,
@@ -12,9 +13,11 @@ import {
   toTimeZone,
   toZoned,
   ZonedDateTime,
+  getLocalTimeZone,
   type DateTimeDuration,
   type DateValue,
   type TimeDuration,
+  today,
 } from "@internationalized/date";
 
 import { datetime } from "rrule";
@@ -97,6 +100,26 @@ export function dtDurationBetween(a: DateValue, b: DateValue) {
     seconds,
     milliseconds: millis,
   };
+}
+
+/**
+ * Get index of day that the week starts on for a given locale.
+ */
+export function weekStartsOn(
+  lang = navigator.language || "en",
+  tzid = getLocalTimeZone(),
+): 0 | 1 | 2 | 3 | 4 | 5 | 6 {
+  const wkStart = getWeekStart(today(tzid), lang).toDate(tzid);
+  return wkStart.getDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+}
+
+/**
+ * Get the start of the week for a given date.
+ */
+export function getWeekStart<T extends DateValue>(date: T, lang = navigator.language || "en"): T {
+  return date.subtract({
+    days: getDayOfWeek(date, lang),
+  }) as T;
 }
 
 /**
@@ -287,7 +310,10 @@ export function toMinutes(dur: TimeDuration | Time): number {
  */
 export function timeDurationBetween<T extends DateValue | Time>(a: T, b: T): TimeDuration {
   if (a instanceof Time && b instanceof Time) {
-    const mins = Math.abs(toMinutes(b as Time) - toMinutes(a as Time));
+    let mins = toMinutes(b as Time) - toMinutes(a as Time);
+    if (mins < 0) {
+      mins += 24 * 60;
+    }
     const [hours, minutes] = divMod(mins, 60);
     return { hours, minutes, seconds: 0, milliseconds: 0 };
   }
@@ -346,6 +372,72 @@ export function timeComponent(time: WithTime | undefined | null): Time {
   return new Time(time.hours, time.minutes, time.seconds, time.milliseconds);
 }
 
+export function fmtDate(
+  date: CalendarDate,
+  options: Intl.DateTimeFormatOptions = {},
+  lang = navigator.language || "en",
+  tzid = getLocalTimeZone(),
+): string {
+  return date.toDate(tzid).toLocaleDateString(lang, {
+    year: "numeric",
+    month: "long",
+    day: "2-digit",
+    ...options,
+  });
+}
+
+export function fmtDateRange(
+  from: DateValue | undefined | null,
+  to: DateValue | undefined | null,
+  options: Intl.DateTimeFormatOptions = {},
+  lang = navigator.language || "en",
+  tzid = getLocalTimeZone(),
+) {
+  if (!from && !to) return "";
+
+  const head = from
+    ? `${from.year}, ${from.toDate(tzid).toLocaleDateString(lang, { month: "long", ...options })} ` +
+      `${from.day}`.padStart(2, "0") +
+      " - "
+    : "until ";
+
+  if (from && to && isSameMonth(from, to)) return head + `${to.day}`.padStart(2, "0");
+
+  if (to)
+    return (
+      head +
+      `${to.toDate(tzid).toLocaleDateString(lang, { month: "long", ...options })} ` +
+      `${to.day}`.padStart(2, "0")
+    );
+
+  return "after " + head;
+}
+
+/**
+ * Format an interval of time as a string.
+ * @param interval Interval in the form {start?: Time, end?: Time}
+ * @param options Intl.DateTimeFormatOptions overrides
+ * @param locale Locale to use. Defaults to the user's preferred languages, or "en" as a fallback.
+ * @returns Formatted interval string
+ */
+export function fmtInterval(
+  interval: { start: Time | undefined | null; end: Time | undefined | null },
+  options: Intl.DateTimeFormatOptions = {},
+  locale = navigator.language || "en",
+) {
+  const { start, end } = interval;
+  let ans = `from ${fmtTime(start, options, locale)} to ${fmtTime(end, options, locale)}`;
+  if (start && end) {
+    const cmp = cmpTime(start, end);
+    if (cmp === 0) {
+      ans = fmtTime(start, options, locale);
+    } else if (cmp > 0) {
+      ans += " (overnight)";
+    }
+  }
+  return ans;
+}
+
 /**
  * Format a Time object as a string.
  * @param time Time object to format
@@ -356,18 +448,28 @@ export function timeComponent(time: WithTime | undefined | null): Time {
 export function fmtTime(
   time: WithTime | undefined | null,
   options: Intl.DateTimeFormatOptions = {},
-  locale = navigator.languages || "en",
+  locale = navigator.language || "en",
 ): string {
   const tc = timeComponent(time);
   const dt = new Date();
   dt.setHours(tc.hour);
   dt.setMinutes(tc.minute);
-
+  console.log(locale);
   return dt.toLocaleTimeString(locale, {
     hour: "numeric",
     minute: "numeric",
     ...options,
   });
+}
+
+export function htmlTime(time: WithTime | undefined | null): string {
+  return fmtTime(
+    time,
+    {
+      hour12: false,
+    },
+    "en",
+  );
 }
 
 /**
@@ -512,4 +614,11 @@ export function getClash(a: Event, b: Event): Event | null {
   }
 
   return { start, end };
+}
+
+export function formattedDuration(duration: TimeDuration | undefined): string {
+  if (!duration) return "All day";
+  const fmtHours = (duration.hours || 0).toString().padStart(2, "0");
+  const fmtMinutes = (duration.minutes || 0).toString().padStart(2, "0");
+  return `${fmtHours}h ${fmtMinutes}m`;
 }

@@ -27,6 +27,7 @@
   } from "svelte-headless-table/plugins";
   import type { ColumnInitializer, RowActions } from ".";
 
+  let header = false;
   let data: ReadOrWritable<T[]>;
   let actions: RowActions<T> = new Map();
   let defaultAction: (item: T) => void = () => {};
@@ -101,86 +102,85 @@
     hideForId,
     selectedDataIds,
     sortKeys,
+    header,
   };
 </script>
 
-<div class={className}>
-  <div class="rounded-md border">
-    <Table.Root {...$tableAttrs}>
-      <Table.Header>
-        {#each $headerRows as headerRow (headerRow.id)}
-          <Subscribe let:rowAttrs rowAttrs={headerRow.attrs()}>
-            <Table.Row {...rowAttrs}>
-              {#each headerRow.cells as cell (cell.id)}
-                <Subscribe attrs={cell.attrs()} let:attrs let:props props={cell.props()}>
-                  <Table.Head {...attrs} class={cn("text-sm", "[&:has([role=checkbox])]:pl-3")}>
-                    {#if props.sort.disabled}
-                      <Render of={cell.render()} />
-                    {:else}
-                      <Button on:click={props.sort.toggle} size="sm" variant="ghost">
-                        <Render of={cell.render()} />
-                        {#if props.sort.order === "asc"}
-                          <ArrowUp
-                            class={cn(
-                              $sortKeys[0]?.id === cell.id && "text-foreground",
-                              "ml-2 h-4 w-4",
-                            )}
-                          />
-                        {:else if props.sort.order === "desc"}
-                          <ArrowDown
-                            class={cn(
-                              $sortKeys[0]?.id === cell.id && "text-foreground",
-                              "ml-2 h-4 w-4",
-                            )}
-                          />
-                        {:else}
-                          <ArrowUpDown
-                            class={cn(
-                              $sortKeys[0]?.id === cell.id && "text-foreground",
-                              "ml-2 h-4 w-4",
-                            )}
-                          />
-                        {/if}
-                      </Button>
-                    {/if}
-                  </Table.Head>
-                </Subscribe>
-              {/each}
-            </Table.Row>
-          </Subscribe>
-        {/each}
-      </Table.Header>
-      <Table.Body {...$tableBodyAttrs}>
-        {#each $pageRows as row (row.id)}
-          <Subscribe let:rowAttrs rowAttrs={row.attrs()}>
-            <Table.Row {...rowAttrs} on:click={(e) => handleRowClick(e, row)}>
-              {#each row.cells as cell (cell.id)}
-                <Subscribe attrs={cell.attrs()} let:attrs props={cell.props()}>
-                  <Table.Cell class="[&:has([role=checkbox])]:pl-3" {...attrs}>
+<div class="border bg-background {header ? 'rounded-b-md' : 'rounded-md'} {className}">
+  <Table.Root {...$tableAttrs}>
+    <Table.Header>
+      {#each $headerRows as headerRow (headerRow.id)}
+        <Subscribe let:rowAttrs rowAttrs={headerRow.attrs()}>
+          <Table.Row {...rowAttrs}>
+            {#each headerRow.cells as cell (cell.id)}
+              <Subscribe attrs={cell.attrs()} let:attrs let:props props={cell.props()}>
+                <Table.Head {...attrs} class={cn("text-sm", "[&:has([role=checkbox])]:pl-3")}>
+                  {#if props.sort.disabled}
                     <Render of={cell.render()} />
-                  </Table.Cell>
-                </Subscribe>
-              {/each}
-            </Table.Row>
-          </Subscribe>
-        {/each}
-      </Table.Body>
-    </Table.Root>
-  </div>
-  <div class="flex items-center justify-end space-x-4 py-4">
-    <Button
-      disabled={!$hasPreviousPage}
-      on:click={() => ($pageIndex = $pageIndex - 1)}
-      size="sm"
-      variant="outline"
-      >Previous
-    </Button>
-    <Button
-      disabled={!$hasNextPage}
-      on:click={() => ($pageIndex = $pageIndex + 1)}
-      size="sm"
-      variant="outline"
-      >Next
-    </Button>
-  </div>
+                  {:else}
+                    <Button on:click={props.sort.toggle} size="sm" variant="ghost">
+                      <Render of={cell.render()} />
+                      {#if props.sort.order === "asc"}
+                        <ArrowUp
+                          class={cn(
+                            $sortKeys[0]?.id === cell.id && "text-foreground",
+                            "ml-2 h-4 w-4",
+                          )}
+                        />
+                      {:else if props.sort.order === "desc"}
+                        <ArrowDown
+                          class={cn(
+                            $sortKeys[0]?.id === cell.id && "text-foreground",
+                            "ml-2 h-4 w-4",
+                          )}
+                        />
+                      {:else}
+                        <ArrowUpDown
+                          class={cn(
+                            $sortKeys[0]?.id === cell.id && "text-foreground",
+                            "ml-2 h-4 w-4",
+                          )}
+                        />
+                      {/if}
+                    </Button>
+                  {/if}
+                </Table.Head>
+              </Subscribe>
+            {/each}
+          </Table.Row>
+        </Subscribe>
+      {/each}
+    </Table.Header>
+    <Table.Body {...$tableBodyAttrs}>
+      {#each $pageRows as row (row.id)}
+        <Subscribe let:rowAttrs rowAttrs={row.attrs()}>
+          <Table.Row {...rowAttrs} on:click={(e) => handleRowClick(e, row)}>
+            {#each row.cells as cell (cell.id)}
+              <Subscribe attrs={cell.attrs()} let:attrs props={cell.props()}>
+                <Table.Cell class="[&:has([role=checkbox])]:pl-3" {...attrs}>
+                  <Render of={cell.render()} />
+                </Table.Cell>
+              </Subscribe>
+            {/each}
+          </Table.Row>
+        </Subscribe>
+      {/each}
+    </Table.Body>
+  </Table.Root>
+</div>
+<div class="flex w-full items-center justify-end space-x-4 px-4 pt-4">
+  <Button
+    disabled={!$hasPreviousPage}
+    on:click={() => ($pageIndex = $pageIndex - 1)}
+    size="sm"
+    variant="outline"
+    >Previous
+  </Button>
+  <Button
+    disabled={!$hasNextPage}
+    on:click={() => ($pageIndex = $pageIndex + 1)}
+    size="sm"
+    variant="outline"
+    >Next
+  </Button>
 </div>

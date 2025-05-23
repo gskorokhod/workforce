@@ -1,32 +1,269 @@
-import { Icon, type Display } from "$lib/ui";
-import { CalendarDate, isSameDay, parseDate } from "@internationalized/date";
-import { type Writable, writable, get as _get, type Readable, derived } from "svelte/store";
-import type { JsonObject } from "type-fest";
-import { Person } from "./person";
+import { CalendarDate, parseDate, type DateValue } from "@internationalized/date";
 import { Shift } from "./shift";
-import { State, subsetOne } from "./state";
-import { z } from "zod";
-import { Displayable } from "./displayable";
+import { Person } from "./person";
+import type { JsonArray, JsonObject } from "type-fest";
 import { uuidOf, type IdOr } from "./misc";
+import { derived, get as _get, type Writable } from "svelte/store";
+import { z } from "zod";
+import type { State } from "./state";
+import { Base } from "./base";
+import { HashMap } from "$lib/utils";
+import { Recurrence } from "../temporal";
 
-const assignmentType = z.enum(["simple", "granular", "day_off"]);
-export type AssignmentType = z.infer<typeof assignmentType>;
+// ---- Assignment type ----
 
-interface AssignmentProps extends Partial<Display> {
-  person: IdOr<Person>;
+export type Assignment = {
+  person: Person;
   date: CalendarDate;
+  preference: AssignmentPreference;
+} & (
+  | {
+      type: "DAY_OFF";
+      shift?: never;
+      reason?: string;
+    }
+  | {
+      type: "SHIFT";
+      shift: Shift;
+      reason?: string;
+    }
+);
+
+// ---- Map of one-off Assignments ----
+
+export class Assignments {
+  protected _state: State;
+  data = new Map<string, HashMap<CalendarDate, AssignmentEntry>>();
+
+  constructor(state: State, assignments?: Iterable<Assignment | RawAssignment>) {
+    this._state = state;
+    if (assignments) {
+      for (const assignment of assignments) {
+        this.put(assignment.person, assignment.date, assignment as AssignmentEntry);
+      }
+    }
+  }
+
+  static fromJSON(json: unknown, state: State): Assignments {
+    const res: RawAssignment[] = z.array(assignmentSchema).parse(json);
+    return new Assignments(state, res);
+  }
+
+  toJSON(): JsonArray {
+    const ans = [];
+    for (const [person, assignments] of this.data.entries()) {
+      for (const [date, entry] of assignments.entries()) {
+        ans.push(
+          assignmentJSON({
+            ...entry,
+            person,
+            date,
+          }),
+        );
+      }
+    }
+    return ans;
+  }
+
+  put(person: IdOr<Person>, date: CalendarDate, entry: AssignmentEntry) {
+    // console.log("put", person, date, to);
+    const personId = uuidOf(person);
+    if (!this.data.has(personId)) {
+      this.data.set(personId, new HashMap());
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.data.get(personId)!.set(date, entry);
+  }
+
+  delete(person: IdOr<Person>, date: CalendarDate) {
+    const personId = uuidOf(person);
+    if (!this.data.has(personId)) {
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.data.get(personId)!.delete(date);
+  }
+
+  clear() {
+    this.data.clear();
+  }
+
+  get(aPerson: IdOr<Person>, date: CalendarDate): Assignment | undefined {
+    const res = this.data.get(uuidOf(aPerson))?.get(date);
+    if (!res) {
+      return undefined;
+    }
+
+    const person = _get(this._state._people).get(uuidOf(aPerson));
+    if (!person) {
+      return undefined;
+    }
+
+    const shift = res.shift ? _get(this._state._shifts).get(uuidOf(res.shift)) : undefined;
+    return {
+      ...res,
+      person,
+      date,
+      shift,
+    } as Assignment;
+  }
+
+  getFor(aPerson: IdOr<Person>): HashMap<CalendarDate, Assignment> {
+    const res = new HashMap<CalendarDate, Assignment>();
+    const person = _get(this._state._people).get(uuidOf(aPerson));
+    if (!person) {
+      return res;
+    }
+
+    for (const [date, to] of this.data.get(uuidOf(aPerson)) || new HashMap()) {
+      const shift = to.shift ? _get(this._state._shifts).get(uuidOf(to.shift)) : undefined;
+      res.set(date, {
+        ...to,
+        person,
+        date,
+        shift,
+      } as Assignment);
+    }
+    return res;
+  }
+
+  get byDate(): HashMap<CalendarDate, Assignment[]> {
+    const map = new HashMap<CalendarDate, Assignment[]>();
+    for (const [personID, dates] of this.data) {
+      for (const [date, to] of dates) {
+        const person = _get(this._state._people).get(personID);
+        if (!person) {
+          continue;
+        }
+
+        if (!map.has(date)) {
+          map.set(date, []);
+        }
+
+        const shift = to.shift ? _get(this._state._shifts).get(uuidOf(to.shift)) : undefined;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        map.get(date)!.push({
+          ...to,
+          person,
+          date,
+          shift,
+        } as Assignment);
+      }
+    }
+    return map;
+  }
+
+  get entries(): Assignment[] {
+    return _get(this.rEntries);
+  }
+
+  get rEntries(): Writable<Assignment[]> {
+    const readable = derived([this._state._people, this._state._shifts], ([people, shifts]) => {
+      const ans: Assignment[] = [];
+      for (const [personID, dates] of this.data) {
+        for (const [date, entry] of dates) {
+          const person = people.get(personID);
+          if (!person) {
+            continue;
+          }
+
+          switch (entry.type) {
+            case "DAY_OFF": {
+              ans.push({
+                ...entry,
+                person,
+                date,
+              });
+              break;
+            }
+            case "SHIFT": {
+              const shift = shifts.get(uuidOf(entry.shift));
+              if (!shift) {
+                continue;
+              }
+              ans.push({
+                ...entry,
+                person,
+                date,
+                shift,
+              });
+              break;
+            }
+          }
+        }
+      }
+      return ans;
+    });
+
+    const set = (entries: Assignment[]) => {
+      this.data.clear();
+      for (const entry of entries) {
+        this._state.put(entry.person);
+        if (entry.shift) {
+          this._state.put(entry.shift);
+        }
+        this.put(entry.person, entry.date, entry);
+      }
+    };
+
+    const update = (updater: (entries: Assignment[]) => Assignment[]) => {
+      set(updater(_get(readable)));
+    };
+
+    return {
+      subscribe: readable.subscribe,
+      set,
+      update,
+    };
+  }
 }
 
-export abstract class Assignment extends Displayable {
-  abstract readonly type: AssignmentType;
-  date: CalendarDate;
-  protected _person_uuid: Writable<string>;
+// ---- Assignment Pattern ----
 
-  constructor(props: AssignmentProps, state: State, uuid?: string) {
-    super(
+export interface AssignmentPatternProps {
+  pattern: Recurrence;
+  person: IdOr<Person>;
+  params: AssignmentEntry;
+}
+
+export class AssignmentPattern extends Base {
+  pattern: Recurrence;
+  _person: string;
+  params: AssignmentEntry;
+
+  constructor(props: AssignmentPatternProps, state: State, uuid?: string) {
+    super(state, uuid);
+    this.pattern = props.pattern;
+    this._person = uuidOf(props.person);
+    this.params = props.params;
+  }
+
+  static fromJSON(json: JsonObject, state: State): AssignmentPattern {
+    return new AssignmentPattern(
       {
-        name: "Assignment",
-        ...props,
+        pattern: Recurrence.fromJSON(json.pattern),
+        person: z.string().parse(json.person),
+        params: assignmentEntrySchema.parse(json.params),
+      },
+      state,
+    );
+  }
+
+  toJSON(): JsonObject {
+    return {
+      ...super.toJSON(),
+      pattern: this.pattern.toJSON(),
+      person: this._person,
+      params: assignmentEntryJSON(this.params),
+    };
+  }
+
+  copy(): AssignmentPattern {
+    return new AssignmentPattern(
+      {
+        params: { ...this.params },
+        pattern: this.pattern.copy(),
+        person: this._person,
       },
       state,
       uuid,
@@ -35,163 +272,170 @@ export abstract class Assignment extends Displayable {
     this.date = props.date;
   }
 
-  static rGetOn(state: State, date: CalendarDate): Readable<Assignment[]> {
-    return derived(state.assignments, (assignments) => {
-      assignments.filter((a) => isSameDay(a.date, date));
-    });
-  }
-
-  static rGetForPerson(state: State, person: Person): Readable<Assignment[]> {
-    return derived(state.assignments, (assignments) => {
-      assignments.filter((a) => a.person?.eq(person));
-    });
-  }
-
-  static fromJSON(json: JsonObject, state: State): Assignment {
-    const type = assignmentType.parse(json.type);
-    switch (type) {
-      case "simple":
-        return SimpleAssignment.fromJSON(json, state);
-      case "day_off":
-        return DayOff.fromJSON(json, state);
-      case "granular":
-        throw new Error("TODO: Granular assignments are not yet supported");
+  expand(after?: DateValue, before?: DateValue, inclusive = true, limit = -1): Assignments {
+    const ans = new Assignments(this.state);
+    const occurrences = this.pattern.occurrences(after, before, inclusive, limit);
+    for (const occurrence of occurrences) {
+      for (const date of occurrence.getDates()) {
+        ans.put(this._person, date, this.params);
+      }
     }
+    return ans;
   }
 
-  static propsFromJSON(json: JsonObject, state: State): AssignmentProps {
-    return {
-      ...super.fromJSON(json, state),
-      person: z.string().parse(json.person),
-      date: z.string().transform(parseDate).parse(json.date),
-    };
-  }
-
-  toJSON(): JsonObject {
-    return {
-      ...super.toJSON(),
-      type: this.type,
-      person: _get(this._person_uuid),
-      date: this.date.toString(),
-    };
-  }
-
-  copy(): Assignment {
-    return Assignment.fromJSON(this.toJSON(), this.state);
-  }
-
-  get person(): Person | undefined {
-    return _get(this.rPerson);
-  }
-
-  set person(person: Person) {
-    this.rPerson.set(person);
-  }
-
-  get rPerson(): Writable<Person | undefined> {
-    return subsetOne(this.state._people, this._person_uuid);
-  }
-}
-
-export class DayOff extends Assignment {
-  type: AssignmentType = "day_off";
-
-  constructor(props: AssignmentProps, state: State, uuid?: string) {
-    const person = _get(state._people).get(uuidOf(props.person));
-    super(
-      {
-        name: "Day Off",
-        description: `${person?.name || "This person"} is taking a day off on this date`,
-        icon: Icon.fromString("lucide:calendar-off", "red"),
-        ...props,
-      },
-      state,
-      uuid,
-    );
-  }
-
-  static rGetOn(state: State, date: CalendarDate): Readable<DayOff[]> {
-    return derived(state.assignments, (assignments) => {
-      assignments.filter((a) => a instanceof DayOff && isSameDay(a.date, date));
-    });
-  }
-
-  static rGetForPerson(state: State, person: Person): Readable<DayOff[]> {
-    return derived(state.assignments, (assignments) => {
-      assignments.filter((a) => a instanceof DayOff && a.person?.eq(person));
-    });
-  }
-
-  static fromJSON(json: JsonObject, state: State): DayOff {
-    return new DayOff(
-      {
-        ...Assignment.propsFromJSON(json, state),
-      },
-      state,
-      z.optional(z.string()).parse(json.uuid),
-    );
-  }
-}
-
-export interface SimpleAssignmentProps extends AssignmentProps {
-  shift: IdOr<Shift>;
-}
-
-export class SimpleAssignment extends Assignment {
-  type: AssignmentType = "simple";
-  private _shift_uuid: Writable<string>;
-
-  constructor(props: SimpleAssignmentProps, state: State, uuid?: string) {
-    const shift = _get(state._shifts).get(uuidOf(props.shift));
-    super(
-      {
-        ...shift,
-        ...props,
-      },
-      state,
-      uuid,
-    );
-    this._shift_uuid = writable(uuidOf(props.shift));
-  }
-
-  static rGetOn(state: State, date: CalendarDate): Readable<SimpleAssignment[]> {
-    return derived(state.assignments, (assignments) => {
-      assignments.filter((a) => a instanceof SimpleAssignment && isSameDay(a.date, date));
-    });
-  }
-
-  static rGetForPerson(state: State, person: Person): Readable<SimpleAssignment[]> {
-    return derived(state.assignments, (assignments) => {
-      assignments.filter((a) => a instanceof SimpleAssignment && a.person?.eq(person));
-    });
-  }
-
-  static rGetForShift(state: State, shift: Shift): Readable<SimpleAssignment[]> {
-    return derived(state.assignments, (assignments) => {
-      assignments.filter((a) => a instanceof SimpleAssignment && a.shift?.eq(shift));
-    });
-  }
-
-  static fromJSON(json: JsonObject, state: State): SimpleAssignment {
-    return new SimpleAssignment(
-      {
-        ...Assignment.propsFromJSON(json, state),
-        shift: z.string().parse(json.shift),
-      },
-      state,
-      z.optional(z.string()).parse(json.uuid),
-    );
-  }
-
-  set shift(shift: Shift) {
-    this.rShift.set(shift);
+  set shift(shift: Shift | undefined) {
+    this.params.shift = shift ? uuidOf(shift) : undefined;
   }
 
   get shift(): Shift | undefined {
-    return _get(this.rShift);
+    const uuid = this.params.shift ? uuidOf(this.params.shift) : undefined;
+    if (uuid) {
+      return _get(this.state._shifts).get(uuid);
+    }
+    return undefined;
   }
 
-  get rShift(): Writable<Shift | undefined> {
-    return subsetOne(this.state._shifts, this._shift_uuid);
+  set person(person: Person | undefined) {
+    if (person) {
+      this._person = uuidOf(person);
+    }
+  }
+
+  get person(): Person | undefined {
+    return _get(this.state._people).get(this._person);
   }
 }
+
+// ---- Resolving Assignments ----
+
+export type ResolvedAssignment = Assignment & {
+  source: Assignments | AssignmentPattern;
+};
+
+export function resolveAssignments(
+  oneOff: Assignments,
+  patterns: AssignmentPattern[],
+  after?: DateValue,
+  before?: DateValue,
+  inclusive = true,
+  limit = -1,
+): HashMap<Person, HashMap<CalendarDate, ResolvedAssignment>> {
+  const ans = new HashMap<Person, HashMap<CalendarDate, ResolvedAssignment>>();
+
+  for (const entry of oneOff.entries) {
+    const { person, date } = entry;
+    if (!ans.has(person)) {
+      ans.set(person, new HashMap<CalendarDate, ResolvedAssignment>());
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    ans.get(person)!.set(date, {
+      ...entry,
+      source: oneOff,
+    });
+  }
+
+  for (const pattern of patterns) {
+    for (const entry of pattern.expand(after, before, inclusive, limit).entries) {
+      const { person, date } = entry;
+      if (!ans.has(person)) {
+        ans.set(person, new HashMap<CalendarDate, ResolvedAssignment>());
+      }
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      ans.get(person)!.set(date, {
+        ...entry,
+        source: pattern,
+      });
+    }
+  }
+
+  return ans;
+}
+
+// ---- Shorthands for constructing AssignmentEntry ----
+
+export function toShift(
+  shift: IdOr<Shift>,
+  preference: AssignmentPreference = "preferred",
+): AssignmentEntry {
+  return {
+    type: "SHIFT",
+    shift,
+    preference,
+  };
+}
+
+export function dayOff(
+  preference: AssignmentPreference = "preferred",
+  reason?: string,
+): AssignmentEntry {
+  return {
+    type: "DAY_OFF",
+    preference,
+    reason,
+  };
+}
+
+// ---- Serialization ----
+
+export function assignmentsSerializer(state: State) {
+  return {
+    stringify: (assignments: Assignments) => JSON.stringify(assignments.toJSON()),
+    parse: (json: string) => Assignments.fromJSON(JSON.parse(json), state),
+  };
+}
+
+function assignmentEntryJSON(entry: AssignmentEntry): JsonObject {
+  return {
+    type: entry.type,
+    preference: entry.preference,
+    shift: entry.shift ? uuidOf(entry.shift) : null,
+    reason: entry.reason || null,
+  };
+}
+
+export function assignmentJSON(assignment: Assignment | RawAssignment): JsonObject {
+  return {
+    person: uuidOf(assignment.person),
+    date: assignment.date.toString(),
+    ...assignmentEntryJSON(assignment),
+  };
+}
+
+// ---- Zod Schemas ----
+
+export type AssignmentEntry = z.infer<typeof assignmentEntrySchema>;
+export type AssignmentPreference = z.infer<typeof preferenceSchema>;
+type RawAssignment = z.infer<typeof assignmentSchema>;
+
+const preferenceSchema = z.enum(["preferred", "required"]);
+
+const assignmentEntrySchema = z
+  .object({
+    preference: preferenceSchema,
+    reason: z
+      .string()
+      .nullish()
+      .transform((x) => x ?? undefined),
+  })
+  .and(
+    z.discriminatedUnion("type", [
+      z.object({
+        type: z.literal("DAY_OFF"),
+        shift: z
+          .never()
+          .nullish()
+          .transform((x) => x ?? undefined),
+      }),
+      z.object({
+        type: z.literal("SHIFT"),
+        shift: z.string().or(z.any().refine((val) => val instanceof Shift)),
+      }),
+    ]),
+  );
+
+const assignmentSchema = z
+  .object({
+    person: z.string().or(z.any().refine((val) => val instanceof Person)),
+    date: z.string().transform(parseDate),
+  })
+  .and(assignmentEntrySchema);

@@ -1,6 +1,8 @@
 import { type Display, displaySchema } from "$lib/ui";
+import { getLocalTimeZone, today, CalendarDate } from "@internationalized/date";
 import type { HasUUID } from "$lib/utils/misc";
 import type { JsonObject } from "type-fest";
+import { getWeekStart } from "../temporal/utils";
 
 export type IdOr<T extends HasUUID> = T | string;
 
@@ -23,4 +25,12 @@ export function displayToJSON(display: Display): JsonObject {
 
 export function displayFromJSON(json: JsonObject): Display {
   return displaySchema.parse(json);
+}
+
+export function dToday(): CalendarDate {
+  return today(getLocalTimeZone());
+}
+
+export function thisWeekStart(): CalendarDate {
+  return getWeekStart(dToday());
 }

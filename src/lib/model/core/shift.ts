@@ -1,24 +1,31 @@
 import { Recurrence } from "$lib/model/temporal";
-import { timeDurationSchema } from "$lib/model/temporal/utils";
+import {
+  cmpTime,
+  fmtTime,
+  timeDurationBetween,
+  timeDurationSchema,
+} from "$lib/model/temporal/utils";
 import { type Display } from "$lib/ui";
 import {
   CalendarDate,
-  isSameDay,
+  parseTime,
   Time,
+  toTime,
   type DateValue,
   type TimeDuration,
 } from "@internationalized/date";
 import { get as _get, derived, writable, type Readable, type Writable } from "svelte/store";
-import type { JsonObject } from "type-fest";
+import type { JsonObject, JsonValue } from "type-fest";
 import { z } from "zod";
-import { Assignment, SimpleAssignment } from "./assignment";
+import { type Assignment } from "./assignment";
 import { Displayable } from "./displayable";
 import { uuidsOf, type IdOr } from "./misc";
 import { ShiftOccurrence } from "./occurrence";
 import { subset, type State } from "./state";
 import type { Task } from "./task";
+import { getPlanningHorizon } from "./settings";
 
-interface SimplePattern {
+export interface SimplePattern {
   start: Time;
   end: Time;
 }
@@ -41,7 +48,7 @@ interface ShiftProps extends Display {
  * Represents a shift that a person can work.
  */
 export class Shift extends Displayable {
-  pattern: Recurrence;
+  rPattern: Writable<Recurrence | SimplePattern>;
   private _paidDuration?: TimeDuration;
   private _task_uuids: Writable<string[]>;
 
@@ -56,18 +63,7 @@ export class Shift extends Displayable {
 
     this._task_uuids = writable(uuidsOf(props.tasks || []));
     this._paidDuration = props.paidDuration;
-
-    if (props.pattern instanceof Recurrence) {
-      this.pattern = props.pattern;
-    } else {
-      const { planningHorizonEnd, planningHorizonStart } = _get(state.settings);
-      this.pattern = Recurrence.daily({
-        startDate: planningHorizonStart,
-        endDate: planningHorizonEnd,
-        start: props.pattern.start,
-        end: props.pattern.end,
-      });
-    }
+    this.rPattern = writable(props.pattern);
   }
 
   /**
@@ -80,7 +76,7 @@ export class Shift extends Displayable {
     return new Shift(
       {
         ...super.fromJSON(json, state),
-        pattern: Recurrence.fromJSON(json.pattern),
+        pattern: patternFromJSON(json.pattern),
         tasks: z
           .array(z.string())
           .nullish()
@@ -103,7 +99,7 @@ export class Shift extends Displayable {
   toJSON(): JsonObject {
     return {
       ...super.toJSON(),
-      pattern: this.pattern.toJSON(),
+      pattern: patternJSON(_get(this.rPattern)),
       tasks: _get(this._task_uuids),
       paidDuration: this._paidDuration ? (this._paidDuration as JsonObject) : null,
     };
@@ -117,7 +113,7 @@ export class Shift extends Displayable {
     return new Shift(
       {
         ...super.copy(),
-        pattern: this.pattern.copy(),
+        pattern: patternCopy(_get(this.rPattern)),
         tasks: _get(this._task_uuids),
         paidDuration: this._paidDuration,
       },
@@ -134,7 +130,7 @@ export class Shift extends Displayable {
    * @see {@link Recurrence.occurrence}
    */
   occurrence(n = 0): ShiftOccurrence | undefined {
-    const occurrence = this.pattern.occurrence(n);
+    const occurrence = this.recurrence.occurrence(n);
     if (occurrence) {
       const { start, end } = occurrence;
       return new ShiftOccurrence(start, end, this.copy());
@@ -150,8 +146,13 @@ export class Shift extends Displayable {
    * @see {@link Recurrence.occurrencesOn}
    */
   occurrencesOn(date: DateValue): ShiftOccurrence[] {
-    const occurrences = this.pattern.occurrencesOn(date);
+    const occurrences = this.recurrence.occurrencesOn(date);
     return occurrences.map(({ start, end }) => new ShiftOccurrence(start, end, this.copy()));
+  }
+
+  occursOn(date: DateValue): boolean {
+    const occurrences = this.recurrence.occurrencesOn(date);
+    return occurrences.length > 0;
   }
 
   /**
@@ -171,8 +172,29 @@ export class Shift extends Displayable {
     inclusive = true,
     limit = -1,
   ): ShiftOccurrence[] {
-    const occurrences = this.pattern.occurrences(after, before, inclusive, limit);
+    const occurrences = this.recurrence.occurrences(after, before, inclusive, limit);
     return occurrences.map(({ start, end }) => new ShiftOccurrence(start, end, this.copy()));
+  }
+
+  /**
+   * Get all assignments for this shift.
+   * @param on Optional date to filter assignments by.
+   * @returns Readable store of assignments.
+   */
+  rAssignments(on?: CalendarDate): Readable<Assignment[]> {
+    return derived(this.state.assignments, (assignments) => {
+      let data = [];
+      if (on) {
+        data = assignments.byDate.get(on) || [];
+      } else {
+        data = assignments.entries;
+      }
+      return data.filter((assignment) => assignment.shift && assignment.shift.eq(this));
+    });
+  }
+
+  assignments(on?: CalendarDate): Assignment[] {
+    return _get(this.rAssignments(on));
   }
 
   get tasks(): Task[] {
@@ -187,18 +209,137 @@ export class Shift extends Displayable {
     return subset(this.state._tasks, this._task_uuids);
   }
 
-  rAssignments(on?: CalendarDate): Readable<Assignment[]> {
-    return derived(this.state.assignments, (assignments) =>
-      assignments.filter((a) => {
-        if (on && !isSameDay(a.date, on)) {
-          return false;
+  get duration(): TimeDuration {
+    const pattern = _get(this.rPattern);
+    if (pattern instanceof Recurrence) {
+      return (
+        pattern.duration || {
+          hours: 23,
+          minutes: 59,
         }
-        if (a instanceof SimpleAssignment) {
-          return a.shift?.eq(this);
-        }
-        // TODO: Implement complex assignments
-        return false;
-      }),
-    );
+      );
+    } else {
+      return timeDurationBetween(pattern.start, pattern.end);
+    }
+  }
+
+  get paidDuration(): TimeDuration {
+    return this._paidDuration || this.duration;
+  }
+
+  set paidDuration(duration: TimeDuration) {
+    this._paidDuration = duration;
+  }
+
+  get recurrence(): Recurrence {
+    return toRecurrence(_get(this.rPattern), this.state);
+  }
+
+  get startTime(): Time {
+    const pattern = _get(this.rPattern);
+    if (pattern instanceof Recurrence) {
+      return toTime(pattern.dtStart);
+    } else {
+      return pattern.start;
+    }
+  }
+
+  get endTime(): Time {
+    const pattern = _get(this.rPattern);
+    if (pattern instanceof Recurrence) {
+      return toTime(pattern.dtStart.add(this.duration));
+    } else {
+      return pattern.end;
+    }
+  }
+
+  fmtEndTime(): string {
+    let ans = fmtTime(this.endTime);
+    if (cmpTime(this.startTime, this.endTime) > 0) {
+      ans += " (overnight)";
+    }
+    return ans;
+  }
+
+  fmtStartTime(): string {
+    return fmtTime(this.recurrence.dtStart);
+  }
+
+  describePattern(): string {
+    const pattern = _get(this.rPattern);
+    if (pattern instanceof Recurrence) {
+      return pattern.toText();
+    } else {
+      return "every day";
+    }
+  }
+}
+
+export function toRecurrence(pattern: Recurrence | SimplePattern, state: State) {
+  if (pattern instanceof Recurrence) {
+    return pattern;
+  } else {
+    const settings = _get(state.settings);
+    const { start: startDate, end: endDate } = getPlanningHorizon(settings.planningHorizon);
+    return Recurrence.daily({
+      startDate: startDate,
+      endDate: endDate,
+      start: pattern.start,
+      end: pattern.end,
+    });
+  }
+}
+
+export function toSimplePattern(pattern: Recurrence | SimplePattern) {
+  if (pattern instanceof Recurrence) {
+    const start = toTime(pattern.dtStart);
+    const end = pattern.duration ? toTime(pattern.dtStart.add(pattern.duration)) : new Time(23, 59);
+    return { start, end };
+  } else {
+    return pattern;
+  }
+}
+
+function patternCopy(pattern: Recurrence | SimplePattern): Recurrence | SimplePattern {
+  if (pattern instanceof Recurrence) {
+    return pattern.copy();
+  } else {
+    return { ...pattern };
+  }
+}
+
+function patternJSON(pattern: Recurrence | SimplePattern): JsonObject {
+  if (pattern instanceof Recurrence) {
+    return {
+      ...pattern.toJSON(),
+      type: "recurrence",
+    };
+  } else {
+    return {
+      start: pattern.start.toString(),
+      end: pattern.end.toString(),
+      type: "simple",
+    };
+  }
+}
+
+function patternFromJSON(json: JsonValue): Recurrence | SimplePattern {
+  if (typeof json !== "object" || json === null) {
+    throw new Error("Invalid JSON");
+  }
+  json = json as JsonObject;
+  if (json.type === "recurrence") {
+    return Recurrence.fromJSON(json);
+  } else {
+    return {
+      start: z
+        .string()
+        .transform((s) => parseTime(s))
+        .parse(json.start),
+      end: z
+        .string()
+        .transform((s) => parseTime(s))
+        .parse(json.end),
+    };
   }
 }
