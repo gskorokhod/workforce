@@ -39,7 +39,7 @@ export abstract class Property<T> extends Displayable {
 
   /**
    * Create a concrete Property instance from JSON data.
-   * @warning This method must NEVER be called by subclasses (e.g. via `super` to avoid infinite recursion).
+   * @warning This method must NEVER be called by subclasses (e.g. via `super`) to avoid infinite recursion.
               It is meant as a "factory" that calls their respective deserialisation methods instead.
    * @param json JSON data
    * @param state State to bind the Property instance to.
